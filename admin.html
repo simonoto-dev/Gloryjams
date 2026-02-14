@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GJ Admin">
+<meta name="theme-color" content="#0a0a0a">
+<title>Glory Jams — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#141414; --surface2:#1a1a1a; --border:#2a2a2a;
+  --accent:#ff6b35; --accent-glow:rgba(255,107,53,0.15); --accent-dim:#7a3518;
+  --green:#5bff7b; --red:#ff5b5b; --blue:#60a5fa; --purple:#c77bff; --yellow:#fbbf24;
+  --text:#e8e8e8; --muted:#888;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.5;}
+input,textarea,select,button{font-family:inherit;font-size:inherit;}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-top:var(--safe-top);}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;flex-shrink:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:8px;margin-right:auto;}
+.logo-icon{font-size:18px;}
+.logo-name{font-family:'DM Serif Display',Georgia,serif;font-size:16px;font-weight:700;color:var(--accent);}
+.logo-sub{color:var(--muted);font-size:10px;font-weight:500;}
+.header-logout{background:transparent;border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--muted);font-size:10px;cursor:pointer;margin-left:8px;}
+.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:var(--safe-bottom);z-index:100;overflow-x:auto;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:8px;font-weight:500;transition:color 0.2s;min-width:0;white-space:nowrap;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn .nav-icon{font-size:18px;line-height:1;}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.pad{padding:16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.card-accent{border-top:3px solid var(--accent);}
+.section-title{font-family:'DM Serif Display',Georgia,serif;font-size:20px;margin:0 0 4px;}
+.section-sub{color:var(--muted);font-size:12px;margin:0 0 16px;}
+.label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:6px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;}
+.badge-green{background:rgba(91,255,123,0.15);color:var(--green);}
+.badge-red{background:rgba(255,91,91,0.15);color:var(--red);}
+.badge-yellow{background:rgba(251,191,36,0.15);color:var(--yellow);}
+.badge-blue{background:rgba(96,165,250,0.15);color:var(--blue);}
+.badge-purple{background:rgba(199,123,255,0.15);color:var(--purple);}
+.badge-accent{background:var(--accent-glow);color:var(--accent);}
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 16px;font-weight:600;font-size:13px;cursor:pointer;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;}
+.btn-red{background:rgba(255,91,91,0.15);color:var(--red);border:1px solid rgba(255,91,91,0.3);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;}
+.input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);outline:none;font-size:14px;}
+.input:focus{border-color:var(--accent);}
+textarea.input{resize:vertical;min-height:60px;}
+select.input{appearance:auto;}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.stat-label{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;}
+.stat-value{font-family:'DM Serif Display',Georgia,serif;font-size:24px;font-weight:700;color:var(--text);margin:2px 0;}
+.stat-sub{color:var(--muted);font-size:11px;}
+.form-group{margin-bottom:12px;}
+.form-group label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.3px;font-weight:600;margin-bottom:4px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.item-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s;}
+.item-card:hover{border-color:var(--accent);}
+.item-name{font-weight:600;font-size:14px;}
+.item-meta{color:var(--muted);font-size:12px;margin-top:2px;}
+.genre-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-right:4px;margin-top:4px;}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--border);cursor:pointer;position:relative;transition:background 0.2s;display:inline-block;vertical-align:middle;}
+.toggle.active{background:var(--green);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left 0.2s;}
+.toggle.active::after{left:20px;}
+.empty{text-align:center;padding:40px;color:var(--muted);}
+.empty-icon{font-size:32px;margin-bottom:8px;}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr);}}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+<div id="auth-gate" style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0a0a;">
+<div style="text-align:center;padding:40px;">
+<div style="font-size:48px;margin-bottom:12px;">🎷</div>
+<div style="font-family:'DM Serif Display',Georgia,serif;font-size:26px;color:#ff6b35;margin-bottom:4px;">Glory Jams</div>
+<div style="color:#888;font-size:12px;margin-bottom:24px;">Admin Dashboard</div>
+<input id="auth-pw" type="password" placeholder="Admin password" style="width:240px;padding:10px 16px;border-radius:10px;border:1px solid #2a2a2a;background:#141414;color:#e8e8e8;font-size:14px;text-align:center;outline:none;" onkeydown="if(event.key==='Enter')checkAuth()">
+<br><button onclick="checkAuth()" style="margin-top:12px;padding:8px 32px;border-radius:10px;border:none;background:#ff6b35;color:#000;font-weight:600;font-size:14px;cursor:pointer;">Enter</button>
+<div id="auth-err" style="color:#ff5b5b;font-size:12px;margin-top:10px;display:none;">Incorrect password</div>
+</div>
+</div>
+<div class="app" id="app" style="display:none;"></div>
+<script>
+/* ===== SEED DATA (for migration) ===== */
+const SEED_JAMS = [
+{id:'1',name:'Jazz Jam at Bird and Beckett',venue_name:'Bird & Beckett Books and Records',venue_address:'653 Chenery St, San Francisco, CA 94131',city:'Glen Park',region:'sf',day_of_week:'Sunday',time_start:'5:30 PM',time_end:'8:00 PM',frequency:'Weekly',genre:['jazz'],signup_process:'sign-up list',description:'Long-running jazz jam in a beloved bookstore. Intimate setting with a dedicated community of players.',vibe:'Welcoming & intimate',what_to_expect:'Arrive a bit early to put your name on the list.',active:true},
+{id:'2',name:'Tuesday Blues Jam at Biscuits and Blues',venue_name:'Biscuits and Blues',venue_address:'401 Mason St, San Francisco, CA 94102',city:'Union Square',region:'sf',day_of_week:'Tuesday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['blues'],signup_process:'sign-up list',description:"Classic blues jam in one of SF's legendary blues clubs.",vibe:'Classic blues club energy',what_to_expect:'Sign up when you arrive.',active:true},
+{id:'3',name:"Yo Mama's Jazz Jam",venue_name:"Yo Mama's",venue_address:'3629 Lakeshore Ave, Oakland, CA 94610',city:'Oakland',region:'east_bay',day_of_week:'Thursday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['jazz'],signup_process:'hosted/called up',description:'Vibey Oakland jazz jam.',vibe:'Vibey & social',what_to_expect:'Introduce yourself.',active:true},
+{id:'4',name:'The Jam at Revolution Cafe',venue_name:'Revolution Cafe',venue_address:'3248 22nd St, San Francisco, CA 94110',city:'Mission',region:'sf',day_of_week:'Monday',time_start:'8:00 PM',time_end:'10:00 PM',frequency:'Weekly',genre:['jazz','open'],signup_process:'first come first served',description:'Low-key jam in the Mission.',vibe:'Low-key & casual',what_to_expect:'Just show up.',active:true},
+{id:'5',name:"Funk Jam at Eli's Mile High Club",venue_name:"Eli's Mile High Club",venue_address:'3629 Martin Luther King Jr Way, Oakland, CA 94609',city:'Oakland',region:'east_bay',day_of_week:'Saturday',time_start:'9:00 PM',time_end:null,frequency:'Monthly',genre:['funk','soul'],signup_process:'first come first served',description:"Funk and soul jam at one of Oakland's most historic venues.",vibe:'High-energy & groovy',what_to_expect:'Bring your funk chops.',active:true},
+{id:'6',name:'Full Moon Funk & Soul Jam',venue_name:'The New Parish',venue_address:'1743 San Pablo Ave, Oakland, CA 94612',city:'Oakland',region:'east_bay',date:'2026-03-03',time_start:'8:00 PM',time_end:'11:30 PM',frequency:'One-off',genre:['funk','soul','r&b'],signup_process:'first come first served',description:'Special full moon jam session.',vibe:'Electric & communal',what_to_expect:'Get there early.',partiful_url:null,active:true},
+{id:'7',name:'Bay Area Jazz Collective Meetup',venue_name:"Yoshi's Oakland",venue_address:'510 Embarcadero W, Oakland, CA 94607',city:'Jack London',region:'east_bay',date:'2026-03-14',time_start:'7:00 PM',time_end:'10:00 PM',frequency:'One-off',genre:['jazz'],signup_process:'sign-up list',description:'A one-night gathering of Bay Area jazz musicians.',vibe:'Curated & special',what_to_expect:'Sign up via Partiful.',partiful_url:null,active:true}
+];
+
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const REGIONS = [{value:'sf',label:'SF'},{value:'east_bay',label:'East Bay'},{value:'south_bay',label:'South Bay'},{value:'north_bay_marin',label:'North Bay & Marin'}];
+const GENRES = ['jazz','blues','funk','soul','latin','r&b','rock','open'];
+const INSTRUMENTS = ['Guitar','Bass','Drums','Keys/Piano','Saxophone','Trumpet','Trombone','Vocals','Violin/Fiddle','Flute','Harmonica','Percussion','Other'];
+
+/* ===== FIREBASE ===== */
+const firebaseConfig={apiKey:"AIzaSyAV5EYZAJ0IFy9qQ4ljWBqvk_pk6vhuxZg",authDomain:"glory-jams.firebaseapp.com",databaseURL:"https://glory-jams-default-rtdb.firebaseio.com",projectId:"glory-jams",storageBucket:"glory-jams.firebasestorage.app",messagingSenderId:"949960497662",appId:"1:949960497662:web:51efaa36e307204ab108af"};
+firebase.initializeApp(firebaseConfig);
+firebase.auth().signInAnonymously().catch(e=>console.warn("Anon auth failed",e));
+const db=firebase.database();
+
+function waitForAuth(){
+  return new Promise(resolve=>{
+    const unsub=firebase.auth().onAuthStateChanged(user=>{if(user){unsub();resolve(user);}});
+    setTimeout(()=>{unsub();resolve(null);},5000);
+  });
+}
+
+function toArray(val){
+  if(Array.isArray(val))return val;
+  if(val&&typeof val==='object')return Object.values(val);
+  return[];
+}
+
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+/* ===== AUTH ===== */
+const AUTH_KEY = 'gloryjams-admin-auth';
+const ADMIN_HASH = '4dd07950';
+function simpleHash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h).toString(16).slice(0,8);}
+
+function checkAuth(){
+  if(simpleHash(document.getElementById('auth-pw').value)===ADMIN_HASH){
+    sessionStorage.setItem(AUTH_KEY,'1');
+    showApp();
+  } else {
+    document.getElementById('auth-err').style.display='block';
+  }
+}
+
+async function showApp(){
+  document.getElementById('auth-gate').style.display='none';
+  document.getElementById('app').style.display='flex';
+  await waitForAuth();
+  await loadAllData();
+  setupRealtimeSync();
+  render();
+}
+
+function logout(){
+  sessionStorage.removeItem(AUTH_KEY);
+  document.getElementById('auth-gate').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-pw').value='';
+  document.getElementById('auth-err').style.display='none';
+}
+
+(async function(){if(sessionStorage.getItem(AUTH_KEY)==='1')await showApp();})();
+
+/* ===== STATE ===== */
+let currentTab=0;
+let jams={};       // {id: jamObj}
+let checkins={};   // {jamId: {key: checkinObj}}
+let profiles={};   // {key: profileObj}
+let subscribers={}; // {phone: subObj}
+let submissions={}; // {pushId: subObj}
+let blasts={};     // {pushId: blastObj}
+let editingJam=null;   // jam id for detail/edit view
+let showAddJam=false;
+let subFilter='pending';
+
+/* ===== DATA LOADING ===== */
+async function loadAllData(){
+  const [jSnap,cSnap,pSnap,sSnap,subSnap,bSnap]=await Promise.all([
+    db.ref('jams').once('value'),
+    db.ref('checkins').once('value'),
+    db.ref('profiles').once('value'),
+    db.ref('subscribers').once('value'),
+    db.ref('submissions').once('value'),
+    db.ref('blasts').once('value')
+  ]);
+  jams=jSnap.val()||{};
+  checkins=cSnap.val()||{};
+  profiles=pSnap.val()||{};
+  subscribers=sSnap.val()||{};
+  submissions=subSnap.val()||{};
+  blasts=bSnap.val()||{};
+
+  // Migrate seed jams if Firebase is empty
+  if(Object.keys(jams).length===0){
+    SEED_JAMS.forEach(j=>{jams[j.id]={...j,created:Date.now(),updated:Date.now()};});
+    await db.ref('jams').set(jams);
+  }
+}
+
+function setupRealtimeSync(){
+  db.ref('jams').on('value',s=>{jams=s.val()||{};render();});
+  db.ref('checkins').on('value',s=>{checkins=s.val()||{};render();});
+  db.ref('profiles').on('value',s=>{profiles=s.val()||{};render();});
+  db.ref('subscribers').on('value',s=>{subscribers=s.val()||{};render();});
+  db.ref('submissions').on('value',s=>{submissions=s.val()||{};render();});
+  db.ref('blasts').on('value',s=>{blasts=s.val()||{};render();});
+}
+
+/* ===== HELPERS ===== */
+function h(tag,attrs,...children){
+  const el=document.createElement(tag);
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='style'&&typeof v==='object')Object.assign(el.style,v);
+    else if(k.startsWith('on'))el.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==='class'||k==='className')el.className=v;
+    else if(k==='html')el.innerHTML=v;
+    else el.setAttribute(k,v);
+  });
+  children.flat(9).forEach(c=>{if(c==null||c===false)return;el.appendChild(typeof c==='string'?document.createTextNode(c):c);});
+  return el;
+}
+
+function getTodayName(){const d=new Date().getDay();return DAYS[d===0?6:d-1];}
+function getTodayDate(){return new Date().toISOString().slice(0,10);}
+function isOneOff(jam){return!!jam.date;}
+function isJamTonight(jam){if(isOneOff(jam))return jam.date===getTodayDate();return jam.day_of_week===getTodayName();}
+function fmtDate(ts){if(!ts)return'';return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function fmtDateFull(ts){if(!ts)return'';return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function jamList(){return Object.values(jams);}
+function activeJams(){return jamList().filter(j=>j.active!==false);}
+function todayCheckins(jamId){const today=getTodayDate();const jc=checkins[jamId]||{};return Object.values(jc).filter(c=>c.date===today);}
+function totalCheckinsTonight(){let n=0;jamList().forEach(j=>{if(isJamTonight(j))n+=todayCheckins(j.id).length;});return n;}
+
+/* ===== RENDER: DASHBOARD ===== */
+function renderDashboard(){
+  const allJams=jamList();
+  const tonight=allJams.filter(j=>isJamTonight(j)&&j.active!==false);
+  const totalProfiles=Object.keys(profiles).length;
+  const totalSubs=Object.keys(subscribers).length;
+  const tonightCheckins=totalCheckinsTonight();
+  const pendingSubs=Object.values(submissions).filter(s=>s.status==='pending').length;
+
+  return h('div',{class:'pad'},
+    h('h2',{class:'section-title'},'Dashboard'),
+    h('p',{class:'section-sub'},getTodayName()+' — '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})),
+
+    h('div',{class:'stats'},
+      h('div',{class:'stat'},h('div',{class:'stat-label'},'Active Jams'),h('div',{class:'stat-value'},''+activeJams().length)),
+      h('div',{class:'stat'},h('div',{class:'stat-label'},'Tonight'),h('div',{class:'stat-value'},''+tonight.length),h('div',{class:'stat-sub'},tonightCheckins+' checked in')),
+      h('div',{class:'stat'},h('div',{class:'stat-label'},'Musicians'),h('div',{class:'stat-value'},''+totalProfiles)),
+      h('div',{class:'stat'},h('div',{class:'stat-label'},'Subscribers'),h('div',{class:'stat-value'},''+totalSubs))
+    ),
+
+    pendingSubs>0?h('div',{class:'card card-accent',style:{cursor:'pointer'},onClick:()=>{currentTab=2;render();}},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        h('span',{style:{fontWeight:'600'}},'Pending Submissions'),
+        h('span',{class:'badge badge-yellow'},''+pendingSubs+' to review')
+      )
+    ):'',
+
+    h('div',{class:'label'},'Tonight\'s Jams'),
+    tonight.length===0?h('div',{class:'card'},h('p',{style:{color:'var(--muted)'}},'No jams tonight.')):
+    ...tonight.map(j=>{
+      const ppl=todayCheckins(j.id);
+      return h('div',{class:'card'},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
+          h('div',{},
+            h('div',{class:'item-name'},esc(j.name)),
+            h('div',{class:'item-meta'},esc(j.venue_name)+' \u00b7 '+esc(j.time_start))
+          ),
+          h('span',{class:'badge '+(ppl.length>0?'badge-green':'badge-accent')},''+ppl.length+' checked in')
+        ),
+        ppl.length>0?h('div',{style:{marginTop:'8px',fontSize:'12px',color:'var(--muted)'}},ppl.map(p=>esc(p.name)+' ('+esc(p.instrument)+')').join(', ')):''
+      );
+    })
+  );
+}
+
+/* ===== RENDER: JAMS ===== */
+function renderJams(){
+  if(editingJam)return renderJamDetail(editingJam);
+  if(showAddJam)return renderJamForm(null);
+
+  const all=jamList().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  return h('div',{class:'pad'},
+    h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}},
+      h('div',{},h('h2',{class:'section-title'},'Jams'),h('p',{class:'section-sub',style:{margin:0}},all.length+' total')),
+      h('button',{class:'btn',onClick:()=>{showAddJam=true;render();}},'+ Add Jam')
+    ),
+    ...all.map(j=>h('div',{class:'item-card',onClick:()=>{editingJam=j.id;render();}},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        h('div',{},
+          h('div',{class:'item-name'},esc(j.name)),
+          h('div',{class:'item-meta'},esc(j.venue_name)+' \u00b7 '+(isOneOff(j)?j.date:j.day_of_week+'s')+' \u00b7 '+esc(j.time_start))
+        ),
+        h('div',{style:{display:'flex',gap:'6px',alignItems:'center'}},
+          j.active===false?h('span',{class:'badge badge-red'},'inactive'):h('span',{class:'badge badge-green'},'active'),
+          isOneOff(j)?h('span',{class:'badge badge-purple'},'one-off'):''
+        )
+      ),
+      h('div',{style:{marginTop:'6px'}},
+        ...toArray(j.genre).map(g=>h('span',{class:'genre-chip'},g))
+      )
+    ))
+  );
+}
+
+function renderJamDetail(jamId){
+  const j=jams[jamId];
+  if(!j)return h('div',{class:'pad'},h('p',{},'Jam not found.'));
+  return renderJamForm(j);
+}
+
+function renderJamForm(jam){
+  const isEdit=!!jam;
+  const title=isEdit?'Edit Jam':'Add New Jam';
+
+  return h('div',{class:'pad'},
+    h('button',{class:'btn-outline',onClick:()=>{editingJam=null;showAddJam=false;render();}},'< Back'),
+    h('h2',{class:'section-title',style:{margin:'12px 0 16px'}},title),
+
+    h('div',{class:'card'},
+      h('div',{class:'form-group'},h('label',{},'Jam Name'),h('input',{class:'input',id:'f-name',value:jam?jam.name:''})),
+      h('div',{class:'form-row'},
+        h('div',{class:'form-group'},h('label',{},'Venue'),h('input',{class:'input',id:'f-venue',value:jam?jam.venue_name:''})),
+        h('div',{class:'form-group'},h('label',{},'City'),h('input',{class:'input',id:'f-city',value:jam?jam.city:''}))
+      ),
+      h('div',{class:'form-group'},h('label',{},'Address'),h('input',{class:'input',id:'f-address',value:jam?jam.venue_address:''})),
+      h('div',{class:'form-row'},
+        h('div',{class:'form-group'},h('label',{},'Region'),
+          h('select',{class:'input',id:'f-region'},
+            ...REGIONS.map(r=>h('option',Object.assign({value:r.value},jam&&jam.region===r.value?{selected:'selected'}:{}),r.label))
+          )
+        ),
+        h('div',{class:'form-group'},h('label',{},'Frequency'),
+          h('select',{class:'input',id:'f-frequency',onChange:(e)=>{
+            const oo=e.target.value==='One-off';
+            document.getElementById('f-date-group').style.display=oo?'block':'none';
+            document.getElementById('f-day-group').style.display=oo?'none':'block';
+          }},
+            ...['Weekly','Bi-weekly','Monthly','One-off'].map(f=>h('option',Object.assign({value:f},jam&&jam.frequency===f?{selected:'selected'}:{}),f))
+          )
+        )
+      ),
+      h('div',{class:'form-row'},
+        h('div',{class:'form-group',id:'f-day-group',style:{display:jam&&isOneOff(jam)?'none':'block'}},h('label',{},'Day'),
+          h('select',{class:'input',id:'f-day'},
+            ...DAYS.map(d=>h('option',Object.assign({value:d},jam&&jam.day_of_week===d?{selected:'selected'}:{}),d))
+          )
+        ),
+        h('div',{class:'form-group',id:'f-date-group',style:{display:jam&&isOneOff(jam)?'block':'none'}},h('label',{},'Date'),
+          h('input',{class:'input',id:'f-date',type:'date',value:jam&&jam.date?jam.date:''})
+        )
+      ),
+      h('div',{class:'form-row'},
+        h('div',{class:'form-group'},h('label',{},'Start Time'),h('input',{class:'input',id:'f-start',value:jam?jam.time_start:''})),
+        h('div',{class:'form-group'},h('label',{},'End Time'),h('input',{class:'input',id:'f-end',value:jam&&jam.time_end?jam.time_end:''}))
+      ),
+      h('div',{class:'form-group'},h('label',{},'Signup Process'),
+        h('select',{class:'input',id:'f-signup'},
+          ...['sign-up list','first come first served','hosted/called up','open stage'].map(s=>h('option',Object.assign({value:s},jam&&jam.signup_process===s?{selected:'selected'}:{}),s))
+        )
+      ),
+      h('div',{class:'form-group'},h('label',{},'Genres'),
+        h('div',{id:'f-genres',style:{display:'flex',flexWrap:'wrap',gap:'4px'}},
+          ...GENRES.map(g=>{
+            const sel=jam&&toArray(jam.genre).includes(g);
+            return h('button',{type:'button',class:'genre-chip'+(sel?' selected':''),style:sel?{background:'var(--accent)',color:'#000',borderColor:'var(--accent)'}:{},onClick:(e)=>{
+              const btn=e.currentTarget;
+              btn.classList.toggle('selected');
+              if(btn.classList.contains('selected')){btn.style.background='var(--accent)';btn.style.color='#000';btn.style.borderColor='var(--accent)';}
+              else{btn.style.background='';btn.style.color='';btn.style.borderColor='';}
+            }},g);
+          })
+        )
+      ),
+      h('div',{class:'form-group'},h('label',{},'Vibe'),h('input',{class:'input',id:'f-vibe',value:jam?jam.vibe||'':''})),
+      h('div',{class:'form-group'},h('label',{},'Description'),h('textarea',{class:'input',id:'f-desc',rows:'3'},jam?jam.description||'':'')),
+      h('div',{class:'form-group'},h('label',{},'What to Expect'),h('textarea',{class:'input',id:'f-expect',rows:'2'},jam?jam.what_to_expect||'':'')),
+      h('div',{class:'form-group'},h('label',{},'Partiful URL (optional)'),h('input',{class:'input',id:'f-partiful',value:jam&&jam.partiful_url?jam.partiful_url:''})),
+
+      isEdit?h('div',{style:{display:'flex',alignItems:'center',gap:'12px',marginTop:'12px',marginBottom:'12px'}},
+        h('label',{style:{color:'var(--muted)',fontSize:'12px',fontWeight:'600'}},'Active'),
+        h('div',{class:'toggle'+(jam.active!==false?' active':''),onClick:(e)=>{
+          const t=e.currentTarget;t.classList.toggle('active');
+        },id:'f-active'})
+      ):'',
+
+      h('div',{style:{display:'flex',gap:'8px',marginTop:'16px'}},
+        h('button',{class:'btn',onClick:()=>saveJam(jam?jam.id:null)},isEdit?'Save Changes':'Create Jam'),
+        isEdit?h('button',{class:'btn-red',onClick:()=>{
+          if(confirm('Delete "'+jam.name+'"? This cannot be undone.')){
+            db.ref('jams/'+jam.id).remove();
+            editingJam=null;render();
+          }
+        }},'Delete'):'',
+        h('button',{class:'btn-outline',onClick:()=>{editingJam=null;showAddJam=false;render();}},'Cancel')
+      )
+    )
+  );
+}
+
+function saveJam(existingId){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('Name is required.');return;}
+  const genres=[];
+  document.querySelectorAll('#f-genres .selected').forEach(b=>genres.push(b.textContent));
+  if(genres.length===0){alert('Select at least one genre.');return;}
+  const freq=document.getElementById('f-frequency').value;
+  const isOO=freq==='One-off';
+
+  const data={
+    name,
+    venue_name:document.getElementById('f-venue').value.trim(),
+    venue_address:document.getElementById('f-address').value.trim(),
+    city:document.getElementById('f-city').value.trim(),
+    region:document.getElementById('f-region').value,
+    frequency:freq,
+    genre:genres,
+    time_start:document.getElementById('f-start').value.trim(),
+    time_end:document.getElementById('f-end').value.trim()||null,
+    signup_process:document.getElementById('f-signup').value,
+    vibe:document.getElementById('f-vibe').value.trim(),
+    description:document.getElementById('f-desc').value.trim(),
+    what_to_expect:document.getElementById('f-expect').value.trim(),
+    partiful_url:document.getElementById('f-partiful').value.trim()||null,
+    updated:Date.now()
+  };
+
+  if(isOO){data.date=document.getElementById('f-date').value;delete data.day_of_week;}
+  else{data.day_of_week=document.getElementById('f-day').value;delete data.date;}
+
+  if(existingId){
+    const act=document.getElementById('f-active');
+    data.active=act?act.classList.contains('active'):true;
+    data.id=existingId;
+    data.created=jams[existingId]?jams[existingId].created:Date.now();
+    db.ref('jams/'+existingId).set(data);
+  } else {
+    const id=uid();
+    data.id=id;
+    data.active=true;
+    data.created=Date.now();
+    db.ref('jams/'+id).set(data);
+  }
+  editingJam=null;showAddJam=false;render();
+}
+
+/* ===== RENDER: SUBMISSIONS ===== */
+function renderSubmissions(){
+  const all=Object.entries(submissions).sort((a,b)=>(b[1].submitted||0)-(a[1].submitted||0));
+  const filtered=all.filter(([,s])=>s.status===subFilter);
+
+  return h('div',{class:'pad'},
+    h('h2',{class:'section-title'},'Submissions'),
+    h('p',{class:'section-sub'},all.length+' total'),
+
+    h('div',{style:{display:'flex',gap:'6px',marginBottom:'16px'}},
+      ...['pending','approved','rejected'].map(f=>
+        h('button',{class:'btn-outline'+(subFilter===f?' active':''),style:subFilter===f?{borderColor:'var(--accent)',color:'var(--accent)'}:{},onClick:()=>{subFilter=f;render();}},f+' ('+all.filter(([,s])=>s.status===f).length+')')
+      )
+    ),
+
+    filtered.length===0?h('div',{class:'empty'},h('div',{class:'empty-icon'},'📥'),h('p',{},'No '+subFilter+' submissions.')):
+    ...filtered.map(([key,s])=>h('div',{class:'card'},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
+        h('div',{},
+          h('div',{class:'item-name'},esc(s.name)),
+          h('div',{class:'item-meta'},esc(s.venue_name)+' \u00b7 '+esc(s.city)+' \u00b7 '+(s.day_of_week||s.date||''))
+        ),
+        h('span',{class:'badge badge-'+({pending:'yellow',approved:'green',rejected:'red'}[s.status]||'yellow')},s.status)
+      ),
+      s.description?h('p',{style:{fontSize:'12px',color:'var(--muted)',marginTop:'6px'}},esc(s.description)):'',
+      toArray(s.genre).length>0?h('div',{style:{marginTop:'6px'}},...toArray(s.genre).map(g=>h('span',{class:'genre-chip'},g))):'',
+      s.submitter_name?h('div',{style:{fontSize:'11px',color:'var(--muted)',marginTop:'8px'}},'Submitted by '+esc(s.submitter_name)+(s.submitter_email?' ('+esc(s.submitter_email)+')':'')+' \u00b7 '+fmtDateFull(s.submitted)):'',
+
+      s.status==='pending'?h('div',{style:{display:'flex',gap:'8px',marginTop:'12px'}},
+        h('button',{class:'btn btn-sm',onClick:()=>approveSubmission(key,s)},'Approve'),
+        h('button',{class:'btn-red',style:{fontSize:'12px'},onClick:()=>{db.ref('submissions/'+key+'/status').set('rejected');db.ref('submissions/'+key+'/reviewedAt').set(Date.now());}},'Reject')
+      ):''
+    ))
+  );
+}
+
+function approveSubmission(key,s){
+  const id=uid();
+  const jam={
+    id,
+    name:s.name||'',
+    venue_name:s.venue_name||'',
+    venue_address:s.venue_address||'',
+    city:s.city||'',
+    region:s.region||'sf',
+    frequency:s.frequency||'Weekly',
+    genre:toArray(s.genre),
+    time_start:s.time_start||'',
+    time_end:s.time_end||null,
+    signup_process:s.signup_process||'sign-up list',
+    vibe:s.vibe||'',
+    description:s.description||'',
+    what_to_expect:s.what_to_expect||'',
+    partiful_url:s.partiful_url||null,
+    active:true,
+    created:Date.now(),
+    updated:Date.now()
+  };
+  if(s.frequency==='One-off'&&s.event_date){jam.date=s.event_date;}
+  else{jam.day_of_week=s.day_of_week||'Monday';}
+
+  db.ref('jams/'+id).set(jam);
+  db.ref('submissions/'+key+'/status').set('approved');
+  db.ref('submissions/'+key+'/reviewedAt').set(Date.now());
+  db.ref('submissions/'+key+'/approvedJamId').set(id);
+}
+
+/* ===== RENDER: CHECK-INS ===== */
+function renderCheckins(){
+  const tonight=jamList().filter(j=>isJamTonight(j)&&j.active!==false);
+  const allTonight=[];
+  tonight.forEach(j=>{todayCheckins(j.id).forEach(c=>allTonight.push({...c,jamName:j.name,jamId:j.id}));});
+
+  return h('div',{class:'pad'},
+    h('h2',{class:'section-title'},'Check-ins'),
+    h('p',{class:'section-sub'},'Tonight \u2014 '+allTonight.length+' musician'+(allTonight.length!==1?'s':'')+' across '+tonight.length+' jam'+(tonight.length!==1?'s':'')),
+
+    tonight.length===0?h('div',{class:'empty'},h('div',{class:'empty-icon'},'🌙'),h('p',{},'No jams tonight.')):
+    ...tonight.map(j=>{
+      const ppl=todayCheckins(j.id);
+      return h('div',{class:'card'},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
+          h('div',{class:'item-name'},esc(j.name)),
+          h('span',{class:'badge badge-accent'},''+ppl.length)
+        ),
+        ppl.length===0?h('p',{style:{color:'var(--muted)',fontSize:'12px'}},'No one checked in yet.'):
+        h('div',{},...ppl.map(p=>h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid var(--border)'}},
+          h('div',{},
+            h('span',{style:{fontWeight:'600',fontSize:'13px'}},esc(p.name)),
+            h('span',{style:{color:'var(--muted)',fontSize:'12px',marginLeft:'8px'}},esc(p.instrument))
+          ),
+          h('button',{class:'btn-outline',style:{fontSize:'10px',padding:'2px 8px'},onClick:()=>{
+            const key=p.name.toLowerCase().replace(/\s+/g,'_')+'_'+p.date;
+            if(confirm('Remove '+p.name+'\'s check-in?'))db.ref('checkins/'+j.id+'/'+key).remove();
+          }},'Remove')
+        )))
+      );
+    })
+  );
+}
+
+/* ===== RENDER: PROFILES ===== */
+function renderProfiles(){
+  const all=Object.entries(profiles).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||''));
+
+  return h('div',{class:'pad'},
+    h('h2',{class:'section-title'},'Profiles'),
+    h('p',{class:'section-sub'},all.length+' registered musician'+(all.length!==1?'s':'')),
+
+    all.length===0?h('div',{class:'empty'},h('div',{class:'empty-icon'},'🎸'),h('p',{},'No profiles yet.')):
+    ...all.map(([key,p])=>h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+      h('div',{},
+        h('div',{class:'item-name'},esc(p.name)),
+        h('div',{class:'item-meta'},esc(p.instrument)+(p.created?' \u00b7 Joined '+fmtDate(p.created):''))
+      ),
+      h('button',{class:'btn-red',style:{fontSize:'10px',padding:'3px 8px'},onClick:()=>{
+        if(confirm('Delete profile for '+p.name+'?'))db.ref('profiles/'+key).remove();
+      }},'Delete')
+    ))
+  );
+}
+
+/* ===== RENDER: BLASTS ===== */
+function renderBlasts(){
+  const subList=Object.entries(subscribers).sort((a,b)=>(b[1].created||0)-(a[1].created||0));
+  const blastList=Object.entries(blasts).sort((a,b)=>(b[1].created||0)-(a[1].created||0));
+
+  return h('div',{class:'pad'},
+    h('h2',{class:'section-title'},'Text Blasts'),
+    h('p',{class:'section-sub'},subList.length+' subscriber'+(subList.length!==1?'s':'')),
+
+    h('div',{class:'card card-accent'},
+      h('div',{class:'label'},'Compose Blast'),
+      h('div',{class:'form-group'},h('textarea',{class:'input',id:'blast-msg',rows:'3',placeholder:'Type your message...'})),
+      h('button',{class:'btn',onClick:async()=>{
+        const msg=document.getElementById('blast-msg').value.trim();
+        if(!msg)return;
+        await db.ref('blasts').push({message:msg,created:Date.now(),status:'pending'});
+        document.getElementById('blast-msg').value='';
+      }},'Send Blast'),
+      h('p',{style:{color:'var(--muted)',fontSize:'11px',marginTop:'8px'}},'Saves to Firebase for processing. Connect Twilio to auto-send.')
+    ),
+
+    h('div',{class:'label',style:{marginTop:'16px'}},'Subscribers'),
+    subList.length===0?h('p',{style:{color:'var(--muted)',fontSize:'12px'}},'No subscribers yet.'):
+    ...subList.map(([key,s])=>h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 16px'}},
+      h('div',{},
+        h('span',{style:{fontWeight:'600',fontSize:'13px'}},esc(s.phone)),
+        h('span',{style:{color:'var(--muted)',fontSize:'11px',marginLeft:'8px'}},fmtDate(s.created))
+      ),
+      h('button',{class:'btn-red',style:{fontSize:'10px',padding:'2px 8px'},onClick:()=>{
+        if(confirm('Remove subscriber '+s.phone+'?'))db.ref('subscribers/'+key).remove();
+      }},'Remove')
+    )),
+
+    blastList.length>0?h('div',{},
+      h('div',{class:'label',style:{marginTop:'16px'}},'Blast History'),
+      ...blastList.slice(0,20).map(([,b])=>h('div',{class:'card',style:{padding:'10px 16px'}},
+        h('p',{style:{fontSize:'13px'}},esc(b.message)),
+        h('div',{style:{fontSize:'11px',color:'var(--muted)',marginTop:'4px'}},fmtDateFull(b.created)+' \u00b7 '+b.status)
+      ))
+    ):''
+  );
+}
+
+/* ===== MAIN RENDER ===== */
+function render(){
+  const app=document.getElementById('app');
+  app.innerHTML='';
+
+  const tabs=[
+    {icon:'\ud83d\udcca',label:'Dashboard'},
+    {icon:'\ud83c\udfb5',label:'Jams'},
+    {icon:'\ud83d\udce5',label:'Submissions'},
+    {icon:'\ud83d\udc65',label:'Check-ins'},
+    {icon:'\ud83c\udfb8',label:'Profiles'},
+    {icon:'\ud83d\udcf1',label:'Blasts'}
+  ];
+
+  app.appendChild(h('div',{class:'header'},
+    h('div',{class:'logo'},
+      h('span',{class:'logo-icon'},'\ud83c\udfb7'),
+      h('span',{class:'logo-name'},'GLORY JAMS'),
+      h('span',{class:'logo-sub'},'ADMIN')
+    ),
+    h('button',{class:'header-logout',onClick:logout},'Sign Out')
+  ));
+
+  const content=h('div',{class:'content'});
+  switch(currentTab){
+    case 0:content.appendChild(renderDashboard());break;
+    case 1:content.appendChild(renderJams());break;
+    case 2:content.appendChild(renderSubmissions());break;
+    case 3:content.appendChild(renderCheckins());break;
+    case 4:content.appendChild(renderProfiles());break;
+    case 5:content.appendChild(renderBlasts());break;
+  }
+  app.appendChild(content);
+
+  app.appendChild(h('div',{class:'bottom-nav'},
+    ...tabs.map((t,i)=>h('button',{
+      class:'nav-btn'+(currentTab===i?' active':''),
+      onClick:()=>{currentTab=i;editingJam=null;showAddJam=false;render();}
+    },h('span',{class:'nav-icon'},t.icon),t.label))
+  ));
+}
+</script>
+</body>
+</html>

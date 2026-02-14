@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glory Jams — Bay Area Jam Sessions</title>
+<meta name="description" content="Find live jam sessions across the San Francisco Bay Area. See who's pulling up tonight.">
+<meta property="og:title" content="Glory Jams — Bay Area Jam Sessions">
+<meta property="og:description" content="Find live jam sessions in the Bay. Check in. Pull up.">
+<meta property="og:type" content="website">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<!-- Typography: Asset (hero), Rock Salt (header + titles), DM Sans (body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Asset&family=Rock+Salt&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #0a0a0a;
+  color: #e8e8e8;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input, select, textarea { font-family: inherit; }
+
+.container { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* HEADER */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #222;
+  padding: 12px 0;
+}
+.header-inner { display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; }
+.logo-text {
+  font-family: 'Rock Salt', cursive; font-size: 1.1rem; letter-spacing: 1px;
+  background: linear-gradient(90deg, #ff6b35, #ffd700, #ff8c00, #ffd700, #ff6b35);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 8s ease-in-out infinite;
+}
+.logo-text .jams {
+  background: linear-gradient(90deg, #ffd700, #ff6b35, #ff8c00, #ff6b35, #ffd700);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-left: 4px;
+  animation: shimmer 8s ease-in-out infinite reverse;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes glowPulse {
+  0%, 100% { filter: drop-shadow(0 0 30px rgba(255,107,53,0.4)) drop-shadow(0 0 60px rgba(255,215,0,0.15)); }
+  50% { filter: drop-shadow(0 0 50px rgba(255,107,53,0.6)) drop-shadow(0 0 100px rgba(255,215,0,0.3)) drop-shadow(0 0 12px rgba(255,107,53,0.5)); }
+}
+
+/* Partiful-style ambient motion */
+@keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes floatX { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+@keyframes gentleSway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+@keyframes driftIn { 0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; } 50% { transform: translateY(-4px) scale(1.02); opacity: 1; } }
+@keyframes swooshDraw { 0% { stroke-dashoffset: 600; } 100% { stroke-dashoffset: 0; } }
+@keyframes orbitFloat {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(6px, -4px) rotate(2deg); }
+  50% { transform: translate(0, -8px) rotate(0deg); }
+  75% { transform: translate(-6px, -4px) rotate(-2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.nav-links { display: flex; gap: 8px; align-items: center; }
+.nav-btn {
+  padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: #222; }
+.nav-btn.primary { background: #ff6b35; color: #000; }
+.nav-btn.primary:hover { background: #ff8555; }
+
+.profile-indicator {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #222; border: 2px solid #444;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: #ffd700;
+  transition: all 0.15s;
+}
+.profile-indicator:hover { border-color: #ffd700; }
+.profile-indicator.active { border-color: #ff6b35; background: #1a1a1a; }
+
+/* HERO */
+.hero { padding: 40px 0 24px; text-align: center; position: relative; overflow: hidden; }
+
+/* Partiful-style floating ambient shapes */
+.hero-particles { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.hero-particles span {
+  position: absolute; border-radius: 50%; opacity: 0.12;
+}
+.hero-particles .p1 { width: 80px; height: 80px; background: radial-gradient(circle, #ff6b35, transparent 70%); top: 10%; left: 8%; animation: orbitFloat 12s ease-in-out infinite; }
+.hero-particles .p2 { width: 50px; height: 50px; background: radial-gradient(circle, #ffd700, transparent 70%); top: 20%; right: 12%; animation: orbitFloat 10s ease-in-out infinite reverse; }
+.hero-particles .p3 { width: 35px; height: 35px; background: radial-gradient(circle, #ff8c00, transparent 70%); bottom: 25%; left: 20%; animation: floatY 8s ease-in-out infinite; animation-delay: -3s; }
+.hero-particles .p4 { width: 60px; height: 60px; background: radial-gradient(circle, #ff6b35, transparent 70%); bottom: 10%; right: 5%; animation: orbitFloat 14s ease-in-out infinite; animation-delay: -5s; }
+.hero-particles .p5 { width: 25px; height: 25px; background: radial-gradient(circle, #ffd700, transparent 70%); top: 50%; left: 50%; animation: floatY 6s ease-in-out infinite; animation-delay: -1s; }
+.hero-logo { position: relative; z-index: 1; }
+.hero-logo { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px; }
+.hero-wordmark {
+  font-family: 'Asset', serif; font-size: clamp(3rem, 10vw, 4.5rem);
+  letter-spacing: 4px; line-height: 1;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+.hero-wordmark .glory {
+  background: linear-gradient(90deg, #ff6b35, #ffd700, #ff8c00, #ffd700, #ff6b35);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 6s ease-in-out infinite;
+}
+.hero-wordmark .jams {
+  background: linear-gradient(90deg, #ffd700, #ff6b35, #ff8c00, #ff6b35, #ffd700);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; font-style: italic;
+  animation: shimmer 6s ease-in-out infinite reverse;
+}
+.hero-swoosh {
+  display: block; margin: -4px auto 0; width: clamp(200px, 55vw, 360px); height: 12px;
+  animation: gentleSway 6s ease-in-out infinite;
+  stroke-dasharray: 600; stroke-dashoffset: 600;
+  animation: swooshDraw 2s ease-out forwards, gentleSway 6s ease-in-out 2s infinite;
+}
+.hero-sub { font-size: 1rem; color: #888; max-width: 480px; margin: 0 auto; line-height: 1.5; position: relative; z-index: 1; }
+.hero-sub .tonight-count { color: #ff6b35; font-weight: 700; }
+.hero-sub .total-count { color: #ccc; font-weight: 600; }
+
+/* LIVE PULSE BAR */
+.live-bar {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px; margin-bottom: 24px;
+  background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.2);
+  border-radius: 12px; font-size: 0.85rem; color: #ff6b35; font-weight: 600;
+  animation: floatY 7s ease-in-out infinite;
+}
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #ff6b35;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* FILTERS */
+.filters { margin-bottom: 20px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.filter-chip {
+  padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+  background: #1a1a1a; color: #888; border: 1px solid #333; transition: all 0.15s;
+}
+.filter-chip:hover { border-color: #555; color: #ccc; }
+.filter-chip.active { background: #ff6b35; color: #000; border-color: #ff6b35; }
+.filter-chip.tonight-chip { border-color: rgba(255,107,53,0.4); color: #ff6b35; position: relative; }
+.filter-chip.tonight-chip.active { background: #ff6b35; color: #000; }
+.filter-chip.tonight-chip::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: #ff6b35; display: inline-block; margin-right: 6px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.filter-chip.tonight-chip.active::before { background: #000; }
+
+/* Genre chips */
+.genre-chip { padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; text-transform: lowercase; animation: driftIn 5s ease-in-out infinite; }
+.genre-chip:nth-child(2n) { animation-delay: -1.2s; }
+.genre-chip:nth-child(3n) { animation-delay: -2.8s; }
+.genre-chip:nth-child(4n) { animation-delay: -0.6s; }
+.genre-jazz { background: #1a2744; color: #5b9aff; }
+.genre-blues { background: #1a1a44; color: #7b7bff; }
+.genre-funk { background: #2a1a3a; color: #c77bff; }
+.genre-soul { background: #3a1a2a; color: #ff7bb5; }
+.genre-latin { background: #2a2a1a; color: #ffaa5b; }
+.genre-open { background: #1a2a1a; color: #5bff7b; }
+.genre-rock { background: #2a1a1a; color: #ff5b5b; }
+.genre-rb { background: #2a1a2a; color: #ff5baa; }
+
+/* JAM CARDS */
+.jam-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; }
+.jam-card {
+  background: #111; border: 1px solid #222; border-radius: 14px;
+  padding: 16px; cursor: pointer; transition: all 0.15s;
+  position: relative; overflow: hidden;
+}
+.jam-card:hover { border-color: #444; transform: translateY(-3px) rotate(0.3deg); }
+.jam-card.tonight-card {
+  border-color: rgba(255,107,53,0.3);
+  background: linear-gradient(135deg, rgba(255,107,53,0.05) 0%, #111 100%);
+}
+.jam-card.tonight-card:hover { border-color: rgba(255,107,53,0.5); }
+
+.tonight-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.7rem; font-weight: 700; color: #ff6b35;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+}
+.tonight-badge .pulse-dot { width: 6px; height: 6px; }
+
+/* ONE-OFF / SPECIAL EVENT BADGES */
+.oneoff-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.68rem; font-weight: 700; color: #c77bff;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+}
+.oneoff-badge .oneoff-dot {
+  width: 6px; height: 6px; border-radius: 2px; background: #c77bff; transform: rotate(45deg);
+}
+.jam-card.oneoff-card {
+  border-color: rgba(199,123,255,0.25);
+  background: linear-gradient(135deg, rgba(199,123,255,0.04) 0%, #111 100%);
+}
+.jam-card.oneoff-card:hover { border-color: rgba(199,123,255,0.45); }
+.jam-date { font-size: 0.78rem; color: #c77bff; font-weight: 600; }
+
+/* PARTIFUL */
+.partiful-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 18px; border-radius: 10px; font-size: 0.82rem; font-weight: 700;
+  background: linear-gradient(135deg, #ff6b9d, #c77bff); color: #fff;
+  transition: all 0.2s; border: none; text-decoration: none;
+}
+.partiful-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(199,123,255,0.3); }
+.partiful-btn .partiful-icon { font-size: 1rem; }
+.partiful-cta {
+  background: rgba(199,123,255,0.08); border: 1px solid rgba(199,123,255,0.2);
+  border-radius: 12px; padding: 16px; margin-top: 16px; text-align: center;
+}
+.partiful-cta p { font-size: 0.8rem; color: #888; margin-bottom: 10px; }
+.partiful-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 700;
+  background: linear-gradient(135deg, #ff6b9d, #c77bff); color: #fff;
+  text-decoration: none; transition: all 0.2s;
+}
+.partiful-link:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(199,123,255,0.3); }
+
+.jam-name { font-family: 'Rock Salt', cursive; font-size: 0.72rem; font-weight: 400; color: #fff; margin-bottom: 4px; line-height: 1.4; }
+.jam-venue { font-size: 0.85rem; color: #888; margin-bottom: 10px; }
+.jam-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.8rem; color: #666; }
+.jam-time { color: #ccc; font-weight: 600; }
+.jam-meta .sep { color: #333; }
+.jam-genres { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+
+.jam-checkins { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #1a1a1a; }
+.checkin-count { font-size: 0.8rem; font-weight: 700; color: #ffd700; }
+.checkin-faces { display: flex; }
+.checkin-face {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #222; border: 2px solid #111;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; font-weight: 700; color: #ffd700; margin-left: -6px;
+}
+.checkin-face:first-child { margin-left: 0; }
+.checkin-more { font-size: 0.72rem; color: #666; margin-left: 4px; }
+
+/* INSTRUMENT MATCHMAKING */
+.instrument-breakdown { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.instrument-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 8px; border-radius: 10px; font-size: 0.68rem; font-weight: 600;
+  background: rgba(255,215,0,0.08); color: #aa8800; border: 1px solid rgba(255,215,0,0.12);
+}
+.instrument-tag .inst-count {
+  background: rgba(255,215,0,0.15); color: #ffd700;
+  padding: 1px 5px; border-radius: 6px; font-size: 0.62rem; font-weight: 700; margin-left: 2px;
+}
+.instrument-needed {
+  background: rgba(91,255,123,0.08); color: #3daa55; border-color: rgba(91,255,123,0.15);
+  animation: needPulse 2s ease-in-out infinite;
+}
+@keyframes needPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.65; } }
+
+.instrument-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; margin-top: 10px; }
+.instrument-grid-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px; background: #1a1a1a; border-radius: 8px; font-size: 0.78rem; color: #ccc;
+}
+.instrument-grid-item .inst-num {
+  background: rgba(255,215,0,0.15); color: #ffd700;
+  padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; font-weight: 700;
+}
+.needs-you-banner {
+  background: linear-gradient(135deg, rgba(91,255,123,0.08) 0%, rgba(255,215,0,0.08) 100%);
+  border: 1px solid rgba(91,255,123,0.2); border-radius: 10px; padding: 10px 14px;
+  font-size: 0.82rem; color: #5bff7b; font-weight: 600; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* JAM DETAIL */
+.detail-back { display: inline-flex; align-items: center; gap: 4px; font-size: 0.85rem; color: #666; margin-bottom: 20px; padding: 6px 0; }
+.detail-back:hover { color: #aaa; }
+.detail-header { margin-bottom: 24px; }
+.detail-name { font-family: 'Rock Salt', cursive; font-size: 1.1rem; color: #fff; margin-bottom: 6px; line-height: 1.4; }
+.detail-venue { font-size: 1rem; color: #888; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.detail-card { background: #1a1a1a; border-radius: 10px; padding: 12px; }
+.detail-card-label { font-size: 0.7rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.detail-card-value { font-size: 0.9rem; font-weight: 600; color: #ccc; }
+.detail-section { margin-bottom: 20px; }
+.detail-section h3 { font-family: 'Rock Salt', cursive; font-size: 0.95rem; font-weight: 400; color: #fff; margin-bottom: 8px; }
+.detail-section p { font-size: 0.88rem; color: #999; line-height: 1.6; }
+.vibe-badge { display: inline-block; padding: 8px 16px; background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.2); border-radius: 10px; font-size: 0.85rem; color: #ff6b35; font-weight: 600; margin-bottom: 20px; animation: orbitFloat 8s ease-in-out infinite; }
+.first-timer-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+.first-timer-box h3 { color: #ffd700; display: flex; align-items: center; gap: 6px; font-family: 'Rock Salt', cursive; font-weight: 400; }
+
+/* CHECK-IN SECTION */
+.checkin-section { background: #111; border: 1px solid #222; border-radius: 14px; padding: 20px; margin-bottom: 24px; }
+.checkin-section h3 { font-family: 'Rock Salt', cursive; font-size: 1rem; font-weight: 400; color: #fff; margin-bottom: 12px; }
+.checkin-btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: 700; transition: all 0.15s; margin-bottom: 16px; }
+.checkin-btn.can-checkin { background: linear-gradient(135deg, #ff6b35, #ffd700); color: #000; }
+.checkin-btn.can-checkin:hover { transform: scale(1.01); }
+.checkin-btn.checked-in { background: #1a2a1a; color: #5bff7b; border: 1px solid #2a3a2a; }
+.checkin-btn.needs-profile { background: #1a1a1a; color: #888; border: 1px solid #333; }
+.checkin-people { display: flex; flex-direction: column; gap: 8px; }
+.checkin-person { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #1a1a1a; border-radius: 10px; }
+.person-avatar { width: 32px; height: 32px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #ffd700; flex-shrink: 0; }
+.person-name { font-size: 0.85rem; font-weight: 600; color: #ccc; }
+.person-instrument { font-size: 0.75rem; color: #666; }
+
+/* PROFILE / REGISTER */
+.register-screen { padding-top: 32px; padding-bottom: 60px; }
+.register-title { font-family: 'Rock Salt', cursive; font-size: 1.3rem; color: #fff; margin-bottom: 8px; line-height: 1.4; }
+.register-sub { color: #888; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 0.8rem; font-weight: 600; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-input { width: 100%; padding: 12px 14px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; color: #fff; font-size: 0.95rem; transition: border-color 0.15s; }
+.form-input:focus { outline: none; border-color: #ff6b35; }
+.form-input::placeholder { color: #444; }
+select.form-input { appearance: none; }
+.form-submit { width: 100%; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, #ff6b35, #ffd700); color: #000; font-size: 1rem; font-weight: 700; transition: all 0.15s; margin-top: 8px; }
+.form-submit:hover { transform: scale(1.01); }
+.form-submit:disabled { opacity: 0.5; transform: none; }
+.form-error { color: #ff5b5b; font-size: 0.82rem; margin-top: 6px; font-weight: 500; }
+.form-success { text-align: center; padding: 40px 0; }
+.form-success h2 { font-family: 'Rock Salt', cursive; font-size: 1.5rem; color: #ffd700; margin: 12px 0; }
+.form-success p { color: #888; }
+
+.profile-card { background: #111; border: 1px solid #222; border-radius: 14px; padding: 24px; text-align: center; margin-bottom: 20px; }
+.profile-avatar-big { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #ff6b35, #ffd700); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; color: #000; margin: 0 auto 12px; animation: orbitFloat 6s ease-in-out infinite; }
+.profile-name { font-family: 'Rock Salt', cursive; font-size: 1.2rem; font-weight: 400; color: #fff; }
+.profile-instrument { font-size: 0.9rem; color: #888; margin-top: 4px; }
+.profile-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+.profile-action-btn { padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; background: #1a1a1a; color: #888; border: 1px solid #333; transition: all 0.15s; }
+.profile-action-btn:hover { color: #ccc; border-color: #555; }
+.profile-action-btn.danger:hover { color: #ff5b5b; border-color: #ff5b5b; }
+.your-checkins { margin-top: 20px; }
+.your-checkins h3 { font-family: 'Rock Salt', cursive; font-size: 0.9rem; font-weight: 400; color: #fff; margin-bottom: 10px; }
+
+/* SUBMIT JAM */
+.submit-screen { padding-top: 32px; padding-bottom: 60px; }
+.submit-title { font-family: 'Rock Salt', cursive; font-size: 1.3rem; color: #fff; margin-bottom: 8px; line-height: 1.4; }
+.submit-sub { color: #888; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5; }
+.genre-select { display: flex; flex-wrap: wrap; gap: 6px; }
+.genre-select-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background: #1a1a1a; color: #888; border: 1px solid #333; transition: all 0.15s; }
+.genre-select-chip.selected { background: #ff6b35; color: #000; border-color: #ff6b35; }
+
+/* TEXT BLAST */
+.blast-section { background: linear-gradient(135deg, rgba(255,215,0,0.06) 0%, rgba(255,107,53,0.06) 100%); border: 1px solid rgba(255,215,0,0.15); border-radius: 14px; padding: 20px; margin: 24px 0; text-align: center; animation: floatY 9s ease-in-out infinite; }
+.blast-section h3 { font-family: 'Rock Salt', cursive; font-size: 0.95rem; color: #ffd700; margin-bottom: 6px; line-height: 1.4; }
+.blast-section p { font-size: 0.82rem; color: #888; margin-bottom: 12px; }
+.blast-input-row { display: flex; gap: 8px; max-width: 360px; margin: 0 auto; }
+.blast-input-row input { flex: 1; padding: 10px 14px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; color: #fff; font-size: 0.9rem; }
+.blast-input-row input:focus { outline: none; border-color: #ffd700; }
+.blast-input-row input::placeholder { color: #444; }
+.blast-input-row button { padding: 10px 18px; background: #ffd700; color: #000; border-radius: 10px; font-weight: 700; font-size: 0.85rem; white-space: nowrap; transition: all 0.15s; }
+.blast-input-row button:hover { background: #ffe44d; }
+.blast-success { color: #5bff7b; font-size: 0.82rem; margin-top: 8px; font-weight: 500; }
+
+/* ABOUT */
+.about-screen { padding-top: 32px; padding-bottom: 60px; }
+.about-title { font-family: 'Rock Salt', cursive; font-size: 1.3rem; color: #fff; margin-bottom: 16px; line-height: 1.4; }
+.about-text { color: #999; font-size: 0.9rem; line-height: 1.7; margin-bottom: 16px; }
+
+/* FOOTER */
+footer { border-top: 1px solid #1a1a1a; padding: 24px 0; text-align: center; font-size: 0.8rem; color: #444; }
+footer a { color: #ff6b35; }
+footer a:hover { text-decoration: underline; }
+
+/* UTILITIES */
+.empty-state { text-align: center; padding: 48px 0; color: #444; }
+.empty-state .emoji { font-size: 2rem; margin-bottom: 8px; }
+.empty-state p { font-size: 0.9rem; }
+.surprise-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; background: #1a1a1a; color: #888; border: 1px solid #333; transition: all 0.15s; }
+.surprise-btn:hover { border-color: #ff6b35; color: #ff6b35; }
+.surprise-btn.spinning .dice { animation: spin 0.5s ease-in-out; }
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.82rem; color: #555; }
+.hidden { display: none !important; }
+@media (max-width: 480px) { .detail-grid { grid-template-columns: 1fr; } .blast-input-row { flex-direction: column; } }
+</style>
+</head>
+<body>
+
+<!-- SVG Defs (shared gradients & filters) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+  <defs>
+    <linearGradient id="gloryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b35"/><stop offset="40%" stop-color="#ffd700"/>
+      <stop offset="60%" stop-color="#ff6b35"/><stop offset="100%" stop-color="#ffd700"/>
+    </linearGradient>
+    <linearGradient id="gloryGradHot" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff6b35"/><stop offset="50%" stop-color="#ffd700"/><stop offset="100%" stop-color="#ff8c00"/>
+    </linearGradient>
+    <filter id="gloryGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#ff6b35" flood-opacity="0.35"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<!-- HEADER -->
+<header>
+  <div class="container header-inner">
+    <a href="#" class="logo" onclick="showScreen('home'); return false;">
+      <span class="logo-text">GLORY <span class="jams">JAMS</span></span>
+    </a>
+    <div class="nav-links">
+      <button class="nav-btn" onclick="showScreen('about')">About</button>
+      <button class="nav-btn primary" onclick="showScreen('submit')">Submit a Jam</button>
+      <button class="profile-indicator" id="profileBtn" onclick="showScreen('profile')" title="Your profile">?</button>
+    </div>
+  </div>
+</header>
+
+<!-- HOME SCREEN -->
+<div id="screen-home" class="screen active">
+  <div class="container">
+    <div class="hero">
+      <div class="hero-particles">
+        <span class="p1"></span><span class="p2"></span><span class="p3"></span><span class="p4"></span><span class="p5"></span>
+      </div>
+      <div class="hero-logo">
+        <div class="hero-wordmark">
+          <span class="glory">GLORY </span><span class="jams">JAMS</span>
+        </div>
+        <svg class="hero-swoosh" viewBox="0 0 460 16" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 10 Q80 16 160 8 Q230 0 310 8 Q380 16 454 6" stroke="url(#gloryGrad)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
+        </svg>
+      </div>
+      <p class="hero-sub" id="heroSub">Loading...</p>
+    </div>
+    <div class="live-bar" id="liveBar">
+      <span class="pulse-dot"></span>
+      <span id="liveBarText">Checking who's pulling up...</span>
+    </div>
+    <div class="filters">
+      <div class="filter-row" id="regionFilters"></div>
+      <div class="filter-row" id="dayFilters"></div>
+      <div class="filter-row" id="genreFilters"></div>
+    </div>
+    <div class="results-bar">
+      <span id="resultsCount"></span>
+      <button class="surprise-btn" onclick="surpriseMe()"><span class="dice">🎲</span> Surprise me</button>
+    </div>
+    <div class="jam-list" id="jamList"></div>
+    <div class="blast-section">
+      <h3>Get the move</h3>
+      <p>Drop your number. We'll text you when the scene is popping.</p>
+      <div class="blast-input-row">
+        <input type="tel" id="blastPhone" placeholder="(555) 555-5555">
+        <button onclick="subscribeBlast()">I'm in</button>
+      </div>
+      <div id="blastSignupMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL SCREEN -->
+<div id="screen-detail" class="screen">
+  <div class="container" style="padding-top:24px;padding-bottom:60px;">
+    <button class="detail-back" onclick="showScreen('home')">← All jams</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- PROFILE SCREEN -->
+<div id="screen-profile" class="screen">
+  <div class="container register-screen" id="profileContent"></div>
+</div>
+
+<!-- SUBMIT JAM SCREEN -->
+<div id="screen-submit" class="screen">
+  <div class="container submit-screen">
+    <h1 class="submit-title">Submit a Jam</h1>
+    <p class="submit-sub">Know a jam in the Bay — recurring or one-off? Add it to the directory. No account needed.</p>
+    <form id="submitJamForm" onsubmit="submitJam(event)">
+      <div class="form-group"><label class="form-label">Jam Name *</label><input class="form-input" name="name" required placeholder='e.g. "Tuesday Night Jazz Jam"'></div>
+      <div class="form-group"><label class="form-label">Venue Name *</label><input class="form-input" name="venue_name" required></div>
+      <div class="form-group"><label class="form-label">Venue Address *</label><input class="form-input" name="venue_address" required placeholder="Full street address"></div>
+      <div class="form-group"><label class="form-label">City *</label><input class="form-input" name="city" required placeholder="e.g. Oakland, SF, Berkeley"></div>
+      <div class="form-group"><label class="form-label">Region *</label><select class="form-input" name="region" required><option value="sf">SF</option><option value="east_bay">East Bay</option><option value="south_bay">South Bay</option><option value="north_bay_marin">North Bay & Marin</option></select></div>
+      <div class="form-group"><label class="form-label">Day of Week *</label><select class="form-input" name="day_of_week" required><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label class="form-label">Start Time *</label><input class="form-input" name="time_start" required placeholder="8:00 PM"></div>
+        <div class="form-group"><label class="form-label">End Time</label><input class="form-input" name="time_end" placeholder="11:00 PM"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Frequency</label><select class="form-input" name="frequency" onchange="document.getElementById('oneoffDateGroup').style.display=this.value==='One-off'?'block':'none';"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option><option>One-off</option></select></div>
+      <div class="form-group" id="oneoffDateGroup" style="display:none;"><label class="form-label">Event Date *</label><input class="form-input" name="event_date" type="date"><p style="color:#666;font-size:0.72rem;margin-top:4px;">For one-off / special events. Got a Partiful link? Drop it below.</p><input class="form-input" name="partiful_url" placeholder="Partiful event URL (optional)" style="margin-top:8px;"></div>
+      <div class="form-group"><label class="form-label">Genres *</label><div class="genre-select" id="submitGenres"></div></div>
+      <div class="form-group"><label class="form-label">Sign-up Process</label><select class="form-input" name="signup_process"><option>sign-up list</option><option>first come first served</option><option>hosted/called up</option><option>open stage</option></select></div>
+      <div class="form-group"><label class="form-label">Vibe / Atmosphere</label><input class="form-input" name="vibe" placeholder='e.g. "Chill & beginner-friendly"'></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" name="description" rows="3" placeholder="What should people know?"></textarea></div>
+      <div class="form-group"><label class="form-label">Your Name</label><input class="form-input" name="submitter_name" placeholder="So we can credit you"></div>
+      <div class="form-group"><label class="form-label">Your Email</label><input class="form-input" name="submitter_email" type="email" placeholder="In case we need to verify"></div>
+      <button type="submit" class="form-submit">Submit Jam</button>
+      <div id="submitMsg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ABOUT SCREEN -->
+<div id="screen-about" class="screen">
+  <div class="container about-screen">
+    <h1 class="about-title">About Glory Jams</h1>
+    <p class="about-text">Glory Jams is a community resource for musicians in the San Francisco Bay Area to find live jam sessions. Jazz, blues, funk, soul, latin, rock — if there's a recurring jam happening somewhere in the Bay, we want it listed here.</p>
+    <p class="about-text">The idea is simple: there are amazing jam sessions happening every night of the week across the Bay Area, but finding them usually means knowing someone who knows someone. This site exists to change that.</p>
+    <p class="about-text">This isn't social media. There are no feeds, no likes, no DMs. This is a <strong style="color:#fff;">social app</strong> — it exists to get you off your phone and into a room full of musicians. Check in, see who's pulling up, and go play.</p>
+    <p class="about-text" style="margin-top:24px;padding-top:16px;border-top:1px solid #222;">Created by <a href="https://simonoto.com" target="_blank" style="color:#ff6b35;">Simonoto</a>. Built with love for the Bay Area music scene.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>Built by <a href="https://simonoto.com" target="_blank">Simonoto</a></p>
+    <p style="margin-top:4px;">Know a jam that's not listed? <a href="#" onclick="showScreen('submit');return false;">Submit it</a></p>
+  </div>
+</footer>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAV5EYZAJ0IFy9qQ4ljWBqvk_pk6vhuxZg",authDomain:"glory-jams.firebaseapp.com",databaseURL:"https://glory-jams-default-rtdb.firebaseio.com",projectId:"glory-jams",storageBucket:"glory-jams.firebasestorage.app",messagingSenderId:"949960497662",appId:"1:949960497662:web:51efaa36e307204ab108af"};
+let db,firebaseReady=false;
+try{firebase.initializeApp(firebaseConfig);db=firebase.database();firebase.auth().signInAnonymously().catch(e=>console.warn("Anon auth failed",e));if(firebaseConfig.apiKey!=="YOUR_API_KEY")firebaseReady=true;}catch(e){console.log('Firebase not configured — running in demo mode');}
+
+const SEED_JAMS=[
+{id:'1',name:'Jazz Jam at Bird and Beckett',venue_name:'Bird & Beckett Books and Records',venue_address:'653 Chenery St, San Francisco, CA 94131',city:'Glen Park',region:'sf',day_of_week:'Sunday',time_start:'5:30 PM',time_end:'8:00 PM',frequency:'Weekly',genre:['jazz'],signup_process:'sign-up list',description:'Long-running jazz jam in a beloved bookstore. Intimate setting with a dedicated community of players. House band kicks it off, then the list opens up.',vibe:'Welcoming & intimate',what_to_expect:"Arrive a bit early to put your name on the list. The space is small and cozy — a bookstore with a performance area. Expect mostly jazz standards. All levels welcome but know a few tunes."},
+{id:'2',name:'Tuesday Blues Jam at Biscuits and Blues',venue_name:'Biscuits and Blues',venue_address:'401 Mason St, San Francisco, CA 94102',city:'Union Square',region:'sf',day_of_week:'Tuesday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['blues'],signup_process:'sign-up list',description:"Classic blues jam in one of SF's legendary blues clubs. Full stage, real sound system, and a crowd that loves the blues.",vibe:'Classic blues club energy',what_to_expect:"Sign up when you arrive. The house band is solid — just tell them the key and go. Blues standards are the move here."},
+{id:'3',name:"Yo Mama's Jazz Jam",venue_name:"Yo Mama's",venue_address:'3629 Lakeshore Ave, Oakland, CA 94610',city:'Oakland',region:'east_bay',day_of_week:'Thursday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['jazz'],signup_process:'hosted/called up',description:'Vibey Oakland jazz jam. The host calls people up and puts together combos on the fly. Great hang, good food, strong drinks.',vibe:'Vibey & social',what_to_expect:"The host knows the regulars and will work you in. Introduce yourself, let them know what you play. Real Book tunes are your friend."},
+{id:'4',name:'The Jam at Revolution Cafe',venue_name:'Revolution Cafe',venue_address:'3248 22nd St, San Francisco, CA 94110',city:'Mission',region:'sf',day_of_week:'Monday',time_start:'8:00 PM',time_end:'10:00 PM',frequency:'Weekly',genre:['jazz','open'],signup_process:'first come first served',description:"Low-key jam in the Mission. No-frills neighborhood spot. Show up, grab a drink, and play.",vibe:'Low-key & casual',what_to_expect:"First come, first served — just show up with your instrument and jump in. Casual and open to any style."},
+{id:'5',name:"Funk Jam at Eli's Mile High Club",venue_name:"Eli's Mile High Club",venue_address:'3629 Martin Luther King Jr Way, Oakland, CA 94609',city:'Oakland',region:'east_bay',day_of_week:'Saturday',time_start:'9:00 PM',time_end:null,frequency:'Monthly',genre:['funk','soul'],signup_process:'first come first served',description:"Funk and soul jam at one of Oakland's most historic venues. When it's on, it's ON.",vibe:'High-energy & groovy',what_to_expect:"This one goes late and goes hard. Bring your funk chops. The crowd dances. Check social media for specific dates."},
+{id:'6',name:'Full Moon Funk & Soul Jam',venue_name:'The New Parish',venue_address:'1743 San Pablo Ave, Oakland, CA 94612',city:'Oakland',region:'east_bay',date:'2026-03-03',time_start:'8:00 PM',time_end:'11:30 PM',frequency:'One-off',genre:['funk','soul','r&b'],signup_process:'first come first served',description:"Special full moon jam session. The Parish is opening its doors for one night of funk, soul, and R&B. Full backline provided. Pull up and bring the heat.",vibe:'Electric & communal',what_to_expect:"Get there early — this one will pack out. Full backline on stage, just bring your instrument. Open to all levels but the energy will be high.",partiful_url:null},
+{id:'7',name:'Bay Area Jazz Collective Meetup',venue_name:'Yoshi\'s Oakland',venue_address:'510 Embarcadero W, Oakland, CA 94607',city:'Jack London',region:'east_bay',date:'2026-03-14',time_start:'7:00 PM',time_end:'10:00 PM',frequency:'One-off',genre:['jazz'],signup_process:'sign-up list',description:"A one-night gathering of Bay Area jazz musicians. Three sets, rotating combos, curated by local players. This isn't a regular jam — it's an event.",vibe:'Curated & special',what_to_expect:"Sign up in advance via the Partiful link. Combos will be organized beforehand so everyone gets stage time. Dress sharp — Yoshi's is classy.",partiful_url:null}
+];
+
+let jams=[...SEED_JAMS];
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const REGIONS=[{value:'all',label:'All Areas'},{value:'sf',label:'SF'},{value:'east_bay',label:'East Bay'},{value:'south_bay',label:'South Bay'},{value:'north_bay_marin',label:'North Bay & Marin'}];
+const GENRES=['jazz','blues','funk','soul','latin','r&b','rock','open'];
+const INSTRUMENTS=['Guitar','Bass','Drums','Keys/Piano','Saxophone','Trumpet','Trombone','Vocals','Violin/Fiddle','Flute','Harmonica','Percussion','Other'];
+const INSTRUMENT_EMOJI={'Guitar':'🎸','Bass':'🎸','Drums':'🥁','Keys/Piano':'🎹','Saxophone':'🎷','Trumpet':'🎺','Trombone':'🎺','Vocals':'🎤','Violin/Fiddle':'🎻','Flute':'🎵','Harmonica':'🎵','Percussion':'🥁','Other':'🎶'};
+const CORE_INSTRUMENTS=['Guitar','Bass','Drums','Keys/Piano','Saxophone','Trumpet','Vocals'];
+const SIGNUP_ICONS={'sign-up list':'📋','first come first served':'🏃','hosted/called up':'🎤','open stage':'🎸'};
+
+let filters={region:'all',day:'any',genres:[]};
+let checkins={};
+let profile=JSON.parse(localStorage.getItem('gloryjams_profile')||'null');
+
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function getTodayName(){const d=new Date().getDay();return DAYS[d===0?6:d-1];}
+function getTodayDate(){return new Date().toISOString().slice(0,10);}
+function getDayIndex(day){return DAYS.indexOf(day);}
+function isOneOff(jam){return !!jam.date;}
+function isJamTonight(jam){if(isOneOff(jam))return jam.date===getTodayDate();return jam.day_of_week===getTodayName();}
+function isJamUpcoming(jam){if(!isOneOff(jam))return true;return jam.date>=getTodayDate();}
+function isJamPast(jam){return isOneOff(jam)&&jam.date<getTodayDate();}
+function formatDate(dateStr){const d=new Date(dateStr+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function daysUntil(dateStr){const now=new Date();now.setHours(0,0,0,0);const then=new Date(dateStr+'T00:00:00');return Math.ceil((then-now)/(1000*60*60*24));}
+function sortJamsFromToday(jams){const ti=getDayIndex(getTodayName());const today=getTodayDate();return[...jams].sort((a,b)=>{const aOneOff=isOneOff(a),bOneOff=isOneOff(b);const aTonight=isJamTonight(a),bTonight=isJamTonight(b);if(aTonight&&!bTonight)return-1;if(!aTonight&&bTonight)return 1;if(aOneOff&&bOneOff)return a.date.localeCompare(b.date);if(aOneOff&&!bOneOff)return-1;if(!aOneOff&&bOneOff)return 1;return((getDayIndex(a.day_of_week)-ti+7)%7)-((getDayIndex(b.day_of_week)-ti+7)%7);});}
+function getInitials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function genreClass(g){const m={jazz:'jazz',blues:'blues',funk:'funk',soul:'soul',latin:'latin',open:'open',rock:'rock','r&b':'rb'};return'genre-'+(m[g.toLowerCase()]||'open');}
+function todayCheckins(jamId){const today=new Date().toISOString().slice(0,10);const jc=checkins[jamId]||{};return Object.values(jc).filter(c=>c.date===today);}
+function jamCheckins(jamId,jam){if(isOneOff(jam)){const jc=checkins[jamId]||{};return Object.values(jc).filter(c=>c.date===jam.date);}return todayCheckins(jamId);}
+function totalCheckinsTonight(){let count=0;jams.forEach(j=>{if(isJamTonight(j))count+=todayCheckins(j.id).length;});return count;}
+
+// INSTRUMENT MATCHMAKING
+function getInstrumentBreakdown(jamId){const people=todayCheckins(jamId);const bd={};people.forEach(p=>{const inst=p.instrument||'Other';bd[inst]=(bd[inst]||0)+1;});return bd;}
+function getMissingInstruments(jamId){const bd=getInstrumentBreakdown(jamId);return CORE_INSTRUMENTS.filter(i=>!bd[i]);}
+function renderInstrumentTags(jamId,compact){const bd=getInstrumentBreakdown(jamId);const missing=getMissingInstruments(jamId);if(todayCheckins(jamId).length===0)return'';let h='<div class="instrument-breakdown">';Object.entries(bd).forEach(([inst,count])=>{h+=`<span class="instrument-tag">${INSTRUMENT_EMOJI[inst]||'🎶'} ${esc(inst)} <span class="inst-count">${count}</span></span>`;});(compact?missing.slice(0,2):missing).forEach(inst=>{h+=`<span class="instrument-tag instrument-needed">${INSTRUMENT_EMOJI[inst]||'🎶'} Need ${esc(inst)}</span>`;});return h+'</div>';}
+function renderNeedsYouBanner(jamId){if(!profile)return'';const bd=getInstrumentBreakdown(jamId);if(todayCheckins(jamId).length===0)return'';if(!bd[profile.instrument])return`<div class="needs-you-banner">🔥 No ${esc(profile.instrument)} checked in yet — they need you!</div>`;return'';}
+function renderInstrumentGrid(jamId){const bd=getInstrumentBreakdown(jamId);const missing=getMissingInstruments(jamId);if(todayCheckins(jamId).length===0)return'';let h='<div class="detail-section"><h3>🎵 Who\'s bringing what</h3><div class="instrument-grid">';Object.entries(bd).forEach(([inst,count])=>{h+=`<div class="instrument-grid-item"><span>${INSTRUMENT_EMOJI[inst]||'🎶'}</span> ${esc(inst)} <span class="inst-num">${count}</span></div>`;});missing.forEach(inst=>{h+=`<div class="instrument-grid-item" style="opacity:0.4;border:1px dashed #333;"><span>${INSTRUMENT_EMOJI[inst]||'🎶'}</span> ${esc(inst)} <span style="color:#5bff7b;font-size:0.68rem;">needed</span></div>`;});return h+'</div></div>';}
+
+// FIREBASE
+function initFirebase(){if(!firebaseReady){checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(user=>{if(user){db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}renderAll();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();});}else{jams=[...SEED_JAMS];checkins={};renderAll();}});}
+async function registerProfile(name,instrument){if(firebaseReady){const snap=await db.ref('profiles').orderByChild('name_lower').equalTo(name.toLowerCase()).once('value');if(snap.exists())return{error:'That name is already taken. Try something else.'};await db.ref('profiles/'+name.toLowerCase().replace(/\s+/g,'_')).set({name,instrument,name_lower:name.toLowerCase(),created:Date.now()});}profile={name,instrument};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));return{success:true};}
+function deleteProfile(){if(profile&&firebaseReady)db.ref('profiles/'+profile.name.toLowerCase().replace(/\s+/g,'_')).remove();profile=null;localStorage.removeItem('gloryjams_profile');renderAll();showScreen('home');}
+function isCheckedIn(jamId){if(!profile)return false;const jc=checkins[jamId]||{};const today=new Date().toISOString().slice(0,10);return Object.values(jc).some(c=>c.name===profile.name&&c.date===today);}
+function firebaseCheckin(jamId){if(!profile||!firebaseReady)return;const key=profile.name.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);db.ref('checkins/'+jamId+'/'+key).set({name:profile.name,instrument:profile.instrument,date:new Date().toISOString().slice(0,10),timestamp:Date.now()});}
+function firebaseUncheckin(jamId){if(!profile||!firebaseReady)return;const key=profile.name.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);db.ref('checkins/'+jamId+'/'+key).remove();}
+async function subscribeBlast(){const phone=document.getElementById('blastPhone').value.trim();if(!phone||phone.length<7){document.getElementById('blastSignupMsg').innerHTML='<span style="color:#ff5b5b;">Enter a valid phone number</span>';return;}if(firebaseReady)await db.ref('subscribers/'+phone.replace(/\D/g,'')).set({phone,created:Date.now()});document.getElementById('blastSignupMsg').innerHTML='<span class="blast-success">You\'re in! We\'ll text you when it\'s time to pull up.</span>';document.getElementById('blastPhone').value='';}
+async function submitJam(e){e.preventDefault();const form=e.target;const genres=[...form.querySelectorAll('.genre-select-chip.selected')].map(el=>el.dataset.genre);if(genres.length===0){document.getElementById('submitMsg').innerHTML='<p class="form-error">Pick at least one genre</p>';return;}const data={name:form.name.value,venue_name:form.venue_name.value,venue_address:form.venue_address.value,city:form.city.value,region:form.region.value,day_of_week:form.day_of_week.value,time_start:form.time_start.value,time_end:form.time_end.value,frequency:form.frequency.value,genre:genres,signup_process:form.signup_process.value,vibe:form.vibe.value,description:form.description.value,submitter_name:form.submitter_name.value,submitter_email:form.submitter_email.value,status:'pending',submitted:Date.now()};if(firebaseReady)await db.ref('submissions').push(data);document.getElementById('submitMsg').innerHTML='<div class="form-success"><div style="font-size:2rem;">🎉</div><h2>Jam Submitted!</h2><p>We\'ll review it and add it to the directory.</p></div>';form.style.display='none';}
+
+// RENDERING
+function renderAll(){renderFilters();renderJamList();renderLiveBar();renderHero();renderProfileBtn();}
+function renderProfileBtn(){const btn=document.getElementById('profileBtn');if(profile){btn.textContent=getInitials(profile.name);btn.classList.add('active');}else{btn.textContent='?';btn.classList.remove('active');}}
+function renderHero(){const tn=jams.filter(j=>isJamTonight(j));const upcoming=jams.filter(j=>isOneOff(j)&&isJamUpcoming(j)&&!isJamTonight(j));const sub=document.getElementById('heroSub');let html='';if(tn.length>0)html+=`<span class="tonight-count">${tn.length} jam${tn.length!==1?'s':''} tonight</span> · `;if(upcoming.length>0)html+=`<span style="color:#c77bff;font-weight:600;">${upcoming.length} special event${upcoming.length!==1?'s':''} coming up</span> · `;html+=`<span class="total-count">${jams.length} total</span> across the Bay`;sub.innerHTML=html;}
+function renderLiveBar(){const text=document.getElementById('liveBarText');const tp=totalCheckinsTonight();const tn=jams.filter(j=>isJamTonight(j));if(tp===0){text.textContent=tn.length>0?`${tn.length} jam${tn.length!==1?'s':''} tonight — be the first to check in`:'Check back later for tonight\'s jams';}else if(tp<=3){const all=[];tn.forEach(j=>all.push(...todayCheckins(j.id)));text.textContent=all.map(p=>`${p.name} (${p.instrument})`).join(', ')+' pulling up tonight';}else{text.textContent=`${tp} musicians checked in tonight — the scene is live`;}}
+function renderFilters(){const rf=document.getElementById('regionFilters');rf.innerHTML=REGIONS.map(r=>`<button class="filter-chip ${filters.region===r.value?'active':''}" onclick="setFilter('region','${r.value}')">${r.label}</button>`).join('');const today=getTodayName();const df=document.getElementById('dayFilters');let dh=`<button class="filter-chip tonight-chip ${filters.day===today?'active':''}" onclick="setFilter('day','${today}')">Tonight</button><button class="filter-chip ${filters.day==='any'?'active':''}" onclick="setFilter('day','any')">Any Day</button>`;DAYS.forEach(d=>{dh+=`<button class="filter-chip ${filters.day===d&&d!==today?'active':''}" onclick="setFilter('day','${d}')">${d.slice(0,3)}</button>`;});df.innerHTML=dh;const gf=document.getElementById('genreFilters');gf.innerHTML=GENRES.map(g=>`<button class="filter-chip ${filters.genres.includes(g)?'active':''}" onclick="toggleGenreFilter('${g}')">${g}</button>`).join('')+(filters.genres.length>0?`<button class="filter-chip" style="color:#666;" onclick="filters.genres=[];renderAll();">clear</button>`:'');}
+function setFilter(key,value){filters[key]=value;renderAll();}
+function toggleGenreFilter(g){if(filters.genres.includes(g))filters.genres=filters.genres.filter(x=>x!==g);else filters.genres.push(g);renderAll();}
+function getFilteredJams(){let filtered=jams.filter(j=>(j.active!==false)&&(isJamUpcoming(j)||!isOneOff(j)));if(filters.region!=='all')filtered=filtered.filter(j=>j.region===filters.region);if(filters.day!=='any'){const today=getTodayName();if(filters.day===today){filtered=filtered.filter(j=>isJamTonight(j));}else{filtered=filtered.filter(j=>j.day_of_week===filters.day||isOneOff(j));}}if(filters.genres.length>0)filtered=filtered.filter(j=>j.genre.some(g=>filters.genres.includes(g)));return sortJamsFromToday(filtered);}
+
+function renderJamList(){const jams=getFilteredJams();const today=getTodayName();document.getElementById('resultsCount').textContent=`${jams.length} jam${jams.length!==1?'s':''}`;if(jams.length===0){document.getElementById('jamList').innerHTML=`<div class="empty-state"><div class="emoji">🎷</div><p>No jams match those filters.</p><p style="margin-top:4px;"><a href="#" onclick="showScreen('submit');return false;" style="color:#ff6b35;">Submit a jam</a> you know about.</p></div>`;return;}
+document.getElementById('jamList').innerHTML=jams.map(jam=>{const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(jam.id):(oneoff?jamCheckins(jam.id,jam):[]);let ci='';if(people.length>0){const faces=people.slice(0,4).map(p=>`<div class="checkin-face" title="${esc(p.name)} — ${esc(p.instrument)}">${esc(getInitials(p.name))}</div>`).join('');ci=`<div class="jam-checkins"><span class="checkin-count">${people.length} pulling up</span><div class="checkin-faces">${faces}${people.length>4?`<span class="checkin-more">+${people.length-4}</span>`:''}</div></div>`;}
+const cardClass=tonight?'tonight-card':(oneoff?'oneoff-card':'');
+let badge='';if(tonight){badge='<div class="tonight-badge"><span class="pulse-dot"></span>TONIGHT</div>';}else if(oneoff){const du=daysUntil(jam.date);const when=du===0?'Today':du===1?'Tomorrow':`In ${du} days`;badge=`<div class="oneoff-badge"><span class="oneoff-dot"></span>SPECIAL EVENT · ${when}</div>`;}
+const timeStr=oneoff?`${formatDate(jam.date)} · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`:`${jam.day_of_week}s · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`;
+return`<div class="jam-card ${cardClass}" onclick="showDetail('${jam.id}')">${badge}<div class="jam-name">${jam.name}</div><div class="jam-venue">${jam.venue_name} · ${jam.city}</div><div class="jam-meta"><span class="jam-time">${timeStr}</span><span class="sep">·</span><span>${jam.frequency}</span><span class="sep">·</span><span>${SIGNUP_ICONS[jam.signup_process]||'📋'} ${jam.signup_process}</span></div><div class="jam-genres">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${g}</span>`).join('')}</div>${jam.vibe?`<div style="margin-top:8px;font-size:0.75rem;color:#555;font-style:italic;">Vibe: ${jam.vibe}</div>`:''}${ci}${renderInstrumentTags(jam.id,true)}</div>`;}).join('');}
+
+function showDetail(id){const jam=jams.find(j=>j.id===id);if(!jam)return;const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(id):jamCheckins(id,jam);const amIn=isCheckedIn(id);
+let btn;if(!profile)btn=`<button class="checkin-btn needs-profile" onclick="showScreen('profile')">Register to check in</button>`;else if(amIn)btn=`<button class="checkin-btn checked-in" onclick="firebaseUncheckin('${id}');showDetail('${id}');">✓ You're checked in — tap to undo</button>`;else btn=`<button class="checkin-btn can-checkin" onclick="firebaseCheckin('${id}');showDetail('${id}');">I'm pulling up${tonight?' tonight':''}</button>`;
+const ph=people.length>0?people.map(p=>`<div class="checkin-person"><div class="person-avatar">${esc(getInitials(p.name))}</div><div><div class="person-name">${esc(p.name)}</div><div class="person-instrument">${INSTRUMENT_EMOJI[p.instrument]||'🎶'} ${esc(p.instrument)}</div></div></div>`).join(''):'<p style="color:#555;font-size:0.85rem;">No one checked in yet. Be the first.</p>';
+const whenStr=oneoff?`${formatDate(jam.date)} · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`:`${jam.day_of_week}s · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`;
+const freqCard=oneoff?`<div class="detail-card"><div class="detail-card-label">✨ Type</div><div class="detail-card-value" style="color:#c77bff;">Special Event</div></div>`:`<div class="detail-card"><div class="detail-card-label">🔄 Frequency</div><div class="detail-card-value">${jam.frequency}</div></div>`;
+// Partiful CTA
+let partifulHtml='';
+if(jam.partiful_url){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${esc(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
+else{partifulHtml=`<div class="partiful-cta"><p>🎪 Rally your crew for this jam</p><a href="https://partiful.com/create" target="_blank" rel="noopener" class="partiful-link">Create a Partiful invite</a></div>`;}
+document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${g}</span>`).join('')}</div><h1 class="detail-name">${jam.name}</h1><p class="detail-venue">${jam.venue_name} · ${jam.city}</p></div>${jam.vibe?`<div class="vibe-badge">${jam.vibe}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${jam.signup_process||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${jam.venue_address}</div></div></div>${renderNeedsYouBanner(id)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}<div class="checkin-people">${ph}</div></div>${renderInstrumentGrid(id)}${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${jam.description}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${jam.what_to_expect}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
+showScreen('detail');}
+
+function renderProfile(){const c=document.getElementById('profileContent');if(profile){const mc=[];Object.keys(checkins).forEach(jid=>{if(isCheckedIn(jid)){const j=jams.find(x=>x.id===jid);if(j)mc.push(j);}});c.innerHTML=`<div class="profile-card"><div class="profile-avatar-big">${esc(getInitials(profile.name))}</div><div class="profile-name">${esc(profile.name)}</div><div class="profile-instrument">${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} ${esc(profile.instrument)}</div><div class="profile-actions"><button class="profile-action-btn danger" onclick="if(confirm('Delete your profile?'))deleteProfile();">Delete profile</button></div></div>${mc.length>0?`<div class="your-checkins"><h3>Your check-ins today</h3>${mc.map(j=>`<div class="jam-card" onclick="showDetail('${j.id}')" style="margin-bottom:8px;"><div class="jam-name">${j.name}</div><div class="jam-venue">${j.venue_name} · ${j.day_of_week} ${j.time_start}</div></div>`).join('')}</div>`:''}`;}else{c.innerHTML=`<h1 class="register-title">Join the scene</h1><p class="register-sub">Register your name to check in at jams. That's it — no password, no email, no social media stuff. Just your name and what you play.</p><form onsubmit="handleRegister(event)"><div class="form-group"><label class="form-label">Your Name *</label><input class="form-input" id="regName" required placeholder="How people know you" autocomplete="off"><div id="regNameError"></div></div><div class="form-group"><label class="form-label">Your Instrument *</label><select class="form-input" id="regInstrument" required><option value="">Pick one</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select></div><button type="submit" class="form-submit" id="regSubmitBtn">Lock it in</button><p style="color:#555;font-size:0.75rem;margin-top:10px;text-align:center;">Names are first-come, first-served. Pick something the scene knows you by.</p></form>`;}}
+async function handleRegister(e){e.preventDefault();const name=document.getElementById('regName').value.trim();const instrument=document.getElementById('regInstrument').value;if(!name||!instrument)return;document.getElementById('regSubmitBtn').disabled=true;document.getElementById('regSubmitBtn').textContent='Checking...';document.getElementById('regNameError').innerHTML='';const result=await registerProfile(name,instrument);if(result.error){document.getElementById('regNameError').innerHTML=`<p class="form-error">${esc(result.error)}</p>`;document.getElementById('regSubmitBtn').disabled=false;document.getElementById('regSubmitBtn').textContent='Lock it in';return;}renderAll();showScreen('home');}
+function showScreen(name){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(`screen-${name}`).classList.add('active');window.scrollTo(0,0);if(name==='profile')renderProfile();if(name==='submit')renderSubmitGenres();}
+function renderSubmitGenres(){const c=document.getElementById('submitGenres');if(!c)return;c.innerHTML=GENRES.map(g=>`<button type="button" class="genre-select-chip" data-genre="${g}" onclick="this.classList.toggle('selected')">${g}</button>`).join('');}
+function surpriseMe(){const jams=getFilteredJams();if(jams.length===0)return;const btn=document.querySelector('.surprise-btn');btn.classList.add('spinning');setTimeout(()=>{btn.classList.remove('spinning');showDetail(jams[Math.floor(Math.random()*jams.length)].id);},500);}
+
+function init(){if(window.location.search.includes('admin')){window.location.href='admin.html';return;}initFirebase();renderAll();renderSubmitGenres();}
+init();
+</script>
+</body>
+</html>
