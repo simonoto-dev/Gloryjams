@@ -410,7 +410,17 @@ footer a:hover { text-decoration: underline; }
 @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 .results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.82rem; color: #555; }
 .hidden { display: none !important; }
-@media (max-width: 480px) { .detail-grid { grid-template-columns: 1fr; } .blast-input-row { flex-direction: column; } }
+@media (max-width: 480px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .blast-input-row { flex-direction: column; }
+  .logo-text { font-size: 0.85rem; }
+  .nav-btn { padding: 5px 10px; font-size: 0.75rem; }
+  .nav-links { gap: 5px; }
+}
+@media (max-width: 360px) {
+  .logo-text { font-size: 0.75rem; }
+  .nav-btn { padding: 4px 8px; font-size: 0.7rem; }
+}
 </style>
 </head>
 <body>
