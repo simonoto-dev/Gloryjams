@@ -269,8 +269,8 @@ function renderDashboard(){
     ):'',
 
     h('div',{class:'label'},'Tonight\'s Jams'),
-    tonight.length===0?h('div',{class:'card'},h('p',{style:{color:'var(--muted)'}},'No jams tonight.')):
-    ...tonight.map(j=>{
+    ...(tonight.length===0?[h('div',{class:'card'},h('p',{style:{color:'var(--muted)'}},'No jams tonight.'))]:
+    tonight.map(j=>{
       const ppl=todayCheckins(j.id);
       return h('div',{class:'card'},
         h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
@@ -282,7 +282,7 @@ function renderDashboard(){
         ),
         ppl.length>0?h('div',{style:{marginTop:'8px',fontSize:'12px',color:'var(--muted)'}},ppl.map(p=>esc(p.name)+' ('+esc(p.instrument)+')').join(', ')):''
       );
-    })
+    }))
   );
 }
 
@@ -471,8 +471,8 @@ function renderSubmissions(){
       )
     ),
 
-    filtered.length===0?h('div',{class:'empty'},h('div',{class:'empty-icon'},'📥'),h('p',{},'No '+subFilter+' submissions.')):
-    ...filtered.map(([key,s])=>h('div',{class:'card'},
+    ...(filtered.length===0?[h('div',{class:'empty'},h('div',{class:'empty-icon'},'📥'),h('p',{},'No '+subFilter+' submissions.'))]:
+    filtered.map(([key,s])=>h('div',{class:'card'},
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}},
         h('div',{},
           h('div',{class:'item-name'},esc(s.name)),
@@ -488,7 +488,7 @@ function renderSubmissions(){
         h('button',{class:'btn btn-sm',onClick:()=>approveSubmission(key,s)},'Approve'),
         h('button',{class:'btn-red',style:{fontSize:'12px'},onClick:()=>{db.ref('submissions/'+key+'/status').set('rejected');db.ref('submissions/'+key+'/reviewedAt').set(Date.now());}},'Reject')
       ):''
-    ))
+    )))
   );
 }
 
@@ -533,8 +533,8 @@ function renderCheckins(){
     h('h2',{class:'section-title'},'Check-ins'),
     h('p',{class:'section-sub'},'Tonight \u2014 '+allTonight.length+' musician'+(allTonight.length!==1?'s':'')+' across '+tonight.length+' jam'+(tonight.length!==1?'s':'')),
 
-    tonight.length===0?h('div',{class:'empty'},h('div',{class:'empty-icon'},'🌙'),h('p',{},'No jams tonight.')):
-    ...tonight.map(j=>{
+    ...(tonight.length===0?[h('div',{class:'empty'},h('div',{class:'empty-icon'},'🌙'),h('p',{},'No jams tonight.'))]:
+    tonight.map(j=>{
       const ppl=todayCheckins(j.id);
       return h('div',{class:'card'},
         h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}},
@@ -553,7 +553,7 @@ function renderCheckins(){
           }},'Remove')
         )))
       );
-    })
+    }))
   );
 }
 
@@ -565,8 +565,8 @@ function renderProfiles(){
     h('h2',{class:'section-title'},'Profiles'),
     h('p',{class:'section-sub'},all.length+' registered musician'+(all.length!==1?'s':'')),
 
-    all.length===0?h('div',{class:'empty'},h('div',{class:'empty-icon'},'🎸'),h('p',{},'No profiles yet.')):
-    ...all.map(([key,p])=>h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+    ...(all.length===0?[h('div',{class:'empty'},h('div',{class:'empty-icon'},'🎸'),h('p',{},'No profiles yet.'))]:
+    all.map(([key,p])=>h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
       h('div',{},
         h('div',{class:'item-name'},esc(p.name)),
         h('div',{class:'item-meta'},esc(p.instrument)+(p.created?' \u00b7 Joined '+fmtDate(p.created):''))
@@ -574,7 +574,7 @@ function renderProfiles(){
       h('button',{class:'btn-red',style:{fontSize:'10px',padding:'3px 8px'},onClick:()=>{
         if(confirm('Delete profile for '+p.name+'?'))db.ref('profiles/'+key).remove();
       }},'Delete')
-    ))
+    )))
   );
 }
 
@@ -600,8 +600,8 @@ function renderBlasts(){
     ),
 
     h('div',{class:'label',style:{marginTop:'16px'}},'Subscribers'),
-    subList.length===0?h('p',{style:{color:'var(--muted)',fontSize:'12px'}},'No subscribers yet.'):
-    ...subList.map(([key,s])=>h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 16px'}},
+    ...(subList.length===0?[h('p',{style:{color:'var(--muted)',fontSize:'12px'}},'No subscribers yet.')]:
+    subList.map(([key,s])=>h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 16px'}},
       h('div',{},
         h('span',{style:{fontWeight:'600',fontSize:'13px'}},esc(s.phone)),
         h('span',{style:{color:'var(--muted)',fontSize:'11px',marginLeft:'8px'}},fmtDate(s.created))
@@ -609,7 +609,7 @@ function renderBlasts(){
       h('button',{class:'btn-red',style:{fontSize:'10px',padding:'2px 8px'},onClick:()=>{
         if(confirm('Remove subscriber '+s.phone+'?'))db.ref('subscribers/'+key).remove();
       }},'Remove')
-    )),
+    ))),
 
     blastList.length>0?h('div',{},
       h('div',{class:'label',style:{marginTop:'16px'}},'Blast History'),
