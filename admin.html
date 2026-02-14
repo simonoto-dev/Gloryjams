@@ -114,13 +114,13 @@ const INSTRUMENTS = ['Guitar','Bass','Drums','Keys/Piano','Saxophone','Trumpet',
 /* ===== FIREBASE ===== */
 const firebaseConfig={apiKey:"AIzaSyAV5EYZAJ0IFy9qQ4ljWBqvk_pk6vhuxZg",authDomain:"glory-jams.firebaseapp.com",databaseURL:"https://glory-jams-default-rtdb.firebaseio.com",projectId:"glory-jams",storageBucket:"glory-jams.firebasestorage.app",messagingSenderId:"949960497662",appId:"1:949960497662:web:51efaa36e307204ab108af"};
 firebase.initializeApp(firebaseConfig);
-firebase.auth().signInAnonymously().catch(e=>console.warn("Anon auth failed",e));
 const db=firebase.database();
 
 function waitForAuth(){
   return new Promise(resolve=>{
+    firebase.auth().signInAnonymously().catch(e=>console.warn("Anon auth failed, retrying...",e));
     const unsub=firebase.auth().onAuthStateChanged(user=>{if(user){unsub();resolve(user);}});
-    setTimeout(()=>{unsub();resolve(null);},5000);
+    setTimeout(()=>{unsub();resolve(null);},8000);
   });
 }
 
@@ -150,10 +150,15 @@ function checkAuth(){
 async function showApp(){
   document.getElementById('auth-gate').style.display='none';
   document.getElementById('app').style.display='flex';
-  await waitForAuth();
-  await loadAllData();
-  setupRealtimeSync();
-  render();
+  try{
+    await waitForAuth();
+    await loadAllData();
+    setupRealtimeSync();
+    render();
+  }catch(e){
+    console.error('Failed to load app:',e);
+    document.getElementById('app').innerHTML='<div style="padding:40px;text-align:center;color:#ff5b5b;"><p style="font-size:16px;font-weight:600;">Failed to connect to Firebase</p><p style="color:#888;font-size:13px;margin-top:8px;">'+esc(e.message||'Unknown error')+'</p><button onclick="location.reload()" style="margin-top:16px;padding:8px 24px;border-radius:8px;border:none;background:#ff6b35;color:#000;font-weight:600;cursor:pointer;">Retry</button></div>';
+  }
 }
 
 function logout(){
