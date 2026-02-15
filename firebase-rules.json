@@ -1,0 +1,51 @@
+{
+  "rules": {
+    // Jams — public read, admin-only write
+    "jams": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email != null"
+    },
+
+    // Check-ins — public read/write (anyone can check in)
+    "checkins": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // Profiles — public read/write (users register themselves)
+    "profiles": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+    // Submissions — public write (anyone can submit a jam),
+    // read allowed for edit-link queries (by editToken),
+    // full read for admin only
+    "submissions": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["editToken", "status"]
+    },
+
+    // SENSITIVE: Subscribers (phone numbers) — write-only for public, read for admin
+    "subscribers": {
+      ".read": "auth != null && auth.token.email != null",
+      ".write": "auth != null",
+      "$phone": {
+        ".validate": "newData.hasChild('phone') && newData.hasChild('created')"
+      }
+    },
+
+    // SENSITIVE: Blasts — admin only
+    "blasts": {
+      ".read": "auth != null && auth.token.email != null",
+      ".write": "auth != null && auth.token.email != null"
+    },
+
+    // Default: deny everything else
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

@@ -89,9 +89,10 @@ select.input{appearance:auto;}
 <div style="font-size:48px;margin-bottom:12px;">🎷</div>
 <div style="font-family:'DM Serif Display',Georgia,serif;font-size:26px;color:#ff6b35;margin-bottom:4px;">Glory Jams</div>
 <div style="color:#888;font-size:12px;margin-bottom:24px;">Admin Dashboard</div>
-<input id="auth-pw" type="password" placeholder="Admin password" style="width:240px;padding:10px 16px;border-radius:10px;border:1px solid #2a2a2a;background:#141414;color:#e8e8e8;font-size:14px;text-align:center;outline:none;" onkeydown="if(event.key==='Enter')checkAuth()">
-<br><button onclick="checkAuth()" style="margin-top:12px;padding:8px 32px;border-radius:10px;border:none;background:#ff6b35;color:#000;font-weight:600;font-size:14px;cursor:pointer;">Enter</button>
-<div id="auth-err" style="color:#ff5b5b;font-size:12px;margin-top:10px;display:none;">Incorrect password</div>
+<input id="auth-email" type="email" placeholder="Admin email" style="width:260px;padding:10px 16px;border-radius:10px;border:1px solid #2a2a2a;background:#141414;color:#e8e8e8;font-size:14px;text-align:center;outline:none;margin-bottom:8px;" onkeydown="if(event.key==='Enter')document.getElementById('auth-pw').focus()">
+<br><input id="auth-pw" type="password" placeholder="Password" style="width:260px;padding:10px 16px;border-radius:10px;border:1px solid #2a2a2a;background:#141414;color:#e8e8e8;font-size:14px;text-align:center;outline:none;" onkeydown="if(event.key==='Enter')checkAuth()">
+<br><button onclick="checkAuth()" id="auth-btn" style="margin-top:12px;padding:8px 32px;border-radius:10px;border:none;background:#ff6b35;color:#000;font-weight:600;font-size:14px;cursor:pointer;">Sign In</button>
+<div id="auth-err" style="color:#ff5b5b;font-size:12px;margin-top:10px;display:none;"></div>
 </div>
 </div>
 <div class="app" id="app" style="display:none;"></div>
@@ -117,14 +118,6 @@ const firebaseConfig={apiKey:"AIzaSyAV5EYZAJ0IFy9qQ4ljWBqvk_pk6vhuxZg",authDomai
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-function waitForAuth(){
-  return new Promise(resolve=>{
-    firebase.auth().signInAnonymously().catch(e=>console.warn("Anon auth failed, retrying...",e));
-    const unsub=firebase.auth().onAuthStateChanged(user=>{if(user){unsub();resolve(user);}});
-    setTimeout(()=>{unsub();resolve(null);},8000);
-  });
-}
-
 function toArray(val){
   if(Array.isArray(val))return val;
   if(val&&typeof val==='object')return Object.values(val);
@@ -134,17 +127,24 @@ function toArray(val){
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
-/* ===== AUTH ===== */
-const AUTH_KEY = 'gloryjams-admin-auth';
-const ADMIN_HASH = '4dd07950';
-function simpleHash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h).toString(16).slice(0,8);}
+/* ===== AUTH (Firebase Email/Password) ===== */
+let adminUser=null;
 
-function checkAuth(){
-  if(simpleHash(document.getElementById('auth-pw').value)===ADMIN_HASH){
-    sessionStorage.setItem(AUTH_KEY,'1');
-    showApp();
-  } else {
-    document.getElementById('auth-err').style.display='block';
+async function checkAuth(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pw=document.getElementById('auth-pw').value;
+  const errEl=document.getElementById('auth-err');
+  const btn=document.getElementById('auth-btn');
+  if(!email||!pw){errEl.textContent='Enter email and password';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Signing in...';errEl.style.display='none';
+  try{
+    const cred=await firebase.auth().signInWithEmailAndPassword(email,pw);
+    adminUser=cred.user;
+    await showApp();
+  }catch(e){
+    btn.disabled=false;btn.textContent='Sign In';
+    const msg=e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'?'Invalid email or password':e.code==='auth/user-not-found'?'No admin account with that email':e.code==='auth/too-many-requests'?'Too many attempts — try again later':e.message||'Sign in failed';
+    errEl.textContent=msg;errEl.style.display='block';
   }
 }
 
@@ -152,7 +152,6 @@ async function showApp(){
   document.getElementById('auth-gate').style.display='none';
   document.getElementById('app').style.display='flex';
   try{
-    await waitForAuth();
     await loadAllData();
     setupRealtimeSync();
     render();
@@ -163,14 +162,19 @@ async function showApp(){
 }
 
 function logout(){
-  sessionStorage.removeItem(AUTH_KEY);
+  firebase.auth().signOut();
+  adminUser=null;
   document.getElementById('auth-gate').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('auth-pw').value='';
+  document.getElementById('auth-email').value='';
   document.getElementById('auth-err').style.display='none';
 }
 
-(async function(){if(sessionStorage.getItem(AUTH_KEY)==='1')await showApp();})();
+// Auto-login if session persists (Firebase remembers auth state)
+firebase.auth().onAuthStateChanged(user=>{
+  if(user&&!user.isAnonymous){adminUser=user;showApp();}
+});
 
 /* ===== STATE ===== */
 let currentTab=0;
