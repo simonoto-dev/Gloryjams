@@ -63,12 +63,7 @@ header {
   background: linear-gradient(90deg, #ffd700, #ff6b35, #ff8c00, #ff6b35, #ffd700);
   background-size: 300% 100%;
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text; font-style: italic; animation: shimmer 6s ease-in-out infinite reverse;
-}
-.hero-swoosh {
-  display: block; margin: -4px auto 0; width: clamp(200px, 55vw, 360px); height: 12px;
-  stroke-dasharray: 600; stroke-dashoffset: 600;
-  animation: swooshDraw 2s ease-out forwards, gentleSway 6s ease-in-out 2s infinite;
+  background-clip: text; animation: shimmer 6s ease-in-out infinite reverse;
 }
 .hero-sub { font-size: 1rem; color: #888; max-width: 480px; margin: 0 auto; line-height: 1.5; position: relative; z-index: 1; }
 .hero-sub .tonight-count { color: #ff6b35; font-weight: 700; }
@@ -125,14 +120,6 @@ svg.defs { position: absolute; width: 0; height: 0; }
 </style>
 </head>
 <body>
-
-<svg class="defs">
-  <defs>
-    <linearGradient id="gloryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#ffd700"/><stop offset="60%" stop-color="#ff6b35"/><stop offset="100%" stop-color="#ffd700"/>
-    </linearGradient>
-  </defs>
-</svg>
 
 <!-- FONT PICKER -->
 <div class="font-picker">
@@ -230,7 +217,7 @@ radios.forEach(r => r.addEventListener('change', () => {
   const jams = wm.querySelector('.jams');
   if (r.value.includes('Nabla')) {
     glory.style.cssText = '-webkit-text-fill-color: unset; background: none; color: inherit;';
-    jams.style.cssText = '-webkit-text-fill-color: unset; background: none; color: inherit; font-style: italic;';
+    jams.style.cssText = '-webkit-text-fill-color: unset; background: none; color: inherit;';
   } else {
     glory.style.cssText = '';
     jams.style.cssText = '';
