@@ -14,8 +14,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-<!-- Google Places API — replace AIzaSyDATSTZlnKNeuV2CrJyHQ6zuDSDNra7Bpg with your API key -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDATSTZlnKNeuV2CrJyHQ6zuDSDNra7Bpg&libraries=places&callback=initPlaces" async defer></script>
+<!-- Google Places API (New) — uses PlaceAutocompleteElement -->
+<script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.googleapis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key:"AIzaSyDATSTZlnKNeuV2CrJyHQ6zuDSDNra7Bpg",v:"weekly"});</script>
 
 <!-- Typography: Asset (hero), Rock Salt (header + titles), DM Sans (body) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -474,13 +474,25 @@ footer a:hover { text-decoration: underline; }
 .places-selected .venue-name-display { font-weight: 600; color: #fff; }
 .places-selected .venue-addr-display { font-size: 0.75rem; color: #888; margin-top: 2px; }
 .places-selected button { color: #ff5b5b; font-size: 0.72rem; background: none; border: none; cursor: pointer; }
-/* Style the Google Places dropdown to match dark theme */
-.pac-container { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; margin-top: 4px; font-family: 'DM Sans', sans-serif; }
-.pac-item { padding: 8px 12px; border-top: 1px solid #222; color: #ccc; font-size: 0.85rem; cursor: pointer; }
-.pac-item:hover { background: #222; }
-.pac-item-query { color: #fff; font-weight: 600; }
-.pac-matched { color: #ff6b35; }
-.pac-icon { display: none; }
+/* Style the Google Places autocomplete element (new PlaceAutocompleteElement) */
+#placesInputWrap { width: 100%; }
+#placesInputWrap gmp-place-autocomplete { width: 100%; display: block; }
+gmp-place-autocomplete { --gmpac-color-surface: #1a1a1a; --gmpac-color-on-surface: #e0e0e0; --gmpac-color-on-surface-variant: #888; --gmpac-color-outline: #333; --gmpac-color-primary: #ff6b35; font-family: 'DM Sans', sans-serif; }
+gmp-place-autocomplete::part(input) {
+  background: #1a1a1a; color: #e0e0e0; border: 1px solid #333; border-radius: 10px;
+  padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+  width: 100%; box-sizing: border-box; outline: none;
+}
+gmp-place-autocomplete::part(input):focus { border-color: #ff6b35; }
+gmp-place-autocomplete::part(predictions) {
+  background: #1a1a1a; border: 1px solid #333; border-radius: 10px; margin-top: 4px;
+}
+gmp-place-autocomplete::part(prediction-item) { padding: 8px 12px; color: #ccc; font-size: 0.85rem; cursor: pointer; }
+gmp-place-autocomplete::part(prediction-item):hover,
+gmp-place-autocomplete::part(prediction-item-selected) { background: #222; }
+gmp-place-autocomplete::part(prediction-item-main-text) { color: #fff; font-weight: 600; }
+gmp-place-autocomplete::part(prediction-item-match) { color: #ff6b35; }
+.places-hidden { display: none !important; }
 
 /* EDIT LINK */
 .edit-link-box {
@@ -627,7 +639,7 @@ input[type="time"].form-input::-webkit-calendar-picker-indicator { filter: inver
       <div class="form-group" id="venueGroup">
         <label class="form-label">Venue *</label>
         <div class="places-wrap">
-          <input class="form-input" id="placesInput" placeholder="Search for a venue..." autocomplete="off">
+          <div id="placesInputWrap"></div>
           <div class="form-error-inline" data-for="venue">Venue is required</div>
           <div id="placesSelected" class="places-selected" style="display:none;">
             <div class="venue-info">
@@ -861,34 +873,45 @@ async function subscribeBlast(){const phone=document.getElementById('blastPhone'
 // ============================================
 // GOOGLE PLACES AUTOCOMPLETE
 // ============================================
-function initPlaces(){
-  placesReady=true;
-  const input=document.getElementById('placesInput');
-  if(!input)return;
-  placesAutocomplete=new google.maps.places.Autocomplete(input,{
-    types:['establishment'],
-    componentRestrictions:{country:'us'},
-    fields:['name','formatted_address','address_components','geometry']
-  });
-  placesAutocomplete.addListener('place_changed',onPlaceSelected);
+async function initPlaces(){
+  try{
+    await google.maps.importLibrary('places');
+    placesReady=true;
+    mountPlacesElement();
+  }catch(e){console.warn('Places API failed to load:',e);}
 }
-// Make initPlaces available globally for the callback
-window.initPlaces=initPlaces;
+// Boot Places on load
+initPlaces();
 
-function onPlaceSelected(){
-  const place=placesAutocomplete.getPlace();
-  if(!place||!place.name)return;
-  const venueName=place.name;
-  const addr=place.formatted_address||'';
+function mountPlacesElement(){
+  const wrap=document.getElementById('placesInputWrap');
+  if(!wrap||wrap.querySelector('gmp-place-autocomplete'))return;
+  const el=new google.maps.places.PlaceAutocompleteElement({
+    includedPrimaryTypes:['establishment'],
+    includedRegionCodes:['us']
+  });
+  el.id='placesInput';
+  el.setAttribute('placeholder','Search for a venue...');
+  el.addEventListener('gmp-select',onPlaceSelected);
+  wrap.appendChild(el);
+  placesAutocomplete=el;
+}
+
+async function onPlaceSelected(e){
+  const pred=e.placePrediction;
+  if(!pred)return;
+  const place=pred.toPlace();
+  await place.fetchFields({fields:['displayName','formattedAddress','addressComponents']});
+  const venueName=place.displayName||'';
+  const addr=place.formattedAddress||'';
   let city='',region='sf';
-  if(place.address_components){
-    for(const c of place.address_components){
-      if(c.types.includes('locality'))city=c.long_name;
-      if(c.types.includes('sublocality_level_1')&&!city)city=c.long_name;
-      if(c.types.includes('neighborhood')&&!city)city=c.long_name;
+  if(place.addressComponents){
+    for(const c of place.addressComponents){
+      if(c.types.includes('locality'))city=c.longText;
+      if(c.types.includes('sublocality_level_1')&&!city)city=c.longText;
+      if(c.types.includes('neighborhood')&&!city)city=c.longText;
     }
   }
-  // Map city to region
   region=REGION_MAP[city]||guessRegion(addr);
   document.getElementById('hVenueName').value=venueName;
   document.getElementById('hVenueAddr').value=addr;
@@ -897,7 +920,7 @@ function onPlaceSelected(){
   document.getElementById('venueNameDisplay').textContent=venueName;
   document.getElementById('venueAddrDisplay').textContent=addr;
   document.getElementById('placesSelected').style.display='flex';
-  document.getElementById('placesInput').style.display='none';
+  document.getElementById('placesInputWrap').classList.add('places-hidden');
   document.getElementById('manualToggle').style.display='none';
   checkDuplicateVenue(venueName);
   saveDraft();
@@ -918,8 +941,9 @@ function clearVenueSelection(){
   document.getElementById('hCity').value='';
   document.getElementById('hRegion').value='';
   document.getElementById('placesSelected').style.display='none';
-  document.getElementById('placesInput').style.display='';
-  document.getElementById('placesInput').value='';
+  document.getElementById('placesInputWrap').classList.remove('places-hidden');
+  const pacEl=document.querySelector('#placesInputWrap gmp-place-autocomplete');
+  if(pacEl)pacEl.value='';
   document.getElementById('manualToggle').style.display='';
   document.getElementById('duplicateWarning').innerHTML='';
   manualVenueMode=false;
@@ -933,12 +957,12 @@ function toggleManualVenue(){
   if(manualVenueMode){
     fields.classList.remove('collapsed');
     toggle.textContent='Use venue search instead';
-    document.getElementById('placesInput').style.display='none';
+    document.getElementById('placesInputWrap').classList.add('places-hidden');
     document.getElementById('placesSelected').style.display='none';
   }else{
     fields.classList.add('collapsed');
     toggle.textContent="Can't find it? Enter manually";
-    document.getElementById('placesInput').style.display='';
+    document.getElementById('placesInputWrap').classList.remove('places-hidden');
   }
 }
 
@@ -1035,7 +1059,7 @@ function validateSubmitForm(){
   // Venue
   const manualNameEl=form.querySelector('[name="manual_venue_name"]');
   const hasVenue=manualVenueMode?(manualNameEl?.value.trim()):document.getElementById('hVenueName').value.trim();
-  if(!hasVenue){showFieldError('venue',true);valid=false;firstError=firstError||document.getElementById('placesInput');}
+  if(!hasVenue){showFieldError('venue',true);valid=false;firstError=firstError||document.getElementById('placesInputWrap');}
   else showFieldError('venue',false);
   // Time
   if(!form.time_start.value){showFieldError('time_start',true);valid=false;firstError=firstError||form.time_start;}
@@ -1115,7 +1139,7 @@ function restoreDraft(){
     if(d.manualMode){
       manualVenueMode=true;
       document.getElementById('manualVenueFields').classList.remove('collapsed');
-      document.getElementById('placesInput').style.display='none';
+      document.getElementById('placesInputWrap').classList.add('places-hidden');
       document.getElementById('manualToggle').textContent='Use venue search instead';
       const mvn=form.querySelector('[name="manual_venue_name"]');if(mvn)mvn.value=d.manual_venue_name||'';
       const mva=form.querySelector('[name="manual_venue_address"]');if(mva)mva.value=d.manual_venue_address||'';
@@ -1129,7 +1153,7 @@ function restoreDraft(){
       document.getElementById('venueNameDisplay').textContent=d.venue_name;
       document.getElementById('venueAddrDisplay').textContent=d.venue_address||'';
       document.getElementById('placesSelected').style.display='flex';
-      document.getElementById('placesInput').style.display='none';
+      document.getElementById('placesInputWrap').classList.add('places-hidden');
       document.getElementById('manualToggle').style.display='none';
     }
     // Restore jam type
@@ -1289,7 +1313,7 @@ async function handleEditLink(token){
       document.getElementById('venueNameDisplay').textContent=data.venue_name;
       document.getElementById('venueAddrDisplay').textContent=data.venue_address||'';
       document.getElementById('placesSelected').style.display='flex';
-      document.getElementById('placesInput').style.display='none';
+      document.getElementById('placesInputWrap').classList.add('places-hidden');
       document.getElementById('manualToggle').style.display='none';
     }
     // Set type
@@ -1370,13 +1394,9 @@ function showScreen(name){
   if(name==='submit'){
     renderSubmitGenres();
     setupFormValidation();
-    // Re-init Places if loaded but autocomplete not attached
-    if(placesReady&&!placesAutocomplete){
-      const input=document.getElementById('placesInput');
-      if(input){
-        placesAutocomplete=new google.maps.places.Autocomplete(input,{types:['establishment'],componentRestrictions:{country:'us'},fields:['name','formatted_address','address_components','geometry']});
-        placesAutocomplete.addListener('place_changed',onPlaceSelected);
-      }
+    // Mount Places element if loaded but not yet in DOM
+    if(placesReady&&!document.querySelector('#placesInputWrap gmp-place-autocomplete')){
+      mountPlacesElement();
     }
     // Restore draft only if not editing
     if(!editingSubmissionKey)restoreDraft();
