@@ -104,10 +104,11 @@ header {
 
 /* FONT PICKER */
 .font-picker {
-  position: sticky; top: 53px; z-index: 99;
-  background: rgba(10,10,10,0.95); backdrop-filter: blur(12px);
-  border-bottom: 1px solid #222; padding: 10px 0;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(10,10,10,0.97); backdrop-filter: blur(12px);
+  border-bottom: 1px solid #ff6b35; padding: 10px 0;
 }
+header { top: 44px; }
 .font-picker .container { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .font-picker label {
   padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; color: #888;
