@@ -14,6 +14,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
+<!-- Google Places API — replace AIzaSyDATSTZlnKNeuV2CrJyHQ6zuDSDNra7Bpg with your API key -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDATSTZlnKNeuV2CrJyHQ6zuDSDNra7Bpg&libraries=places&callback=initPlaces" async defer></script>
+
 <!-- Typography: Asset (hero), Rock Salt (header + titles), DM Sans (body) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -409,6 +412,98 @@ footer a:hover { text-decoration: underline; }
 .surprise-btn.spinning .dice { animation: spin 0.5s ease-in-out; }
 @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 .results-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.82rem; color: #555; }
+/* VALIDATION */
+.form-input.error { border-color: #ff5b5b; }
+.form-input.error:focus { border-color: #ff5b5b; }
+.form-error-inline { color: #ff5b5b; font-size: 0.75rem; margin-top: 4px; font-weight: 500; display: none; }
+.form-error-inline.visible { display: block; }
+.form-input.valid { border-color: rgba(91,255,123,0.4); }
+
+/* DRAFT BANNER */
+.draft-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; margin-bottom: 16px;
+  background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 10px; font-size: 0.82rem; color: #ffd700; font-weight: 500;
+  animation: driftIn 0.5s ease-out;
+}
+.draft-banner button { color: #888; font-size: 0.75rem; text-decoration: underline; background: none; border: none; cursor: pointer; }
+.draft-banner button:hover { color: #ccc; }
+
+/* DUPLICATE WARNING */
+.duplicate-warning {
+  padding: 12px 14px; margin-top: 8px;
+  background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 10px; font-size: 0.82rem; color: #fbbf24;
+  animation: driftIn 0.4s ease-out;
+}
+.duplicate-warning .dup-name { font-weight: 700; color: #fff; }
+.duplicate-warning .dup-actions { display: flex; gap: 8px; margin-top: 8px; }
+.duplicate-warning .dup-actions button {
+  padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; border: 1px solid rgba(251,191,36,0.3); background: none; color: #fbbf24;
+  transition: all 0.15s;
+}
+.duplicate-warning .dup-actions button:hover { background: rgba(251,191,36,0.1); }
+
+/* CONDITIONAL FIELDS */
+.form-section { overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; max-height: 800px; opacity: 1; }
+.form-section.collapsed { max-height: 0; opacity: 0; pointer-events: none; margin: 0; padding: 0; }
+
+/* JAM TYPE TOGGLE */
+.jam-type-toggle {
+  display: flex; gap: 0; border: 1px solid #333; border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+}
+.jam-type-btn {
+  flex: 1; padding: 10px 14px; text-align: center; font-size: 0.85rem; font-weight: 600;
+  background: #1a1a1a; color: #888; border: none; cursor: pointer; transition: all 0.2s;
+}
+.jam-type-btn.active { background: #ff6b35; color: #000; }
+
+/* GOOGLE PLACES */
+.places-wrap { position: relative; }
+.places-fallback-link { color: #888; font-size: 0.72rem; margin-top: 6px; display: block; cursor: pointer; text-decoration: underline; }
+.places-fallback-link:hover { color: #ccc; }
+.places-selected {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; margin-top: 8px;
+  background: rgba(91,255,123,0.06); border: 1px solid rgba(91,255,123,0.15);
+  border-radius: 10px; font-size: 0.82rem; color: #ccc;
+}
+.places-selected .venue-info { flex: 1; }
+.places-selected .venue-name-display { font-weight: 600; color: #fff; }
+.places-selected .venue-addr-display { font-size: 0.75rem; color: #888; margin-top: 2px; }
+.places-selected button { color: #ff5b5b; font-size: 0.72rem; background: none; border: none; cursor: pointer; }
+/* Style the Google Places dropdown to match dark theme */
+.pac-container { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; margin-top: 4px; font-family: 'DM Sans', sans-serif; }
+.pac-item { padding: 8px 12px; border-top: 1px solid #222; color: #ccc; font-size: 0.85rem; cursor: pointer; }
+.pac-item:hover { background: #222; }
+.pac-item-query { color: #fff; font-weight: 600; }
+.pac-matched { color: #ff6b35; }
+.pac-icon { display: none; }
+
+/* EDIT LINK */
+.edit-link-box {
+  padding: 16px; margin-top: 16px;
+  background: rgba(255,107,53,0.06); border: 1px solid rgba(255,107,53,0.2);
+  border-radius: 12px; text-align: center;
+}
+.edit-link-box p { font-size: 0.82rem; color: #888; margin-bottom: 8px; }
+.edit-link-url {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 8px 14px; background: #1a1a1a; border: 1px solid #333;
+  border-radius: 8px; font-size: 0.82rem; color: #ff6b35; word-break: break-all;
+}
+.edit-link-url button {
+  background: #ff6b35; color: #000; border: none; border-radius: 6px;
+  padding: 4px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* TIME PICKER (dark theme) */
+input[type="time"].form-input { color-scheme: dark; }
+input[type="time"].form-input::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+
 .hidden { display: none !important; }
 @media (max-width: 480px) {
   .detail-grid { grid-template-columns: 1fr; }
@@ -519,26 +614,129 @@ footer a:hover { text-decoration: underline; }
   <div class="container submit-screen">
     <h1 class="submit-title">Submit a Jam</h1>
     <p class="submit-sub">Know a jam in the Bay — recurring or one-off? Add it to the directory. No account needed.</p>
-    <form id="submitJamForm" onsubmit="submitJam(event)">
-      <div class="form-group"><label class="form-label">Jam Name *</label><input class="form-input" name="name" required placeholder='e.g. "Tuesday Night Jazz Jam"'></div>
-      <div class="form-group"><label class="form-label">Venue Name *</label><input class="form-input" name="venue_name" required></div>
-      <div class="form-group"><label class="form-label">Venue Address *</label><input class="form-input" name="venue_address" required placeholder="Full street address"></div>
-      <div class="form-group"><label class="form-label">City *</label><input class="form-input" name="city" required placeholder="e.g. Oakland, SF, Berkeley"></div>
-      <div class="form-group"><label class="form-label">Region *</label><select class="form-input" name="region" required><option value="sf">SF</option><option value="east_bay">East Bay</option><option value="south_bay">South Bay</option><option value="north_bay_marin">North Bay & Marin</option></select></div>
-      <div class="form-group"><label class="form-label">Day of Week *</label><select class="form-input" name="day_of_week" required><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="form-group"><label class="form-label">Start Time *</label><input class="form-input" name="time_start" required placeholder="8:00 PM"></div>
-        <div class="form-group"><label class="form-label">End Time</label><input class="form-input" name="time_end" placeholder="11:00 PM"></div>
+    <div id="draftBanner"></div>
+    <form id="submitJamForm" onsubmit="submitJam(event)" novalidate>
+      <!-- Jam Name -->
+      <div class="form-group">
+        <label class="form-label">Jam Name *</label>
+        <input class="form-input" name="name" required placeholder='e.g. "Tuesday Night Jazz Jam"'>
+        <div class="form-error-inline" data-for="name">Jam name is required</div>
       </div>
-      <div class="form-group"><label class="form-label">Frequency</label><select class="form-input" name="frequency" onchange="document.getElementById('oneoffDateGroup').style.display=this.value==='One-off'?'block':'none';"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option><option>One-off</option></select></div>
-      <div class="form-group" id="oneoffDateGroup" style="display:none;"><label class="form-label">Event Date *</label><input class="form-input" name="event_date" type="date"><p style="color:#666;font-size:0.72rem;margin-top:4px;">For one-off / special events. Got a Partiful link? Drop it below.</p><input class="form-input" name="partiful_url" placeholder="Partiful event URL (optional)" style="margin-top:8px;"></div>
-      <div class="form-group"><label class="form-label">Genres *</label><div class="genre-select" id="submitGenres"></div></div>
-      <div class="form-group"><label class="form-label">Sign-up Process</label><select class="form-input" name="signup_process"><option>sign-up list</option><option>first come first served</option><option>hosted/called up</option><option>open stage</option></select></div>
-      <div class="form-group"><label class="form-label">Vibe / Atmosphere</label><input class="form-input" name="vibe" placeholder='e.g. "Chill & beginner-friendly"'></div>
-      <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" name="description" rows="3" placeholder="What should people know?"></textarea></div>
-      <div class="form-group"><label class="form-label">Your Name</label><input class="form-input" name="submitter_name" placeholder="So we can credit you"></div>
-      <div class="form-group"><label class="form-label">Your Email</label><input class="form-input" name="submitter_email" type="email" placeholder="In case we need to verify"></div>
-      <button type="submit" class="form-submit">Submit Jam</button>
+
+      <!-- Venue (Google Places or manual) -->
+      <div class="form-group" id="venueGroup">
+        <label class="form-label">Venue *</label>
+        <div class="places-wrap">
+          <input class="form-input" id="placesInput" placeholder="Search for a venue..." autocomplete="off">
+          <div class="form-error-inline" data-for="venue">Venue is required</div>
+          <div id="placesSelected" class="places-selected" style="display:none;">
+            <div class="venue-info">
+              <div class="venue-name-display" id="venueNameDisplay"></div>
+              <div class="venue-addr-display" id="venueAddrDisplay"></div>
+            </div>
+            <button type="button" onclick="clearVenueSelection()">Change</button>
+          </div>
+          <span class="places-fallback-link" id="manualToggle" onclick="toggleManualVenue()">Can't find it? Enter manually</span>
+        </div>
+        <!-- Hidden fields populated by Places -->
+        <input type="hidden" name="venue_name" id="hVenueName">
+        <input type="hidden" name="venue_address" id="hVenueAddr">
+        <input type="hidden" name="city" id="hCity">
+        <input type="hidden" name="region" id="hRegion">
+        <div id="duplicateWarning"></div>
+      </div>
+      <!-- Manual venue fields (hidden by default) -->
+      <div id="manualVenueFields" class="form-section collapsed">
+        <div class="form-group"><label class="form-label">Venue Name *</label><input class="form-input" name="manual_venue_name" placeholder="e.g. Bird & Beckett"></div>
+        <div class="form-group"><label class="form-label">Venue Address *</label><input class="form-input" name="manual_venue_address" placeholder="Full street address"></div>
+        <div class="form-group"><label class="form-label">City *</label><input class="form-input" name="manual_city" placeholder="e.g. Oakland, SF, Berkeley"></div>
+        <div class="form-group">
+          <label class="form-label">Region *</label>
+          <select class="form-input" name="manual_region">
+            <option value="sf">SF</option><option value="east_bay">East Bay</option>
+            <option value="south_bay">South Bay</option><option value="north_bay_marin">North Bay & Marin</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Jam Type Toggle -->
+      <div class="form-group">
+        <label class="form-label">Jam Type</label>
+        <div class="jam-type-toggle">
+          <button type="button" class="jam-type-btn active" data-type="recurring" onclick="setJamType('recurring')">Recurring</button>
+          <button type="button" class="jam-type-btn" data-type="oneoff" onclick="setJamType('oneoff')">One-off Event</button>
+        </div>
+      </div>
+
+      <!-- Recurring fields -->
+      <div id="recurringFields" class="form-section">
+        <div class="form-group">
+          <label class="form-label">Day of Week *</label>
+          <select class="form-input" name="day_of_week"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Frequency</label>
+          <select class="form-input" name="frequency"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option></select>
+        </div>
+      </div>
+
+      <!-- One-off fields -->
+      <div id="oneoffFields" class="form-section collapsed">
+        <div class="form-group">
+          <label class="form-label">Event Date *</label>
+          <input class="form-input" name="event_date" type="date">
+          <div class="form-error-inline" data-for="event_date">Date is required for one-off events</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Partiful URL</label>
+          <input class="form-input" name="partiful_url" placeholder="Partiful event URL (optional)">
+        </div>
+      </div>
+
+      <!-- Time -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Start Time *</label>
+          <input class="form-input" name="time_start" type="time" required value="20:00">
+          <div class="form-error-inline" data-for="time_start">Start time is required</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time</label>
+          <input class="form-input" name="time_end" type="time">
+        </div>
+      </div>
+
+      <!-- Genres -->
+      <div class="form-group">
+        <label class="form-label">Genres *</label>
+        <div class="genre-select" id="submitGenres"></div>
+        <div class="form-error-inline" data-for="genre">Pick at least one genre</div>
+      </div>
+
+      <!-- Other fields -->
+      <div class="form-group">
+        <label class="form-label">Sign-up Process</label>
+        <select class="form-input" name="signup_process"><option>sign-up list</option><option>first come first served</option><option>hosted/called up</option><option>open stage</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Vibe / Atmosphere</label>
+        <input class="form-input" name="vibe" placeholder='e.g. "Chill & beginner-friendly"'>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" name="description" rows="3" placeholder="What should people know?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Name</label>
+        <input class="form-input" name="submitter_name" placeholder="So we can credit you">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Email</label>
+        <input class="form-input" name="submitter_email" type="email" placeholder="In case we need to verify">
+        <div class="form-error-inline" data-for="submitter_email">Enter a valid email address</div>
+      </div>
+
+      <button type="submit" class="form-submit" id="submitBtn">Submit Jam</button>
       <div id="submitMsg"></div>
     </form>
   </div>
@@ -564,10 +762,16 @@ footer a:hover { text-decoration: underline; }
 </footer>
 
 <script>
+// ============================================
+// FIREBASE CONFIG
+// ============================================
 const firebaseConfig={apiKey:"AIzaSyAV5EYZAJ0IFy9qQ4ljWBqvk_pk6vhuxZg",authDomain:"glory-jams.firebaseapp.com",databaseURL:"https://glory-jams-default-rtdb.firebaseio.com",projectId:"glory-jams",storageBucket:"glory-jams.firebasestorage.app",messagingSenderId:"949960497662",appId:"1:949960497662:web:51efaa36e307204ab108af"};
 let db,firebaseReady=false;
 try{firebase.initializeApp(firebaseConfig);db=firebase.database();firebase.auth().signInAnonymously().catch(e=>console.warn("Anon auth failed",e));if(firebaseConfig.apiKey!=="YOUR_API_KEY")firebaseReady=true;}catch(e){console.log('Firebase not configured — running in demo mode');}
 
+// ============================================
+// SEED DATA
+// ============================================
 const SEED_JAMS=[
 {id:'1',name:'Jazz Jam at Bird and Beckett',venue_name:'Bird & Beckett Books and Records',venue_address:'653 Chenery St, San Francisco, CA 94131',city:'Glen Park',region:'sf',day_of_week:'Sunday',time_start:'5:30 PM',time_end:'8:00 PM',frequency:'Weekly',genre:['jazz'],signup_process:'sign-up list',description:'Long-running jazz jam in a beloved bookstore. Intimate setting with a dedicated community of players. House band kicks it off, then the list opens up.',vibe:'Welcoming & intimate',what_to_expect:"Arrive a bit early to put your name on the list. The space is small and cozy — a bookstore with a performance area. Expect mostly jazz standards. All levels welcome but know a few tunes."},
 {id:'2',name:'Tuesday Blues Jam at Biscuits and Blues',venue_name:'Biscuits and Blues',venue_address:'401 Mason St, San Francisco, CA 94102',city:'Union Square',region:'sf',day_of_week:'Tuesday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['blues'],signup_process:'sign-up list',description:"Classic blues jam in one of SF's legendary blues clubs. Full stage, real sound system, and a crowd that loves the blues.",vibe:'Classic blues club energy',what_to_expect:"Sign up when you arrive. The house band is solid — just tell them the key and go. Blues standards are the move here."},
@@ -575,9 +779,12 @@ const SEED_JAMS=[
 {id:'4',name:'The Jam at Revolution Cafe',venue_name:'Revolution Cafe',venue_address:'3248 22nd St, San Francisco, CA 94110',city:'Mission',region:'sf',day_of_week:'Monday',time_start:'8:00 PM',time_end:'10:00 PM',frequency:'Weekly',genre:['jazz','open'],signup_process:'first come first served',description:"Low-key jam in the Mission. No-frills neighborhood spot. Show up, grab a drink, and play.",vibe:'Low-key & casual',what_to_expect:"First come, first served — just show up with your instrument and jump in. Casual and open to any style."},
 {id:'5',name:"Funk Jam at Eli's Mile High Club",venue_name:"Eli's Mile High Club",venue_address:'3629 Martin Luther King Jr Way, Oakland, CA 94609',city:'Oakland',region:'east_bay',day_of_week:'Saturday',time_start:'9:00 PM',time_end:null,frequency:'Monthly',genre:['funk','soul'],signup_process:'first come first served',description:"Funk and soul jam at one of Oakland's most historic venues. When it's on, it's ON.",vibe:'High-energy & groovy',what_to_expect:"This one goes late and goes hard. Bring your funk chops. The crowd dances. Check social media for specific dates."},
 {id:'6',name:'Full Moon Funk & Soul Jam',venue_name:'The New Parish',venue_address:'1743 San Pablo Ave, Oakland, CA 94612',city:'Oakland',region:'east_bay',date:'2026-03-03',time_start:'8:00 PM',time_end:'11:30 PM',frequency:'One-off',genre:['funk','soul','r&b'],signup_process:'first come first served',description:"Special full moon jam session. The Parish is opening its doors for one night of funk, soul, and R&B. Full backline provided. Pull up and bring the heat.",vibe:'Electric & communal',what_to_expect:"Get there early — this one will pack out. Full backline on stage, just bring your instrument. Open to all levels but the energy will be high.",partiful_url:null},
-{id:'7',name:'Bay Area Jazz Collective Meetup',venue_name:'Yoshi\'s Oakland',venue_address:'510 Embarcadero W, Oakland, CA 94607',city:'Jack London',region:'east_bay',date:'2026-03-14',time_start:'7:00 PM',time_end:'10:00 PM',frequency:'One-off',genre:['jazz'],signup_process:'sign-up list',description:"A one-night gathering of Bay Area jazz musicians. Three sets, rotating combos, curated by local players. This isn't a regular jam — it's an event.",vibe:'Curated & special',what_to_expect:"Sign up in advance via the Partiful link. Combos will be organized beforehand so everyone gets stage time. Dress sharp — Yoshi's is classy.",partiful_url:null}
+{id:'7',name:'Bay Area Jazz Collective Meetup',venue_name:"Yoshi's Oakland",venue_address:'510 Embarcadero W, Oakland, CA 94607',city:'Jack London',region:'east_bay',date:'2026-03-14',time_start:'7:00 PM',time_end:'10:00 PM',frequency:'One-off',genre:['jazz'],signup_process:'sign-up list',description:"A one-night gathering of Bay Area jazz musicians. Three sets, rotating combos, curated by local players. This isn't a regular jam — it's an event.",vibe:'Curated & special',what_to_expect:"Sign up in advance via the Partiful link. Combos will be organized beforehand so everyone gets stage time. Dress sharp — Yoshi's is classy.",partiful_url:null}
 ];
 
+// ============================================
+// CONSTANTS
+// ============================================
 let jams=[...SEED_JAMS];
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 const REGIONS=[{value:'all',label:'All Areas'},{value:'sf',label:'SF'},{value:'east_bay',label:'East Bay'},{value:'south_bay',label:'South Bay'},{value:'north_bay_marin',label:'North Bay & Marin'}];
@@ -586,12 +793,27 @@ const INSTRUMENTS=['Guitar','Bass','Drums','Keys/Piano','Saxophone','Trumpet','T
 const INSTRUMENT_EMOJI={'Guitar':'🎸','Bass':'🎸','Drums':'🥁','Keys/Piano':'🎹','Saxophone':'🎷','Trumpet':'🎺','Trombone':'🎺','Vocals':'🎤','Violin/Fiddle':'🎻','Flute':'🎵','Harmonica':'🎵','Percussion':'🥁','Other':'🎶'};
 const CORE_INSTRUMENTS=['Guitar','Bass','Drums','Keys/Piano','Saxophone','Trumpet','Vocals'];
 const SIGNUP_ICONS={'sign-up list':'📋','first come first served':'🏃','hosted/called up':'🎤','open stage':'🎸'};
+const REGION_MAP={'San Francisco':'sf','SF':'sf','Oakland':'east_bay','Berkeley':'east_bay','Emeryville':'east_bay','Richmond':'east_bay','El Cerrito':'east_bay','Albany':'east_bay','Alameda':'east_bay','Hayward':'east_bay','Fremont':'east_bay','San Leandro':'east_bay','Concord':'east_bay','Walnut Creek':'east_bay','San Jose':'south_bay','Palo Alto':'south_bay','Mountain View':'south_bay','Sunnyvale':'south_bay','Santa Clara':'south_bay','San Mateo':'south_bay','Redwood City':'south_bay','Sausalito':'north_bay_marin','Mill Valley':'north_bay_marin','San Rafael':'north_bay_marin','Novato':'north_bay_marin','Tiburon':'north_bay_marin','Petaluma':'north_bay_marin','Santa Rosa':'north_bay_marin'};
 
+// ============================================
+// STATE
+// ============================================
 let filters={region:'all',day:'any',genres:[]};
 let checkins={};
 let profile=JSON.parse(localStorage.getItem('gloryjams_profile')||'null');
+let placesReady=false;
+let placesAutocomplete=null;
+let manualVenueMode=false;
+let currentJamType='recurring'; // 'recurring' or 'oneoff'
+let draftSaveTimer=null;
+let editingSubmissionKey=null; // for edit link
 
+// ============================================
+// UTILITIES
+// ============================================
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function safeId(id){return typeof id==='string'?id.replace(/[^a-zA-Z0-9_\-]/g,''):'';}
+function safeUrl(url){if(!url)return'';try{const u=new URL(url);if(u.protocol==='https:'||u.protocol==='http:')return u.href;return'';}catch(e){if(/^[a-zA-Z0-9]/.test(url))return safeUrl('https://'+url);return'';}}
 function getTodayName(){const d=new Date().getDay();return DAYS[d===0?6:d-1];}
 function getTodayDate(){return new Date().toISOString().slice(0,10);}
 function getDayIndex(day){return DAYS.indexOf(day);}
@@ -601,21 +823,32 @@ function isJamUpcoming(jam){if(!isOneOff(jam))return true;return jam.date>=getTo
 function isJamPast(jam){return isOneOff(jam)&&jam.date<getTodayDate();}
 function formatDate(dateStr){const d=new Date(dateStr+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
 function daysUntil(dateStr){const now=new Date();now.setHours(0,0,0,0);const then=new Date(dateStr+'T00:00:00');return Math.ceil((then-now)/(1000*60*60*24));}
-function sortJamsFromToday(jams){const ti=getDayIndex(getTodayName());const today=getTodayDate();return[...jams].sort((a,b)=>{const aOneOff=isOneOff(a),bOneOff=isOneOff(b);const aTonight=isJamTonight(a),bTonight=isJamTonight(b);if(aTonight&&!bTonight)return-1;if(!aTonight&&bTonight)return 1;if(aOneOff&&bOneOff)return a.date.localeCompare(b.date);if(aOneOff&&!bOneOff)return-1;if(!aOneOff&&bOneOff)return 1;return((getDayIndex(a.day_of_week)-ti+7)%7)-((getDayIndex(b.day_of_week)-ti+7)%7);});}
+function sortJamsFromToday(list){const ti=getDayIndex(getTodayName());return[...list].sort((a,b)=>{const aTonight=isJamTonight(a),bTonight=isJamTonight(b);if(aTonight&&!bTonight)return-1;if(!aTonight&&bTonight)return 1;if(isOneOff(a)&&isOneOff(b))return a.date.localeCompare(b.date);if(isOneOff(a)&&!isOneOff(b))return-1;if(!isOneOff(a)&&isOneOff(b))return 1;return((getDayIndex(a.day_of_week)-ti+7)%7)-((getDayIndex(b.day_of_week)-ti+7)%7);});}
 function getInitials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 function genreClass(g){const m={jazz:'jazz',blues:'blues',funk:'funk',soul:'soul',latin:'latin',open:'open',rock:'rock','r&b':'rb'};return'genre-'+(m[g.toLowerCase()]||'open');}
 function todayCheckins(jamId){const today=new Date().toISOString().slice(0,10);const jc=checkins[jamId]||{};return Object.values(jc).filter(c=>c.date===today);}
 function jamCheckins(jamId,jam){if(isOneOff(jam)){const jc=checkins[jamId]||{};return Object.values(jc).filter(c=>c.date===jam.date);}return todayCheckins(jamId);}
 function totalCheckinsTonight(){let count=0;jams.forEach(j=>{if(isJamTonight(j))count+=todayCheckins(j.id).length;});return count;}
+function generateToken(){try{return crypto.randomUUID();}catch(e){return Date.now().toString(36)+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}};
 
+// Time formatting: "20:00" → "8:00 PM"
+function formatTime24to12(t){if(!t)return'';const[h,m]=t.split(':').map(Number);const ampm=h>=12?'PM':'AM';const hr=h%12||12;return`${hr}:${m.toString().padStart(2,'0')} ${ampm}`;}
+// Time parsing: "8:00 PM" → "20:00"
+function parseTimeTo24(s){if(!s)return'';if(s.includes(':')&&!s.includes(' '))return s; // already 24h
+const match=s.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(!match)return s;let h=parseInt(match[1]);const m=match[2];const ampm=match[3].toUpperCase();if(ampm==='PM'&&h!==12)h+=12;if(ampm==='AM'&&h===12)h=0;return`${h.toString().padStart(2,'0')}:${m}`;}
+
+// ============================================
 // INSTRUMENT MATCHMAKING
+// ============================================
 function getInstrumentBreakdown(jamId){const people=todayCheckins(jamId);const bd={};people.forEach(p=>{const inst=p.instrument||'Other';bd[inst]=(bd[inst]||0)+1;});return bd;}
 function getMissingInstruments(jamId){const bd=getInstrumentBreakdown(jamId);return CORE_INSTRUMENTS.filter(i=>!bd[i]);}
 function renderInstrumentTags(jamId,compact){const bd=getInstrumentBreakdown(jamId);const missing=getMissingInstruments(jamId);if(todayCheckins(jamId).length===0)return'';let h='<div class="instrument-breakdown">';Object.entries(bd).forEach(([inst,count])=>{h+=`<span class="instrument-tag">${INSTRUMENT_EMOJI[inst]||'🎶'} ${esc(inst)} <span class="inst-count">${count}</span></span>`;});(compact?missing.slice(0,2):missing).forEach(inst=>{h+=`<span class="instrument-tag instrument-needed">${INSTRUMENT_EMOJI[inst]||'🎶'} Need ${esc(inst)}</span>`;});return h+'</div>';}
 function renderNeedsYouBanner(jamId){if(!profile)return'';const bd=getInstrumentBreakdown(jamId);if(todayCheckins(jamId).length===0)return'';if(!bd[profile.instrument])return`<div class="needs-you-banner">🔥 No ${esc(profile.instrument)} checked in yet — they need you!</div>`;return'';}
 function renderInstrumentGrid(jamId){const bd=getInstrumentBreakdown(jamId);const missing=getMissingInstruments(jamId);if(todayCheckins(jamId).length===0)return'';let h='<div class="detail-section"><h3>🎵 Who\'s bringing what</h3><div class="instrument-grid">';Object.entries(bd).forEach(([inst,count])=>{h+=`<div class="instrument-grid-item"><span>${INSTRUMENT_EMOJI[inst]||'🎶'}</span> ${esc(inst)} <span class="inst-num">${count}</span></div>`;});missing.forEach(inst=>{h+=`<div class="instrument-grid-item" style="opacity:0.4;border:1px dashed #333;"><span>${INSTRUMENT_EMOJI[inst]||'🎶'}</span> ${esc(inst)} <span style="color:#5bff7b;font-size:0.68rem;">needed</span></div>`;});return h+'</div></div>';}
 
+// ============================================
 // FIREBASE
+// ============================================
 function initFirebase(){if(!firebaseReady){checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(user=>{if(user){db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}renderAll();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();});}else{jams=[...SEED_JAMS];checkins={};renderAll();}});}
 async function registerProfile(name,instrument){if(firebaseReady){const snap=await db.ref('profiles').orderByChild('name_lower').equalTo(name.toLowerCase()).once('value');if(snap.exists())return{error:'That name is already taken. Try something else.'};await db.ref('profiles/'+name.toLowerCase().replace(/\s+/g,'_')).set({name,instrument,name_lower:name.toLowerCase(),created:Date.now()});}profile={name,instrument};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));return{success:true};}
 function deleteProfile(){if(profile&&firebaseReady)db.ref('profiles/'+profile.name.toLowerCase().replace(/\s+/g,'_')).remove();profile=null;localStorage.removeItem('gloryjams_profile');renderAll();showScreen('home');}
@@ -623,9 +856,477 @@ function isCheckedIn(jamId){if(!profile)return false;const jc=checkins[jamId]||{
 function firebaseCheckin(jamId){if(!profile||!firebaseReady)return;const key=profile.name.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);db.ref('checkins/'+jamId+'/'+key).set({name:profile.name,instrument:profile.instrument,date:new Date().toISOString().slice(0,10),timestamp:Date.now()});}
 function firebaseUncheckin(jamId){if(!profile||!firebaseReady)return;const key=profile.name.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);db.ref('checkins/'+jamId+'/'+key).remove();}
 async function subscribeBlast(){const phone=document.getElementById('blastPhone').value.trim();if(!phone||phone.length<7){document.getElementById('blastSignupMsg').innerHTML='<span style="color:#ff5b5b;">Enter a valid phone number</span>';return;}if(firebaseReady)await db.ref('subscribers/'+phone.replace(/\D/g,'')).set({phone,created:Date.now()});document.getElementById('blastSignupMsg').innerHTML='<span class="blast-success">You\'re in! We\'ll text you when it\'s time to pull up.</span>';document.getElementById('blastPhone').value='';}
-async function submitJam(e){e.preventDefault();const form=e.target;const genres=[...form.querySelectorAll('.genre-select-chip.selected')].map(el=>el.dataset.genre);if(genres.length===0){document.getElementById('submitMsg').innerHTML='<p class="form-error">Pick at least one genre</p>';return;}const data={name:form.name.value,venue_name:form.venue_name.value,venue_address:form.venue_address.value,city:form.city.value,region:form.region.value,day_of_week:form.day_of_week.value,time_start:form.time_start.value,time_end:form.time_end.value,frequency:form.frequency.value,genre:genres,signup_process:form.signup_process.value,vibe:form.vibe.value,description:form.description.value,submitter_name:form.submitter_name.value,submitter_email:form.submitter_email.value,status:'pending',submitted:Date.now()};if(firebaseReady)await db.ref('submissions').push(data);document.getElementById('submitMsg').innerHTML='<div class="form-success"><div style="font-size:2rem;">🎉</div><h2>Jam Submitted!</h2><p>We\'ll review it and add it to the directory.</p></div>';form.style.display='none';}
 
-// RENDERING
+// ============================================
+// GOOGLE PLACES AUTOCOMPLETE
+// ============================================
+function initPlaces(){
+  placesReady=true;
+  const input=document.getElementById('placesInput');
+  if(!input)return;
+  placesAutocomplete=new google.maps.places.Autocomplete(input,{
+    types:['establishment'],
+    componentRestrictions:{country:'us'},
+    fields:['name','formatted_address','address_components','geometry']
+  });
+  placesAutocomplete.addListener('place_changed',onPlaceSelected);
+}
+// Make initPlaces available globally for the callback
+window.initPlaces=initPlaces;
+
+function onPlaceSelected(){
+  const place=placesAutocomplete.getPlace();
+  if(!place||!place.name)return;
+  const venueName=place.name;
+  const addr=place.formatted_address||'';
+  let city='',region='sf';
+  if(place.address_components){
+    for(const c of place.address_components){
+      if(c.types.includes('locality'))city=c.long_name;
+      if(c.types.includes('sublocality_level_1')&&!city)city=c.long_name;
+      if(c.types.includes('neighborhood')&&!city)city=c.long_name;
+    }
+  }
+  // Map city to region
+  region=REGION_MAP[city]||guessRegion(addr);
+  document.getElementById('hVenueName').value=venueName;
+  document.getElementById('hVenueAddr').value=addr;
+  document.getElementById('hCity').value=city;
+  document.getElementById('hRegion').value=region;
+  document.getElementById('venueNameDisplay').textContent=venueName;
+  document.getElementById('venueAddrDisplay').textContent=addr;
+  document.getElementById('placesSelected').style.display='flex';
+  document.getElementById('placesInput').style.display='none';
+  document.getElementById('manualToggle').style.display='none';
+  checkDuplicateVenue(venueName);
+  saveDraft();
+}
+
+function guessRegion(addr){
+  const a=addr.toLowerCase();
+  if(a.includes('san francisco')||a.includes(', sf'))return'sf';
+  if(a.includes('oakland')||a.includes('berkeley')||a.includes('emeryville')||a.includes('richmond')||a.includes('alameda'))return'east_bay';
+  if(a.includes('san jose')||a.includes('palo alto')||a.includes('mountain view')||a.includes('sunnyvale')||a.includes('santa clara'))return'south_bay';
+  if(a.includes('sausalito')||a.includes('mill valley')||a.includes('san rafael')||a.includes('marin'))return'north_bay_marin';
+  return'east_bay';
+}
+
+function clearVenueSelection(){
+  document.getElementById('hVenueName').value='';
+  document.getElementById('hVenueAddr').value='';
+  document.getElementById('hCity').value='';
+  document.getElementById('hRegion').value='';
+  document.getElementById('placesSelected').style.display='none';
+  document.getElementById('placesInput').style.display='';
+  document.getElementById('placesInput').value='';
+  document.getElementById('manualToggle').style.display='';
+  document.getElementById('duplicateWarning').innerHTML='';
+  manualVenueMode=false;
+  document.getElementById('manualVenueFields').classList.add('collapsed');
+}
+
+function toggleManualVenue(){
+  manualVenueMode=!manualVenueMode;
+  const fields=document.getElementById('manualVenueFields');
+  const toggle=document.getElementById('manualToggle');
+  if(manualVenueMode){
+    fields.classList.remove('collapsed');
+    toggle.textContent='Use venue search instead';
+    document.getElementById('placesInput').style.display='none';
+    document.getElementById('placesSelected').style.display='none';
+  }else{
+    fields.classList.add('collapsed');
+    toggle.textContent="Can't find it? Enter manually";
+    document.getElementById('placesInput').style.display='';
+  }
+}
+
+// ============================================
+// DUPLICATE DETECTION
+// ============================================
+function checkDuplicateVenue(venueName){
+  const warn=document.getElementById('duplicateWarning');
+  if(!warn||!venueName)return;
+  const search=venueName.toLowerCase();
+  const matches=jams.filter(j=>j.venue_name&&j.venue_name.toLowerCase().includes(search)||search.includes(j.venue_name?.toLowerCase()));
+  if(matches.length===0){warn.innerHTML='';return;}
+  const matchHtml=matches.map(j=>`<div style="margin-top:6px;"><span class="dup-name">${esc(j.name)}</span> at ${esc(j.venue_name)} — ${esc(j.day_of_week)||formatDate(j.date)}</div>`).join('');
+  warn.innerHTML=`<div class="duplicate-warning">⚠️ A jam at this venue may already exist:${matchHtml}<div class="dup-actions"><button type="button" onclick="this.closest('.duplicate-warning').remove()">This is different</button><button type="button" onclick="showDetail('${safeId(matches[0].id)}')">View existing</button></div></div>`;
+}
+
+// ============================================
+// JAM TYPE TOGGLE
+// ============================================
+function setJamType(type){
+  currentJamType=type;
+  document.querySelectorAll('.jam-type-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.type===type);
+  });
+  const recurring=document.getElementById('recurringFields');
+  const oneoff=document.getElementById('oneoffFields');
+  if(type==='recurring'){
+    recurring.classList.remove('collapsed');
+    oneoff.classList.add('collapsed');
+  }else{
+    recurring.classList.add('collapsed');
+    oneoff.classList.remove('collapsed');
+  }
+  saveDraft();
+}
+
+// ============================================
+// INPUT VALIDATION
+// ============================================
+function showFieldError(name,show){
+  const el=document.querySelector(`.form-error-inline[data-for="${name}"]`);
+  if(el)el.classList.toggle('visible',show);
+  // Also toggle error class on input
+  const form=document.getElementById('submitJamForm');
+  if(!form)return;
+  const input=form.querySelector(`[name="${name}"]`);
+  if(input){input.classList.toggle('error',show);input.classList.toggle('valid',!show&&input.value.trim()!=='');}
+}
+
+function validateEmail(email){return!email||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);}
+
+function setupFormValidation(){
+  const form=document.getElementById('submitJamForm');
+  if(!form)return;
+  // Email validation on blur
+  const emailInput=form.querySelector('[name="submitter_email"]');
+  if(emailInput){
+    emailInput.addEventListener('blur',()=>{
+      const valid=validateEmail(emailInput.value.trim());
+      showFieldError('submitter_email',emailInput.value.trim()!==''&&!valid);
+    });
+    emailInput.addEventListener('input',()=>{
+      if(emailInput.classList.contains('error')){
+        showFieldError('submitter_email',!validateEmail(emailInput.value.trim()));
+      }
+    });
+  }
+  // Required field validation on blur
+  ['name'].forEach(name=>{
+    const input=form.querySelector(`[name="${name}"]`);
+    if(input){
+      input.addEventListener('blur',()=>showFieldError(name,input.value.trim()===''));
+      input.addEventListener('input',()=>{if(input.classList.contains('error'))showFieldError(name,input.value.trim()==='');});
+    }
+  });
+  // Duplicate detection for manual venue mode
+  const manualVName=form.querySelector('[name="manual_venue_name"]');
+  if(manualVName){
+    manualVName.addEventListener('blur',()=>{if(manualVenueMode&&manualVName.value.trim())checkDuplicateVenue(manualVName.value.trim());});
+  }
+  // Attach draft saving to all inputs
+  form.querySelectorAll('input,select,textarea').forEach(el=>{
+    el.addEventListener('input',()=>{clearTimeout(draftSaveTimer);draftSaveTimer=setTimeout(saveDraft,500);});
+    el.addEventListener('change',()=>{clearTimeout(draftSaveTimer);draftSaveTimer=setTimeout(saveDraft,500);});
+  });
+}
+
+function validateSubmitForm(){
+  const form=document.getElementById('submitJamForm');
+  let valid=true;
+  let firstError=null;
+  // Jam name
+  if(!form.name.value.trim()){showFieldError('name',true);valid=false;firstError=firstError||form.name;}
+  // Venue
+  const manualNameEl=form.querySelector('[name="manual_venue_name"]');
+  const hasVenue=manualVenueMode?(manualNameEl?.value.trim()):document.getElementById('hVenueName').value.trim();
+  if(!hasVenue){showFieldError('venue',true);valid=false;firstError=firstError||document.getElementById('placesInput');}
+  else showFieldError('venue',false);
+  // Time
+  if(!form.time_start.value){showFieldError('time_start',true);valid=false;firstError=firstError||form.time_start;}
+  // Event date for one-offs
+  if(currentJamType==='oneoff'&&!form.event_date.value){showFieldError('event_date',true);valid=false;firstError=firstError||form.event_date;}
+  // Genres
+  const genres=[...form.querySelectorAll('.genre-select-chip.selected')];
+  if(genres.length===0){showFieldError('genre',true);valid=false;firstError=firstError||document.getElementById('submitGenres');}
+  else showFieldError('genre',false);
+  // Email (optional but must be valid if provided)
+  if(form.submitter_email.value.trim()&&!validateEmail(form.submitter_email.value.trim())){
+    showFieldError('submitter_email',true);valid=false;firstError=firstError||form.submitter_email;
+  }
+  if(firstError)firstError.scrollIntoView({behavior:'smooth',block:'center'});
+  return valid;
+}
+
+// ============================================
+// DRAFT AUTO-SAVE
+// ============================================
+function saveDraft(){
+  const form=document.getElementById('submitJamForm');
+  if(!form)return;
+  const genres=[...form.querySelectorAll('.genre-select-chip.selected')].map(el=>el.dataset.genre);
+  const draft={
+    name:form.name.value,
+    venue_name:document.getElementById('hVenueName').value,
+    venue_address:document.getElementById('hVenueAddr').value,
+    city:document.getElementById('hCity').value,
+    region:document.getElementById('hRegion').value,
+    manual_venue_name:form.querySelector('[name="manual_venue_name"]')?.value||'',
+    manual_venue_address:form.querySelector('[name="manual_venue_address"]')?.value||'',
+    manual_city:form.querySelector('[name="manual_city"]')?.value||'',
+    manual_region:form.querySelector('[name="manual_region"]')?.value||'',
+    manualMode:manualVenueMode,
+    jamType:currentJamType,
+    day_of_week:form.day_of_week.value,
+    frequency:form.frequency?.value||'Weekly',
+    event_date:form.event_date?.value||'',
+    partiful_url:form.partiful_url?.value||'',
+    time_start:form.time_start.value,
+    time_end:form.time_end.value,
+    genres,
+    signup_process:form.signup_process.value,
+    vibe:form.vibe.value,
+    description:form.description.value,
+    submitter_name:form.submitter_name.value,
+    submitter_email:form.submitter_email.value,
+    saved:Date.now()
+  };
+  localStorage.setItem('gloryjams_draft',JSON.stringify(draft));
+}
+
+function restoreDraft(){
+  const raw=localStorage.getItem('gloryjams_draft');
+  if(!raw)return false;
+  try{
+    const d=JSON.parse(raw);
+    // Only restore if less than 7 days old
+    if(Date.now()-d.saved>7*24*60*60*1000){localStorage.removeItem('gloryjams_draft');return false;}
+    const form=document.getElementById('submitJamForm');
+    if(!form)return false;
+    // Restore fields
+    if(d.name)form.name.value=d.name;
+    if(d.day_of_week)form.day_of_week.value=d.day_of_week;
+    if(d.frequency&&form.frequency)form.frequency.value=d.frequency;
+    if(d.time_start)form.time_start.value=d.time_start;
+    if(d.time_end)form.time_end.value=d.time_end;
+    if(d.event_date&&form.event_date)form.event_date.value=d.event_date;
+    if(d.partiful_url&&form.partiful_url)form.partiful_url.value=d.partiful_url;
+    if(d.signup_process)form.signup_process.value=d.signup_process;
+    if(d.vibe)form.vibe.value=d.vibe;
+    if(d.description)form.description.value=d.description;
+    if(d.submitter_name)form.submitter_name.value=d.submitter_name;
+    if(d.submitter_email)form.submitter_email.value=d.submitter_email;
+    // Restore venue
+    if(d.manualMode){
+      manualVenueMode=true;
+      document.getElementById('manualVenueFields').classList.remove('collapsed');
+      document.getElementById('placesInput').style.display='none';
+      document.getElementById('manualToggle').textContent='Use venue search instead';
+      const mvn=form.querySelector('[name="manual_venue_name"]');if(mvn)mvn.value=d.manual_venue_name||'';
+      const mva=form.querySelector('[name="manual_venue_address"]');if(mva)mva.value=d.manual_venue_address||'';
+      const mc=form.querySelector('[name="manual_city"]');if(mc)mc.value=d.manual_city||'';
+      const mr=form.querySelector('[name="manual_region"]');if(mr)mr.value=d.manual_region||'';
+    }else if(d.venue_name){
+      document.getElementById('hVenueName').value=d.venue_name;
+      document.getElementById('hVenueAddr').value=d.venue_address||'';
+      document.getElementById('hCity').value=d.city||'';
+      document.getElementById('hRegion').value=d.region||'';
+      document.getElementById('venueNameDisplay').textContent=d.venue_name;
+      document.getElementById('venueAddrDisplay').textContent=d.venue_address||'';
+      document.getElementById('placesSelected').style.display='flex';
+      document.getElementById('placesInput').style.display='none';
+      document.getElementById('manualToggle').style.display='none';
+    }
+    // Restore jam type
+    if(d.jamType)setJamType(d.jamType);
+    // Restore genres
+    if(d.genres&&d.genres.length>0){
+      document.querySelectorAll('#submitGenres .genre-select-chip').forEach(chip=>{
+        if(d.genres.includes(chip.dataset.genre))chip.classList.add('selected');
+      });
+    }
+    // Show draft banner
+    document.getElementById('draftBanner').innerHTML=`<div class="draft-banner"><span>📝 Draft restored from ${new Date(d.saved).toLocaleDateString()}</span><button type="button" onclick="clearDraft()">Clear draft</button></div>`;
+    return true;
+  }catch(e){localStorage.removeItem('gloryjams_draft');return false;}
+}
+
+function clearDraft(){
+  localStorage.removeItem('gloryjams_draft');
+  document.getElementById('draftBanner').innerHTML='';
+  // Reset form
+  const form=document.getElementById('submitJamForm');
+  if(form)form.reset();
+  clearVenueSelection();
+  setJamType('recurring');
+  renderSubmitGenres();
+}
+
+// ============================================
+// SUBMIT JAM (with edit link + validation)
+// ============================================
+async function submitJam(e){
+  e.preventDefault();
+  if(!validateSubmitForm())return;
+  const form=e.target;
+  const genres=[...form.querySelectorAll('.genre-select-chip.selected')].map(el=>el.dataset.genre);
+  // Resolve venue fields
+  let venueName,venueAddr,city,region;
+  if(manualVenueMode){
+    venueName=(form.querySelector('[name="manual_venue_name"]')?.value||'').trim();
+    venueAddr=(form.querySelector('[name="manual_venue_address"]')?.value||'').trim();
+    city=(form.querySelector('[name="manual_city"]')?.value||'').trim();
+    region=form.querySelector('[name="manual_region"]')?.value||'sf';
+  }else{
+    venueName=document.getElementById('hVenueName').value;
+    venueAddr=document.getElementById('hVenueAddr').value;
+    city=document.getElementById('hCity').value;
+    region=document.getElementById('hRegion').value;
+  }
+  // Format times
+  const timeStart=formatTime24to12(form.time_start.value);
+  const timeEnd=form.time_end.value?formatTime24to12(form.time_end.value):'';
+  const editToken=generateToken();
+  const data={
+    name:form.name.value.trim(),
+    venue_name:venueName,
+    venue_address:venueAddr,
+    city,
+    region,
+    time_start:timeStart,
+    time_end:timeEnd||null,
+    genre:genres,
+    signup_process:form.signup_process.value,
+    vibe:form.vibe.value.trim(),
+    description:form.description.value.trim(),
+    submitter_name:form.submitter_name.value.trim(),
+    submitter_email:form.submitter_email.value.trim(),
+    status:'pending',
+    editToken,
+    submitted:Date.now()
+  };
+  // Add type-specific fields
+  if(currentJamType==='recurring'){
+    data.day_of_week=form.day_of_week.value;
+    data.frequency=form.frequency.value;
+  }else{
+    data.frequency='One-off';
+    data.event_date=form.event_date.value;
+    if(form.partiful_url.value.trim())data.partiful_url=form.partiful_url.value.trim();
+  }
+  // Disable button
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.textContent='Submitting...';
+  try{
+    if(firebaseReady){
+      if(editingSubmissionKey){
+        data.editedAt=Date.now();
+        await db.ref('submissions/'+editingSubmissionKey).update(data);
+      }else{
+        await db.ref('submissions').push(data);
+      }
+    }
+  }catch(err){
+    console.error('Submit failed:',err);
+    btn.disabled=false;btn.textContent=editingSubmissionKey?'Update Submission':'Submit Jam';
+    document.getElementById('submitMsg').innerHTML='<p class="form-error" style="margin-top:12px;">Something went wrong. Please try again.</p>';
+    return;
+  }
+  // Clear draft
+  localStorage.removeItem('gloryjams_draft');
+  // Build edit link
+  const editUrl=window.location.origin+window.location.pathname+'?edit='+editToken;
+  document.getElementById('submitMsg').innerHTML=`
+    <div class="form-success">
+      <div style="font-size:2rem;">🎉</div>
+      <h2>${editingSubmissionKey?'Updated!':'Jam Submitted!'}</h2>
+      <p>We'll review it and add it to the directory.</p>
+      <div class="edit-link-box">
+        <p>Bookmark this link to edit your submission later:</p>
+        <div class="edit-link-url">
+          <span>${esc(editUrl)}</span>
+          <button type="button" data-url="${esc(editUrl)}" onclick="navigator.clipboard.writeText(this.dataset.url);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500);">Copy</button>
+        </div>
+      </div>
+    </div>`;
+  form.style.display='none';
+  editingSubmissionKey=null;
+}
+
+// ============================================
+// EDIT LINK HANDLING
+// ============================================
+async function handleEditLink(token){
+  if(!firebaseReady)return false;
+  const snap=await db.ref('submissions').orderByChild('editToken').equalTo(token).once('value');
+  if(!snap.exists())return false;
+  let key,data;
+  snap.forEach(child=>{key=child.key;data=child.val();});
+  if(!key||!data)return false;
+  if(data.status==='approved'){
+    // Show read-only message
+    showScreen('submit');
+    setTimeout(()=>{
+      const form=document.getElementById('submitJamForm');
+      if(form)form.style.display='none';
+      document.getElementById('submitMsg').innerHTML=`
+        <div class="form-success">
+          <div style="font-size:2rem;">✅</div>
+          <h2>This jam is live!</h2>
+          <p>Your submission has been approved and is in the directory. Contact us to make changes.</p>
+        </div>`;
+    },100);
+    return true;
+  }
+  // Pre-fill form for editing
+  editingSubmissionKey=key;
+  showScreen('submit');
+  setTimeout(()=>{
+    const form=document.getElementById('submitJamForm');
+    if(!form)return;
+    form.name.value=data.name||'';
+    // Set venue
+    if(data.venue_name){
+      document.getElementById('hVenueName').value=data.venue_name;
+      document.getElementById('hVenueAddr').value=data.venue_address||'';
+      document.getElementById('hCity').value=data.city||'';
+      document.getElementById('hRegion').value=data.region||'';
+      document.getElementById('venueNameDisplay').textContent=data.venue_name;
+      document.getElementById('venueAddrDisplay').textContent=data.venue_address||'';
+      document.getElementById('placesSelected').style.display='flex';
+      document.getElementById('placesInput').style.display='none';
+      document.getElementById('manualToggle').style.display='none';
+    }
+    // Set type
+    if(data.frequency==='One-off'||data.event_date){
+      setJamType('oneoff');
+      if(data.event_date)form.event_date.value=data.event_date;
+      if(data.partiful_url)form.partiful_url.value=data.partiful_url;
+    }else{
+      setJamType('recurring');
+      if(data.day_of_week)form.day_of_week.value=data.day_of_week;
+      if(data.frequency)form.frequency.value=data.frequency;
+    }
+    // Times (convert 12h to 24h for time inputs)
+    if(data.time_start)form.time_start.value=parseTimeTo24(data.time_start);
+    if(data.time_end)form.time_end.value=parseTimeTo24(data.time_end);
+    // Other fields
+    if(data.signup_process)form.signup_process.value=data.signup_process;
+    if(data.vibe)form.vibe.value=data.vibe;
+    if(data.description)form.description.value=data.description;
+    if(data.submitter_name)form.submitter_name.value=data.submitter_name;
+    if(data.submitter_email)form.submitter_email.value=data.submitter_email;
+    // Genres
+    if(data.genre){
+      document.querySelectorAll('#submitGenres .genre-select-chip').forEach(chip=>{
+        if(data.genre.includes(chip.dataset.genre))chip.classList.add('selected');
+      });
+    }
+    // Update button text
+    document.getElementById('submitBtn').textContent='Update Submission';
+    // Show editing banner
+    document.getElementById('draftBanner').innerHTML=`<div class="draft-banner"><span>✏️ Editing your submission</span></div>`;
+  },150);
+  return true;
+}
+
+// ============================================
+// RENDERING (unchanged core)
+// ============================================
 function renderAll(){renderFilters();renderJamList();renderLiveBar();renderHero();renderProfileBtn();}
 function renderProfileBtn(){const btn=document.getElementById('profileBtn');if(profile){btn.textContent=getInitials(profile.name);btn.classList.add('active');}else{btn.textContent='?';btn.classList.remove('active');}}
 function renderHero(){const tn=jams.filter(j=>isJamTonight(j));const upcoming=jams.filter(j=>isOneOff(j)&&isJamUpcoming(j)&&!isJamTonight(j));const sub=document.getElementById('heroSub');let html='';if(tn.length>0)html+=`<span class="tonight-count">${tn.length} jam${tn.length!==1?'s':''} tonight</span> · `;if(upcoming.length>0)html+=`<span style="color:#c77bff;font-weight:600;">${upcoming.length} special event${upcoming.length!==1?'s':''} coming up</span> · `;html+=`<span class="total-count">${jams.length} total</span> across the Bay`;sub.innerHTML=html;}
@@ -635,32 +1336,88 @@ function setFilter(key,value){filters[key]=value;renderAll();}
 function toggleGenreFilter(g){if(filters.genres.includes(g))filters.genres=filters.genres.filter(x=>x!==g);else filters.genres.push(g);renderAll();}
 function getFilteredJams(){let filtered=jams.filter(j=>(j.active!==false)&&(isJamUpcoming(j)||!isOneOff(j)));if(filters.region!=='all')filtered=filtered.filter(j=>j.region===filters.region);if(filters.day!=='any'){const today=getTodayName();if(filters.day===today){filtered=filtered.filter(j=>isJamTonight(j));}else{filtered=filtered.filter(j=>j.day_of_week===filters.day||isOneOff(j));}}if(filters.genres.length>0)filtered=filtered.filter(j=>j.genre.some(g=>filters.genres.includes(g)));return sortJamsFromToday(filtered);}
 
-function renderJamList(){const jams=getFilteredJams();const today=getTodayName();document.getElementById('resultsCount').textContent=`${jams.length} jam${jams.length!==1?'s':''}`;if(jams.length===0){document.getElementById('jamList').innerHTML=`<div class="empty-state"><div class="emoji">🎷</div><p>No jams match those filters.</p><p style="margin-top:4px;"><a href="#" onclick="showScreen('submit');return false;" style="color:#ff6b35;">Submit a jam</a> you know about.</p></div>`;return;}
-document.getElementById('jamList').innerHTML=jams.map(jam=>{const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(jam.id):(oneoff?jamCheckins(jam.id,jam):[]);let ci='';if(people.length>0){const faces=people.slice(0,4).map(p=>`<div class="checkin-face" title="${esc(p.name)} — ${esc(p.instrument)}">${esc(getInitials(p.name))}</div>`).join('');ci=`<div class="jam-checkins"><span class="checkin-count">${people.length} pulling up</span><div class="checkin-faces">${faces}${people.length>4?`<span class="checkin-more">+${people.length-4}</span>`:''}</div></div>`;}
+function renderJamList(){const list=getFilteredJams();const today=getTodayName();document.getElementById('resultsCount').textContent=`${list.length} jam${list.length!==1?'s':''}`;if(list.length===0){document.getElementById('jamList').innerHTML=`<div class="empty-state"><div class="emoji">🎷</div><p>No jams match those filters.</p><p style="margin-top:4px;"><a href="#" onclick="showScreen('submit');return false;" style="color:#ff6b35;">Submit a jam</a> you know about.</p></div>`;return;}
+document.getElementById('jamList').innerHTML=list.map(jam=>{const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(jam.id):(oneoff?jamCheckins(jam.id,jam):[]);let ci='';if(people.length>0){const faces=people.slice(0,4).map(p=>`<div class="checkin-face" title="${esc(p.name)} — ${esc(p.instrument)}">${esc(getInitials(p.name))}</div>`).join('');ci=`<div class="jam-checkins"><span class="checkin-count">${people.length} pulling up</span><div class="checkin-faces">${faces}${people.length>4?`<span class="checkin-more">+${people.length-4}</span>`:''}</div></div>`;}
 const cardClass=tonight?'tonight-card':(oneoff?'oneoff-card':'');
 let badge='';if(tonight){badge='<div class="tonight-badge"><span class="pulse-dot"></span>TONIGHT</div>';}else if(oneoff){const du=daysUntil(jam.date);const when=du===0?'Today':du===1?'Tomorrow':`In ${du} days`;badge=`<div class="oneoff-badge"><span class="oneoff-dot"></span>SPECIAL EVENT · ${when}</div>`;}
-const timeStr=oneoff?`${formatDate(jam.date)} · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`:`${jam.day_of_week}s · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`;
-return`<div class="jam-card ${cardClass}" onclick="showDetail('${jam.id}')">${badge}<div class="jam-name">${jam.name}</div><div class="jam-venue">${jam.venue_name} · ${jam.city}</div><div class="jam-meta"><span class="jam-time">${timeStr}</span><span class="sep">·</span><span>${jam.frequency}</span><span class="sep">·</span><span>${SIGNUP_ICONS[jam.signup_process]||'📋'} ${jam.signup_process}</span></div><div class="jam-genres">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${g}</span>`).join('')}</div>${jam.vibe?`<div style="margin-top:8px;font-size:0.75rem;color:#555;font-style:italic;">Vibe: ${jam.vibe}</div>`:''}${ci}${renderInstrumentTags(jam.id,true)}</div>`;}).join('');}
+const timeStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${esc(jam.day_of_week)}s · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
+return`<div class="jam-card ${cardClass}" onclick="showDetail('${safeId(jam.id)}')">${badge}<div class="jam-name">${esc(jam.name)}</div><div class="jam-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</div><div class="jam-meta"><span class="jam-time">${timeStr}</span><span class="sep">·</span><span>${esc(jam.frequency)}</span><span class="sep">·</span><span>${SIGNUP_ICONS[jam.signup_process]||'📋'} ${esc(jam.signup_process)}</span></div><div class="jam-genres">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div>${jam.vibe?`<div style="margin-top:8px;font-size:0.75rem;color:#555;font-style:italic;">Vibe: ${esc(jam.vibe)}</div>`:''}${ci}${renderInstrumentTags(jam.id,true)}</div>`;}).join('');}
 
 function showDetail(id){const jam=jams.find(j=>j.id===id);if(!jam)return;const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(id):jamCheckins(id,jam);const amIn=isCheckedIn(id);
-let btn;if(!profile)btn=`<button class="checkin-btn needs-profile" onclick="showScreen('profile')">Register to check in</button>`;else if(amIn)btn=`<button class="checkin-btn checked-in" onclick="firebaseUncheckin('${id}');showDetail('${id}');">✓ You're checked in — tap to undo</button>`;else btn=`<button class="checkin-btn can-checkin" onclick="firebaseCheckin('${id}');showDetail('${id}');">I'm pulling up${tonight?' tonight':''}</button>`;
+const sid=safeId(id);
+let btn;if(!profile)btn=`<button class="checkin-btn needs-profile" onclick="showScreen('profile')">Register to check in</button>`;else if(amIn)btn=`<button class="checkin-btn checked-in" onclick="firebaseUncheckin('${sid}');showDetail('${sid}');">✓ You're checked in — tap to undo</button>`;else btn=`<button class="checkin-btn can-checkin" onclick="firebaseCheckin('${sid}');showDetail('${sid}');">I'm pulling up${tonight?' tonight':''}</button>`;
 const ph=people.length>0?people.map(p=>`<div class="checkin-person"><div class="person-avatar">${esc(getInitials(p.name))}</div><div><div class="person-name">${esc(p.name)}</div><div class="person-instrument">${INSTRUMENT_EMOJI[p.instrument]||'🎶'} ${esc(p.instrument)}</div></div></div>`).join(''):'<p style="color:#555;font-size:0.85rem;">No one checked in yet. Be the first.</p>';
-const whenStr=oneoff?`${formatDate(jam.date)} · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`:`${jam.day_of_week}s · ${jam.time_start}${jam.time_end?'–'+jam.time_end:''}`;
-const freqCard=oneoff?`<div class="detail-card"><div class="detail-card-label">✨ Type</div><div class="detail-card-value" style="color:#c77bff;">Special Event</div></div>`:`<div class="detail-card"><div class="detail-card-label">🔄 Frequency</div><div class="detail-card-value">${jam.frequency}</div></div>`;
-// Partiful CTA
+const whenStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${esc(jam.day_of_week)}s · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
+const freqCard=oneoff?`<div class="detail-card"><div class="detail-card-label">✨ Type</div><div class="detail-card-value" style="color:#c77bff;">Special Event</div></div>`:`<div class="detail-card"><div class="detail-card-label">🔄 Frequency</div><div class="detail-card-value">${esc(jam.frequency)}</div></div>`;
 let partifulHtml='';
-if(jam.partiful_url){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${esc(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
+if(jam.partiful_url&&safeUrl(jam.partiful_url)){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${safeUrl(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
 else{partifulHtml=`<div class="partiful-cta"><p>🎪 Rally your crew for this jam</p><a href="https://partiful.com/create" target="_blank" rel="noopener" class="partiful-link">Create a Partiful invite</a></div>`;}
-document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${g}</span>`).join('')}</div><h1 class="detail-name">${jam.name}</h1><p class="detail-venue">${jam.venue_name} · ${jam.city}</p></div>${jam.vibe?`<div class="vibe-badge">${jam.vibe}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${jam.signup_process||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${jam.venue_address}</div></div></div>${renderNeedsYouBanner(id)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}<div class="checkin-people">${ph}</div></div>${renderInstrumentGrid(id)}${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${jam.description}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${jam.what_to_expect}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
+document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p></div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}<div class="checkin-people">${ph}</div></div>${renderInstrumentGrid(sid)}${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
 showScreen('detail');}
 
-function renderProfile(){const c=document.getElementById('profileContent');if(profile){const mc=[];Object.keys(checkins).forEach(jid=>{if(isCheckedIn(jid)){const j=jams.find(x=>x.id===jid);if(j)mc.push(j);}});c.innerHTML=`<div class="profile-card"><div class="profile-avatar-big">${esc(getInitials(profile.name))}</div><div class="profile-name">${esc(profile.name)}</div><div class="profile-instrument">${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} ${esc(profile.instrument)}</div><div class="profile-actions"><button class="profile-action-btn danger" onclick="if(confirm('Delete your profile?'))deleteProfile();">Delete profile</button></div></div>${mc.length>0?`<div class="your-checkins"><h3>Your check-ins today</h3>${mc.map(j=>`<div class="jam-card" onclick="showDetail('${j.id}')" style="margin-bottom:8px;"><div class="jam-name">${j.name}</div><div class="jam-venue">${j.venue_name} · ${j.day_of_week} ${j.time_start}</div></div>`).join('')}</div>`:''}`;}else{c.innerHTML=`<h1 class="register-title">Join the scene</h1><p class="register-sub">Register your name to check in at jams. That's it — no password, no email, no social media stuff. Just your name and what you play.</p><form onsubmit="handleRegister(event)"><div class="form-group"><label class="form-label">Your Name *</label><input class="form-input" id="regName" required placeholder="How people know you" autocomplete="off"><div id="regNameError"></div></div><div class="form-group"><label class="form-label">Your Instrument *</label><select class="form-input" id="regInstrument" required><option value="">Pick one</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select></div><button type="submit" class="form-submit" id="regSubmitBtn">Lock it in</button><p style="color:#555;font-size:0.75rem;margin-top:10px;text-align:center;">Names are first-come, first-served. Pick something the scene knows you by.</p></form>`;}}
+function renderProfile(){const c=document.getElementById('profileContent');if(profile){const mc=[];Object.keys(checkins).forEach(jid=>{if(isCheckedIn(jid)){const j=jams.find(x=>x.id===jid);if(j)mc.push(j);}});c.innerHTML=`<div class="profile-card"><div class="profile-avatar-big">${esc(getInitials(profile.name))}</div><div class="profile-name">${esc(profile.name)}</div><div class="profile-instrument">${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} ${esc(profile.instrument)}</div><div class="profile-actions"><button class="profile-action-btn danger" onclick="if(confirm('Delete your profile?'))deleteProfile();">Delete profile</button></div></div>${mc.length>0?`<div class="your-checkins"><h3>Your check-ins today</h3>${mc.map(j=>`<div class="jam-card" onclick="showDetail('${safeId(j.id)}')" style="margin-bottom:8px;"><div class="jam-name">${esc(j.name)}</div><div class="jam-venue">${esc(j.venue_name)} · ${esc(j.day_of_week)} ${esc(j.time_start)}</div></div>`).join('')}</div>`:''}`;}else{c.innerHTML=`<h1 class="register-title">Join the scene</h1><p class="register-sub">Register your name to check in at jams. That's it — no password, no email, no social media stuff. Just your name and what you play.</p><form onsubmit="handleRegister(event)"><div class="form-group"><label class="form-label">Your Name *</label><input class="form-input" id="regName" required placeholder="How people know you" autocomplete="off"><div id="regNameError"></div></div><div class="form-group"><label class="form-label">Your Instrument *</label><select class="form-input" id="regInstrument" required><option value="">Pick one</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select></div><button type="submit" class="form-submit" id="regSubmitBtn">Lock it in</button><p style="color:#555;font-size:0.75rem;margin-top:10px;text-align:center;">Names are first-come, first-served. Pick something the scene knows you by.</p></form>`;}}
 async function handleRegister(e){e.preventDefault();const name=document.getElementById('regName').value.trim();const instrument=document.getElementById('regInstrument').value;if(!name||!instrument)return;document.getElementById('regSubmitBtn').disabled=true;document.getElementById('regSubmitBtn').textContent='Checking...';document.getElementById('regNameError').innerHTML='';const result=await registerProfile(name,instrument);if(result.error){document.getElementById('regNameError').innerHTML=`<p class="form-error">${esc(result.error)}</p>`;document.getElementById('regSubmitBtn').disabled=false;document.getElementById('regSubmitBtn').textContent='Lock it in';return;}renderAll();showScreen('home');}
-function showScreen(name){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(`screen-${name}`).classList.add('active');window.scrollTo(0,0);if(name==='profile')renderProfile();if(name==='submit')renderSubmitGenres();}
-function renderSubmitGenres(){const c=document.getElementById('submitGenres');if(!c)return;c.innerHTML=GENRES.map(g=>`<button type="button" class="genre-select-chip" data-genre="${g}" onclick="this.classList.toggle('selected')">${g}</button>`).join('');}
-function surpriseMe(){const jams=getFilteredJams();if(jams.length===0)return;const btn=document.querySelector('.surprise-btn');btn.classList.add('spinning');setTimeout(()=>{btn.classList.remove('spinning');showDetail(jams[Math.floor(Math.random()*jams.length)].id);},500);}
 
-function init(){if(window.location.search.includes('admin')){window.location.href='admin.html';return;}initFirebase();renderAll();renderSubmitGenres();}
+// ============================================
+// NAVIGATION
+// ============================================
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  window.scrollTo(0,0);
+  if(name==='profile')renderProfile();
+  if(name==='submit'){
+    renderSubmitGenres();
+    setupFormValidation();
+    // Re-init Places if loaded but autocomplete not attached
+    if(placesReady&&!placesAutocomplete){
+      const input=document.getElementById('placesInput');
+      if(input){
+        placesAutocomplete=new google.maps.places.Autocomplete(input,{types:['establishment'],componentRestrictions:{country:'us'},fields:['name','formatted_address','address_components','geometry']});
+        placesAutocomplete.addListener('place_changed',onPlaceSelected);
+      }
+    }
+    // Restore draft only if not editing
+    if(!editingSubmissionKey)restoreDraft();
+  }
+}
+
+function renderSubmitGenres(){
+  const c=document.getElementById('submitGenres');
+  if(!c)return;
+  c.innerHTML=GENRES.map(g=>`<button type="button" class="genre-select-chip" data-genre="${g}" onclick="this.classList.toggle('selected');showFieldError('genre',false);saveDraft();">${g}</button>`).join('');
+}
+
+function surpriseMe(){const list=getFilteredJams();if(list.length===0)return;const btn=document.querySelector('.surprise-btn');btn.classList.add('spinning');setTimeout(()=>{btn.classList.remove('spinning');showDetail(list[Math.floor(Math.random()*list.length)].id);},500);}
+
+// ============================================
+// INIT
+// ============================================
+async function init(){
+  // Check for admin redirect
+  if(window.location.search.includes('admin')){window.location.href='admin.html';return;}
+  // Check for edit link
+  const params=new URLSearchParams(window.location.search);
+  const editToken=params.get('edit');
+  initFirebase();
+  renderAll();
+  renderSubmitGenres();
+  setupFormValidation();
+  if(editToken){
+    // Wait for Firebase auth then handle edit
+    let editHandled=false;
+    const tryEdit=()=>{
+      if(editHandled)return;
+      if(!firebaseReady){setTimeout(tryEdit,500);return;}
+      editHandled=true;
+      const unsub=firebase.auth().onAuthStateChanged(async user=>{
+        unsub();
+        if(user){const handled=await handleEditLink(editToken);if(!handled){showScreen('submit');document.getElementById('draftBanner').innerHTML=`<div class="draft-banner" style="border-color:rgba(255,91,91,0.3);color:#ff5b5b;">Edit link not found or expired.</div>`;}}
+      });
+    };
+    tryEdit();
+  }
+}
 init();
 </script>
 </body>

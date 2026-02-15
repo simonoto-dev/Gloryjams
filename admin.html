@@ -31,6 +31,7 @@ input,textarea,select,button{font-family:inherit;font-size:inherit;}
 .bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:var(--safe-bottom);z-index:100;overflow-x:auto;}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 6px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:8px;font-weight:500;transition:color 0.2s;min-width:0;white-space:nowrap;}
 .nav-btn.active{color:var(--accent);}
+.nav-btn.has-badge{position:relative;}
 .nav-btn .nav-icon{font-size:18px;line-height:1;}
 .content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
 .pad{padding:16px;}
@@ -484,6 +485,9 @@ function renderSubmissions(){
       toArray(s.genre).length>0?h('div',{style:{marginTop:'6px'}},...toArray(s.genre).map(g=>h('span',{class:'genre-chip'},g))):'',
       s.submitter_name?h('div',{style:{fontSize:'11px',color:'var(--muted)',marginTop:'8px'}},'Submitted by '+esc(s.submitter_name)+(s.submitter_email?' ('+esc(s.submitter_email)+')':'')+' \u00b7 '+fmtDateFull(s.submitted)):'',
 
+      s.editedAt?h('div',{style:{fontSize:'10px',color:'var(--purple)',marginTop:'4px'}},'✏️ Re-edited via edit link \u00b7 '+fmtDateFull(s.editedAt)):'',
+      s.editToken?h('div',{style:{fontSize:'10px',color:'var(--muted)',marginTop:'4px',wordBreak:'break-all'}},'Edit link: '+window.location.origin+'/?edit='+s.editToken):'',
+
       s.status==='pending'?h('div',{style:{display:'flex',gap:'8px',marginTop:'12px'}},
         h('button',{class:'btn btn-sm',onClick:()=>approveSubmission(key,s)},'Approve'),
         h('button',{class:'btn-red',style:{fontSize:'12px'},onClick:()=>{db.ref('submissions/'+key+'/status').set('rejected');db.ref('submissions/'+key+'/reviewedAt').set(Date.now());}},'Reject')
@@ -626,10 +630,11 @@ function render(){
   const app=document.getElementById('app');
   app.innerHTML='';
 
+  const pendingCount=Object.values(submissions).filter(s=>s.status==='pending').length;
   const tabs=[
     {icon:'\ud83d\udcca',label:'Dashboard'},
     {icon:'\ud83c\udfb5',label:'Jams'},
-    {icon:'\ud83d\udce5',label:'Submissions'},
+    {icon:'\ud83d\udce5',label:'Submissions'+(pendingCount>0?' ('+pendingCount+')':'')},
     {icon:'\ud83d\udc65',label:'Check-ins'},
     {icon:'\ud83c\udfb8',label:'Profiles'},
     {icon:'\ud83d\udcf1',label:'Blasts'}
