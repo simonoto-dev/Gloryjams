@@ -371,6 +371,11 @@ select.form-input { appearance: none; }
 .your-checkins { margin-top: 20px; }
 .your-checkins h3 { font-family: 'Rock Salt', cursive; font-size: 0.9rem; font-weight: 400; color: #fff; margin-bottom: 10px; }
 
+/* TOAST */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1a1a1a; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; border: 1px solid #333; z-index: 9999; opacity: 0; transition: all 0.3s ease; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.toast a { color: #ff6b35; text-decoration: none; margin-left: 8px; }
+
 /* SUBMIT JAM */
 .submit-screen { padding-top: 32px; padding-bottom: 60px; }
 .submit-title { font-family: 'Rock Salt', cursive; font-size: 1.3rem; color: #fff; margin-bottom: 8px; line-height: 1.4; }
@@ -843,6 +848,7 @@ function daysUntil(dateStr){const now=new Date();now.setHours(0,0,0,0);const the
 function sortJamsFromToday(list){const ti=getDayIndex(getTodayName());return[...list].sort((a,b)=>{const aTonight=isJamTonight(a),bTonight=isJamTonight(b);if(aTonight&&!bTonight)return-1;if(!aTonight&&bTonight)return 1;if(isOneOff(a)&&isOneOff(b))return a.date.localeCompare(b.date);if(isOneOff(a)&&!isOneOff(b))return-1;if(!isOneOff(a)&&isOneOff(b))return 1;return((getDayIndex(a.day_of_week)-ti+7)%7)-((getDayIndex(b.day_of_week)-ti+7)%7);});}
 function getInitials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 function genreClass(g){const m={jazz:'jazz',blues:'blues',funk:'funk',soul:'soul',latin:'latin',open:'open',rock:'rock','r&b':'rb'};return'genre-'+(m[g.toLowerCase()]||'open');}
+let toastTimer=null;function showToast(html,ms=3000){const t=document.getElementById('toast');t.innerHTML=html;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),ms);}
 function todayCheckins(jamId){const today=new Date().toISOString().slice(0,10);const jc=checkins[jamId]||{};return Object.values(jc).filter(c=>c.date===today);}
 function jamCheckins(jamId,jam){if(isOneOff(jam)){const jc=checkins[jamId]||{};return Object.values(jc).filter(c=>c.date===jam.date);}return todayCheckins(jamId);}
 function totalCheckinsTonight(){let count=0;jams.forEach(j=>{if(isJamTonight(j))count+=todayCheckins(j.id).length;});return count;}
@@ -873,7 +879,7 @@ async function registerProfile(name,instrument,pin){const slug=nameSlug(name);if
 async function loginWithPin(name,pin){const slug=nameSlug(name);if(!firebaseReady)return{error:'Not connected. Try again in a moment.'};const snap=await db.ref('profiles/'+slug).once('value');if(!snap.exists())return{error:'No profile found with that name.'};const data=snap.val();if(!data.pinHash)return{error:'This profile was created before PINs. Contact the host to reset it.'};const hash=await hashPin(slug,pin);if(hash!==data.pinHash)return{error:'Wrong PIN. Try again.'};profile={name:data.name,instrument:data.instrument,hasPin:true};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));return{success:true};}
 function deleteProfile(){if(profile&&firebaseReady)db.ref('profiles/'+profile.name.toLowerCase().replace(/\s+/g,'_')).remove();profile=null;localStorage.removeItem('gloryjams_profile');renderAll();showScreen('home');}
 function isCheckedIn(jamId){if(!profile)return false;const jc=checkins[jamId]||{};const today=new Date().toISOString().slice(0,10);return Object.values(jc).some(c=>c.name===profile.name&&c.date===today);}
-function firebaseCheckin(jamId){if(!profile||!firebaseReady)return;const key=profile.name.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);db.ref('checkins/'+jamId+'/'+key).set({name:profile.name,instrument:profile.instrument,date:new Date().toISOString().slice(0,10),timestamp:Date.now()});}
+function firebaseCheckin(jamId){if(!profile||!firebaseReady)return;const key=profile.name.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);db.ref('checkins/'+jamId+'/'+key).set({name:profile.name,instrument:profile.instrument,date:new Date().toISOString().slice(0,10),timestamp:Date.now()});showToast(`${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} You're in! <a href="#" onclick="showScreen('profile');return false;">View profile</a>`);}
 function firebaseUncheckin(jamId){if(!profile||!firebaseReady)return;const key=profile.name.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);db.ref('checkins/'+jamId+'/'+key).remove();}
 async function subscribeBlast(){const phone=document.getElementById('blastPhone').value.trim();if(!phone||phone.length<7){document.getElementById('blastSignupMsg').innerHTML='<span style="color:#ff5b5b;">Enter a valid phone number</span>';return;}if(firebaseReady)await db.ref('subscribers/'+phone.replace(/\D/g,'')).set({phone,created:Date.now()});document.getElementById('blastSignupMsg').innerHTML='<span class="blast-success">You\'re in! We\'ll text you when it\'s time to pull up.</span>';document.getElementById('blastPhone').value='';}
 
@@ -1468,5 +1474,6 @@ async function init(){
 }
 init();
 </script>
+<div class="toast" id="toast"></div>
 </body>
 </html>
