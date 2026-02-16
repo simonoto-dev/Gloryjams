@@ -184,6 +184,7 @@ let profiles={};   // {key: profileObj}
 let subscribers={}; // {phone: subObj}
 let submissions={}; // {pushId: subObj}
 let blasts={};     // {pushId: blastObj}
+let hosts={};      // {uid: hostObj}
 let editingJam=null;   // jam id for detail/edit view
 let showAddJam=false;
 let subFilter='pending';
@@ -219,6 +220,7 @@ function setupRealtimeSync(){
   db.ref('subscribers').on('value',s=>{subscribers=s.val()||{};render();});
   db.ref('submissions').on('value',s=>{submissions=s.val()||{};render();});
   db.ref('blasts').on('value',s=>{blasts=s.val()||{};render();});
+  db.ref('hosts').on('value',s=>{hosts=s.val()||{};render();});
 }
 
 /* ===== HELPERS ===== */
@@ -595,6 +597,60 @@ function renderProfiles(){
   );
 }
 
+/* ===== RENDER: HOSTS ===== */
+function renderHosts(){
+  const hostList=Object.entries(hosts).sort((a,b)=>(b[1].created||0)-(a[1].created||0));
+  const allJams=jamList().filter(j=>j.active!==false);
+  return h('div',{},
+    h('h2',{class:'section-title'},'Hosts'),
+    h('p',{style:{color:'var(--muted)',fontSize:'13px',marginBottom:'16px'}},'Create host accounts in Firebase Auth console, then add their UID here. Hosts log in on gloryjams.com with email/password.'),
+    h('div',{class:'card',style:{marginBottom:'16px'}},
+      h('div',{style:{fontWeight:'600',marginBottom:'12px'}},'Add Host'),
+      h('div',{class:'form-row'},
+        h('div',{class:'form-group'},h('label',{},'Firebase UID'),h('input',{class:'input',id:'h-uid',placeholder:'From Firebase Auth console'})),
+        h('div',{class:'form-group'},h('label',{},'Display Name'),h('input',{class:'input',id:'h-name',placeholder:'Host name'}))
+      ),
+      h('div',{class:'form-row'},
+        h('div',{class:'form-group'},h('label',{},'Email'),h('input',{class:'input',id:'h-email',placeholder:'host@email.com'})),
+        h('div',{class:'form-group'},h('label',{},'Instrument'),h('input',{class:'input',id:'h-instrument',placeholder:'Guitar, Keys, etc.'}))
+      ),
+      h('div',{class:'form-group'},h('label',{},'Assign to Jams'),
+        h('div',{id:'h-jams',style:{display:'flex',flexWrap:'wrap',gap:'4px'}},
+          ...allJams.map(j=>h('button',{type:'button',class:'genre-chip',style:{fontSize:'11px'},onClick:(e)=>{e.currentTarget.classList.toggle('selected');if(e.currentTarget.classList.contains('selected')){e.currentTarget.style.background='var(--accent)';e.currentTarget.style.color='#000';}else{e.currentTarget.style.background='';e.currentTarget.style.color='';}},'data-id':j.id},esc(j.name)))
+        )
+      ),
+      h('button',{class:'btn',onClick:saveHost},'Add Host')
+    ),
+    h('div',{class:'label'},'Current Hosts ('+hostList.length+')'),
+    ...hostList.map(([uid,ho])=>h('div',{class:'item-card'},
+      h('div',{class:'item-name'},esc(ho.name||'Unknown')),
+      h('div',{class:'item-meta'},esc(ho.email||'')+' \u00b7 Jams: '+(ho.jamIds?ho.jamIds.join(', '):'none')),
+      h('div',{style:{display:'flex',gap:'6px',marginTop:'8px'}},
+        h('button',{class:'btn-red',style:{fontSize:'11px'},onClick:()=>{if(confirm('Remove host '+ho.name+'?'))db.ref('hosts/'+uid).remove();}},'Remove')
+      )
+    ))
+  );
+}
+function saveHost(){
+  const uid=document.getElementById('h-uid').value.trim();
+  const name=document.getElementById('h-name').value.trim();
+  const email=document.getElementById('h-email').value.trim();
+  const instrument=document.getElementById('h-instrument').value.trim();
+  if(!uid||!name||!email){alert('UID, name, and email are required.');return;}
+  const jamIds=[];
+  document.querySelectorAll('#h-jams .selected').forEach(b=>jamIds.push(b.dataset.id));
+  db.ref('hosts/'+uid).set({name,email,instrument:instrument||'Other',jamIds,created:Date.now()});
+  // Also update jam records with hostUid and hostName
+  jamIds.forEach(jid=>{
+    db.ref('jams/'+jid+'/hostUid').set(uid);
+    db.ref('jams/'+jid+'/hostName').set(name);
+  });
+  document.getElementById('h-uid').value='';
+  document.getElementById('h-name').value='';
+  document.getElementById('h-email').value='';
+  document.getElementById('h-instrument').value='';
+}
+
 /* ===== RENDER: BLASTS ===== */
 function renderBlasts(){
   const subList=Object.entries(subscribers).sort((a,b)=>(b[1].created||0)-(a[1].created||0));
@@ -650,6 +706,7 @@ function render(){
     {icon:'\ud83d\udce5',label:'Submissions'+(pendingCount>0?' ('+pendingCount+')':'')},
     {icon:'\ud83d\udc65',label:'Check-ins'},
     {icon:'\ud83c\udfb8',label:'Profiles'},
+    {icon:'\ud83c\udfa4',label:'Hosts'},
     {icon:'\ud83d\udcf1',label:'Blasts'}
   ];
 
@@ -669,7 +726,8 @@ function render(){
     case 2:content.appendChild(renderSubmissions());break;
     case 3:content.appendChild(renderCheckins());break;
     case 4:content.appendChild(renderProfiles());break;
-    case 5:content.appendChild(renderBlasts());break;
+    case 5:content.appendChild(renderHosts());break;
+    case 6:content.appendChild(renderBlasts());break;
   }
   app.appendChild(content);
 

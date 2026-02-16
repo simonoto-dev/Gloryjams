@@ -12,6 +12,24 @@
       ".read": "auth != null",
       ".write": "auth != null"
     },
+    "hosts": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.token.email != null"
+      }
+    },
+    "ghosts": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email != null"
+    },
+    "feed": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "sets": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email != null"
+    },
     "submissions": {
       ".read": "auth != null",
       ".write": "auth != null",
