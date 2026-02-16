@@ -103,7 +103,7 @@ const SEED_JAMS = [
 {id:'2',name:'Tuesday Blues Jam at Biscuits and Blues',venue_name:'Biscuits and Blues',venue_address:'401 Mason St, San Francisco, CA 94102',city:'Union Square',region:'sf',day_of_week:'Tuesday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['blues'],signup_process:'sign-up list',description:"Classic blues jam in one of SF's legendary blues clubs.",vibe:'Classic blues club energy',what_to_expect:'Sign up when you arrive.',active:true},
 {id:'3',name:"Yo Mama's Jazz Jam",venue_name:"Yo Mama's",venue_address:'3629 Lakeshore Ave, Oakland, CA 94610',city:'Oakland',region:'east_bay',day_of_week:'Thursday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['jazz'],signup_process:'hosted/called up',description:'Vibey Oakland jazz jam.',vibe:'Vibey & social',what_to_expect:'Introduce yourself.',active:true},
 {id:'4',name:'The Jam at Revolution Cafe',venue_name:'Revolution Cafe',venue_address:'3248 22nd St, San Francisco, CA 94110',city:'Mission',region:'sf',day_of_week:'Monday',time_start:'8:00 PM',time_end:'10:00 PM',frequency:'Weekly',genre:['jazz','open'],signup_process:'first come first served',description:'Low-key jam in the Mission.',vibe:'Low-key & casual',what_to_expect:'Just show up.',active:true},
-{id:'5',name:"Funk Jam at Eli's Mile High Club",venue_name:"Eli's Mile High Club",venue_address:'3629 Martin Luther King Jr Way, Oakland, CA 94609',city:'Oakland',region:'east_bay',day_of_week:'Saturday',time_start:'9:00 PM',time_end:null,frequency:'Monthly',genre:['funk','soul'],signup_process:'first come first served',description:"Funk and soul jam at one of Oakland's most historic venues.",vibe:'High-energy & groovy',what_to_expect:'Bring your funk chops.',active:true},
+{id:'5',name:"Funk Jam at Eli's Mile High Club",venue_name:"Eli's Mile High Club",venue_address:'3629 Martin Luther King Jr Way, Oakland, CA 94609',city:'Oakland',region:'east_bay',day_of_week:'Saturday',time_start:'9:00 PM',time_end:null,frequency:'Monthly',monthly_occurrence:'2nd',genre:['funk','soul'],signup_process:'first come first served',description:"Funk and soul jam at one of Oakland's most historic venues.",vibe:'High-energy & groovy',what_to_expect:'Bring your funk chops.',active:true},
 {id:'6',name:'Full Moon Funk & Soul Jam',venue_name:'The New Parish',venue_address:'1743 San Pablo Ave, Oakland, CA 94612',city:'Oakland',region:'east_bay',date:'2026-03-03',time_start:'8:00 PM',time_end:'11:30 PM',frequency:'One-off',genre:['funk','soul','r&b'],signup_process:'first come first served',description:'Special full moon jam session.',vibe:'Electric & communal',what_to_expect:'Get there early.',partiful_url:null,active:true},
 {id:'7',name:'Bay Area Jazz Collective Meetup',venue_name:"Yoshi's Oakland",venue_address:'510 Embarcadero W, Oakland, CA 94607',city:'Jack London',region:'east_bay',date:'2026-03-14',time_start:'7:00 PM',time_end:'10:00 PM',frequency:'One-off',genre:['jazz'],signup_process:'sign-up list',description:'A one-night gathering of Bay Area jazz musicians.',vibe:'Curated & special',what_to_expect:'Sign up via Partiful.',partiful_url:null,active:true}
 ];
@@ -306,7 +306,7 @@ function renderJams(){
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
         h('div',{},
           h('div',{class:'item-name'},esc(j.name)),
-          h('div',{class:'item-meta'},esc(j.venue_name)+' \u00b7 '+(isOneOff(j)?j.date:j.day_of_week+'s')+' \u00b7 '+esc(j.time_start))
+          h('div',{class:'item-meta'},esc(j.venue_name)+' \u00b7 '+(isOneOff(j)?j.date:(j.monthly_occurrence?j.monthly_occurrence+' ':'')+j.day_of_week+'s')+' \u00b7 '+esc(j.time_start))
         ),
         h('div',{style:{display:'flex',gap:'6px',alignItems:'center'}},
           j.active===false?h('span',{class:'badge badge-red'},'inactive'):h('span',{class:'badge badge-green'},'active'),
@@ -352,12 +352,18 @@ function renderJamForm(jam){
             const oo=e.target.value==='One-off';
             document.getElementById('f-date-group').style.display=oo?'block':'none';
             document.getElementById('f-day-group').style.display=oo?'none':'block';
+            document.getElementById('f-occurrence-group').style.display=e.target.value==='Monthly'?'block':'none';
           }},
             ...['Weekly','Bi-weekly','Monthly','One-off'].map(f=>h('option',Object.assign({value:f},jam&&jam.frequency===f?{selected:'selected'}:{}),f))
           )
         )
       ),
       h('div',{class:'form-row'},
+        h('div',{class:'form-group',id:'f-occurrence-group',style:{display:jam&&jam.frequency==='Monthly'?'block':'none'}},h('label',{},'Which Occurrence'),
+          h('select',{class:'input',id:'f-occurrence'},
+            ...['1st','2nd','3rd','4th','Last'].map(o=>h('option',Object.assign({value:o},jam&&jam.monthly_occurrence===o?{selected:'selected'}:{}),o))
+          )
+        ),
         h('div',{class:'form-group',id:'f-day-group',style:{display:jam&&isOneOff(jam)?'none':'block'}},h('label',{},'Day'),
           h('select',{class:'input',id:'f-day'},
             ...DAYS.map(d=>h('option',Object.assign({value:d},jam&&jam.day_of_week===d?{selected:'selected'}:{}),d))
@@ -442,8 +448,11 @@ function saveJam(existingId){
     updated:Date.now()
   };
 
-  if(isOO){data.date=document.getElementById('f-date').value;delete data.day_of_week;}
-  else{data.day_of_week=document.getElementById('f-day').value;delete data.date;}
+  if(isOO){data.date=document.getElementById('f-date').value;delete data.day_of_week;delete data.monthly_occurrence;}
+  else{data.day_of_week=document.getElementById('f-day').value;delete data.date;
+    if(freq==='Monthly')data.monthly_occurrence=document.getElementById('f-occurrence').value;
+    else delete data.monthly_occurrence;
+  }
 
   if(existingId){
     const act=document.getElementById('f-active');
@@ -523,7 +532,7 @@ function approveSubmission(key,s){
     updated:Date.now()
   };
   if(s.frequency==='One-off'&&s.event_date){jam.date=s.event_date;}
-  else{jam.day_of_week=s.day_of_week||'Monday';}
+  else{jam.day_of_week=s.day_of_week||'Monday';if(s.monthly_occurrence)jam.monthly_occurrence=s.monthly_occurrence;}
 
   db.ref('jams/'+id).set(jam);
   db.ref('submissions/'+key+'/status').set('approved');

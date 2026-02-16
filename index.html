@@ -688,7 +688,11 @@ input[type="time"].form-input::-webkit-calendar-picker-indicator { filter: inver
         </div>
         <div class="form-group">
           <label class="form-label">Frequency</label>
-          <select class="form-input" name="frequency"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option></select>
+          <select class="form-input" name="frequency" onchange="toggleMonthlyOccurrence()"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option></select>
+        </div>
+        <div class="form-group" id="monthlyOccurrenceGroup" style="display:none;">
+          <label class="form-label">Which occurrence? *</label>
+          <select class="form-input" name="monthly_occurrence"><option>1st</option><option>2nd</option><option>3rd</option><option>4th</option><option>Last</option></select>
         </div>
       </div>
 
@@ -789,7 +793,7 @@ const SEED_JAMS=[
 {id:'2',name:'Tuesday Blues Jam at Biscuits and Blues',venue_name:'Biscuits and Blues',venue_address:'401 Mason St, San Francisco, CA 94102',city:'Union Square',region:'sf',day_of_week:'Tuesday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['blues'],signup_process:'sign-up list',description:"Classic blues jam in one of SF's legendary blues clubs. Full stage, real sound system, and a crowd that loves the blues.",vibe:'Classic blues club energy',what_to_expect:"Sign up when you arrive. The house band is solid — just tell them the key and go. Blues standards are the move here."},
 {id:'3',name:"Yo Mama's Jazz Jam",venue_name:"Yo Mama's",venue_address:'3629 Lakeshore Ave, Oakland, CA 94610',city:'Oakland',region:'east_bay',day_of_week:'Thursday',time_start:'8:00 PM',time_end:'11:00 PM',frequency:'Weekly',genre:['jazz'],signup_process:'hosted/called up',description:'Vibey Oakland jazz jam. The host calls people up and puts together combos on the fly. Great hang, good food, strong drinks.',vibe:'Vibey & social',what_to_expect:"The host knows the regulars and will work you in. Introduce yourself, let them know what you play. Real Book tunes are your friend."},
 {id:'4',name:'The Jam at Revolution Cafe',venue_name:'Revolution Cafe',venue_address:'3248 22nd St, San Francisco, CA 94110',city:'Mission',region:'sf',day_of_week:'Monday',time_start:'8:00 PM',time_end:'10:00 PM',frequency:'Weekly',genre:['jazz','open'],signup_process:'first come first served',description:"Low-key jam in the Mission. No-frills neighborhood spot. Show up, grab a drink, and play.",vibe:'Low-key & casual',what_to_expect:"First come, first served — just show up with your instrument and jump in. Casual and open to any style."},
-{id:'5',name:"Funk Jam at Eli's Mile High Club",venue_name:"Eli's Mile High Club",venue_address:'3629 Martin Luther King Jr Way, Oakland, CA 94609',city:'Oakland',region:'east_bay',day_of_week:'Saturday',time_start:'9:00 PM',time_end:null,frequency:'Monthly',genre:['funk','soul'],signup_process:'first come first served',description:"Funk and soul jam at one of Oakland's most historic venues. When it's on, it's ON.",vibe:'High-energy & groovy',what_to_expect:"This one goes late and goes hard. Bring your funk chops. The crowd dances. Check social media for specific dates."},
+{id:'5',name:"Funk Jam at Eli's Mile High Club",venue_name:"Eli's Mile High Club",venue_address:'3629 Martin Luther King Jr Way, Oakland, CA 94609',city:'Oakland',region:'east_bay',day_of_week:'Saturday',time_start:'9:00 PM',time_end:null,frequency:'Monthly',monthly_occurrence:'2nd',genre:['funk','soul'],signup_process:'first come first served',description:"Funk and soul jam at one of Oakland's most historic venues. When it's on, it's ON.",vibe:'High-energy & groovy',what_to_expect:"This one goes late and goes hard. Bring your funk chops. The crowd dances. Check social media for specific dates."},
 {id:'6',name:'Full Moon Funk & Soul Jam',venue_name:'The New Parish',venue_address:'1743 San Pablo Ave, Oakland, CA 94612',city:'Oakland',region:'east_bay',date:'2026-03-03',time_start:'8:00 PM',time_end:'11:30 PM',frequency:'One-off',genre:['funk','soul','r&b'],signup_process:'first come first served',description:"Special full moon jam session. The Parish is opening its doors for one night of funk, soul, and R&B. Full backline provided. Pull up and bring the heat.",vibe:'Electric & communal',what_to_expect:"Get there early — this one will pack out. Full backline on stage, just bring your instrument. Open to all levels but the energy will be high.",partiful_url:null},
 {id:'7',name:'Bay Area Jazz Collective Meetup',venue_name:"Yoshi's Oakland",venue_address:'510 Embarcadero W, Oakland, CA 94607',city:'Jack London',region:'east_bay',date:'2026-03-14',time_start:'7:00 PM',time_end:'10:00 PM',frequency:'One-off',genre:['jazz'],signup_process:'sign-up list',description:"A one-night gathering of Bay Area jazz musicians. Three sets, rotating combos, curated by local players. This isn't a regular jam — it's an event.",vibe:'Curated & special',what_to_expect:"Sign up in advance via the Partiful link. Combos will be organized beforehand so everyone gets stage time. Dress sharp — Yoshi's is classy.",partiful_url:null}
 ];
@@ -997,6 +1001,12 @@ function setJamType(type){
     oneoff.classList.remove('collapsed');
   }
   saveDraft();
+  toggleMonthlyOccurrence();
+}
+function toggleMonthlyOccurrence(){
+  const freq=document.querySelector('[name="frequency"]');
+  const occ=document.getElementById('monthlyOccurrenceGroup');
+  if(freq&&occ)occ.style.display=freq.value==='Monthly'?'':'none';
 }
 
 // ============================================
@@ -1098,6 +1108,7 @@ function saveDraft(){
     jamType:currentJamType,
     day_of_week:form.day_of_week.value,
     frequency:form.frequency?.value||'Weekly',
+    monthly_occurrence:form.monthly_occurrence?.value||'',
     event_date:form.event_date?.value||'',
     partiful_url:form.partiful_url?.value||'',
     time_start:form.time_start.value,
@@ -1125,7 +1136,8 @@ function restoreDraft(){
     // Restore fields
     if(d.name)form.name.value=d.name;
     if(d.day_of_week)form.day_of_week.value=d.day_of_week;
-    if(d.frequency&&form.frequency)form.frequency.value=d.frequency;
+    if(d.frequency&&form.frequency){form.frequency.value=d.frequency;toggleMonthlyOccurrence();}
+    if(d.monthly_occurrence&&form.monthly_occurrence)form.monthly_occurrence.value=d.monthly_occurrence;
     if(d.time_start)form.time_start.value=d.time_start;
     if(d.time_end)form.time_end.value=d.time_end;
     if(d.event_date&&form.event_date)form.event_date.value=d.event_date;
@@ -1228,6 +1240,7 @@ async function submitJam(e){
   if(currentJamType==='recurring'){
     data.day_of_week=form.day_of_week.value;
     data.frequency=form.frequency.value;
+    if(form.frequency.value==='Monthly')data.monthly_occurrence=form.monthly_occurrence.value;
   }else{
     data.frequency='One-off';
     data.event_date=form.event_date.value;
@@ -1324,7 +1337,8 @@ async function handleEditLink(token){
     }else{
       setJamType('recurring');
       if(data.day_of_week)form.day_of_week.value=data.day_of_week;
-      if(data.frequency)form.frequency.value=data.frequency;
+      if(data.frequency){form.frequency.value=data.frequency;toggleMonthlyOccurrence();}
+      if(data.monthly_occurrence&&form.monthly_occurrence)form.monthly_occurrence.value=data.monthly_occurrence;
     }
     // Times (convert 12h to 24h for time inputs)
     if(data.time_start)form.time_start.value=parseTimeTo24(data.time_start);
@@ -1365,15 +1379,18 @@ function renderJamList(){const list=getFilteredJams();const today=getTodayName()
 document.getElementById('jamList').innerHTML=list.map(jam=>{const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(jam.id):(oneoff?jamCheckins(jam.id,jam):[]);let ci='';if(people.length>0){const faces=people.slice(0,4).map(p=>`<div class="checkin-face" title="${esc(p.name)} — ${esc(p.instrument)}">${esc(getInitials(p.name))}</div>`).join('');ci=`<div class="jam-checkins"><span class="checkin-count">${people.length} pulling up</span><div class="checkin-faces">${faces}${people.length>4?`<span class="checkin-more">+${people.length-4}</span>`:''}</div></div>`;}
 const cardClass=tonight?'tonight-card':(oneoff?'oneoff-card':'');
 let badge='';if(tonight){badge='<div class="tonight-badge"><span class="pulse-dot"></span>TONIGHT</div>';}else if(oneoff){const du=daysUntil(jam.date);const when=du===0?'Today':du===1?'Tomorrow':`In ${du} days`;badge=`<div class="oneoff-badge"><span class="oneoff-dot"></span>SPECIAL EVENT · ${when}</div>`;}
-const timeStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${esc(jam.day_of_week)}s · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
+const dayLabel=jam.monthly_occurrence?`${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s`:`${esc(jam.day_of_week)}s`;
+const timeStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${dayLabel} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
 return`<div class="jam-card ${cardClass}" onclick="showDetail('${safeId(jam.id)}')">${badge}<div class="jam-name">${esc(jam.name)}</div><div class="jam-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</div><div class="jam-meta"><span class="jam-time">${timeStr}</span><span class="sep">·</span><span>${esc(jam.frequency)}</span><span class="sep">·</span><span>${SIGNUP_ICONS[jam.signup_process]||'📋'} ${esc(jam.signup_process)}</span></div><div class="jam-genres">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div>${jam.vibe?`<div style="margin-top:8px;font-size:0.75rem;color:#555;font-style:italic;">Vibe: ${esc(jam.vibe)}</div>`:''}${ci}${renderInstrumentTags(jam.id,true)}</div>`;}).join('');}
 
 function showDetail(id){const jam=jams.find(j=>j.id===id);if(!jam)return;const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(id):jamCheckins(id,jam);const amIn=isCheckedIn(id);
 const sid=safeId(id);
 let btn;if(!profile)btn=`<button class="checkin-btn needs-profile" onclick="showScreen('profile')">Register to check in</button>`;else if(amIn)btn=`<button class="checkin-btn checked-in" onclick="firebaseUncheckin('${sid}');showDetail('${sid}');">✓ You're checked in — tap to undo</button>`;else btn=`<button class="checkin-btn can-checkin" onclick="firebaseCheckin('${sid}');showDetail('${sid}');">I'm pulling up${tonight?' tonight':''}</button>`;
 const ph=people.length>0?people.map(p=>`<div class="checkin-person"><div class="person-avatar">${esc(getInitials(p.name))}</div><div><div class="person-name">${esc(p.name)}</div><div class="person-instrument">${INSTRUMENT_EMOJI[p.instrument]||'🎶'} ${esc(p.instrument)}</div></div></div>`).join(''):'<p style="color:#555;font-size:0.85rem;">No one checked in yet. Be the first.</p>';
-const whenStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${esc(jam.day_of_week)}s · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
-const freqCard=oneoff?`<div class="detail-card"><div class="detail-card-label">✨ Type</div><div class="detail-card-value" style="color:#c77bff;">Special Event</div></div>`:`<div class="detail-card"><div class="detail-card-label">🔄 Frequency</div><div class="detail-card-value">${esc(jam.frequency)}</div></div>`;
+const detailDayLabel=jam.monthly_occurrence?`${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s`:`${esc(jam.day_of_week)}s`;
+const whenStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${detailDayLabel} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
+const freqLabel=jam.monthly_occurrence?`${esc(jam.frequency)} (${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s)`:esc(jam.frequency);
+const freqCard=oneoff?`<div class="detail-card"><div class="detail-card-label">✨ Type</div><div class="detail-card-value" style="color:#c77bff;">Special Event</div></div>`:`<div class="detail-card"><div class="detail-card-label">🔄 Frequency</div><div class="detail-card-value">${freqLabel}</div></div>`;
 let partifulHtml='';
 if(jam.partiful_url&&safeUrl(jam.partiful_url)){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${safeUrl(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
 else{partifulHtml=`<div class="partiful-cta"><p>🎪 Rally your crew for this jam</p><a href="https://partiful.com/create" target="_blank" rel="noopener" class="partiful-link">Create a Partiful invite</a></div>`;}
