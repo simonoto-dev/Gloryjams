@@ -195,19 +195,21 @@ let subscribers={}; // {phone: subObj}
 let submissions={}; // {pushId: subObj}
 let blasts={};     // {pushId: blastObj}
 let hosts={};      // {uid: hostObj}
+let messages={};   // {pushId: msgObj}
 let editingJam=null;   // jam id for detail/edit view
 let showAddJam=false;
 let subFilter='pending';
 
 /* ===== DATA LOADING ===== */
 async function loadAllData(){
-  const [jSnap,cSnap,pSnap,sSnap,subSnap,bSnap]=await Promise.all([
+  const [jSnap,cSnap,pSnap,sSnap,subSnap,bSnap,mSnap]=await Promise.all([
     db.ref('jams').once('value'),
     db.ref('checkins').once('value'),
     db.ref('profiles').once('value'),
     db.ref('subscribers').once('value'),
     db.ref('submissions').once('value'),
-    db.ref('blasts').once('value')
+    db.ref('blasts').once('value'),
+    db.ref('messages').once('value')
   ]);
   jams=jSnap.val()||{};
   checkins=cSnap.val()||{};
@@ -215,6 +217,7 @@ async function loadAllData(){
   subscribers=sSnap.val()||{};
   submissions=subSnap.val()||{};
   blasts=bSnap.val()||{};
+  messages=mSnap.val()||{};
 
   // Migrate seed jams if Firebase is empty
   if(Object.keys(jams).length===0){
@@ -231,6 +234,7 @@ function setupRealtimeSync(){
   db.ref('submissions').on('value',s=>{submissions=s.val()||{};render();});
   db.ref('blasts').on('value',s=>{blasts=s.val()||{};render();});
   db.ref('hosts').on('value',s=>{hosts=s.val()||{};render();});
+  db.ref('messages').on('value',s=>{messages=s.val()||{};render();});
 }
 
 /* ===== HELPERS ===== */
@@ -283,6 +287,13 @@ function renderDashboard(){
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
         h('span',{style:{fontWeight:'600'}},'Pending Submissions'),
         h('span',{class:'badge badge-yellow'},''+pendingSubs+' to review')
+      )
+    ):'',
+
+    Object.values(messages).filter(m=>!m.read).length>0?h('div',{class:'card',style:{cursor:'pointer',borderLeft:'3px solid var(--accent)'},onClick:()=>{currentTab=6;render();}},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        h('span',{style:{fontWeight:'600'}},'Unread Messages'),
+        h('span',{class:'badge badge-accent'},''+Object.values(messages).filter(m=>!m.read).length+' new')
       )
     ):'',
 
@@ -761,6 +772,46 @@ async function saveHost(){
   btn.disabled=false;btn.textContent='Add Host';
 }
 
+/* ===== RENDER: MESSAGES ===== */
+function renderMessages(){
+  const msgList=Object.entries(messages).sort((a,b)=>(b[1].timestamp||0)-(a[1].timestamp||0));
+  const unreadCount=msgList.filter(([,m])=>!m.read).length;
+
+  return h('div',{class:'pad'},
+    h('h2',{class:'section-title'},'Messages'),
+    h('p',{class:'section-sub'},msgList.length+' message'+(msgList.length!==1?'s':'')+
+      (unreadCount>0?' · '+unreadCount+' unread':'')),
+    ...(msgList.length===0?[
+      h('div',{class:'card',style:{textAlign:'center',padding:'32px',color:'var(--muted)'}},
+        h('p',{},'No messages yet'),
+        h('p',{style:{fontSize:'11px',marginTop:'4px'}},'Users can send messages via "Suggest an edit" on jam pages')
+      )
+    ]:msgList.map(([key,m])=>{
+      const d=m.timestamp?new Date(m.timestamp):null;
+      const dateStr=d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
+      return h('div',{class:'card',style:{borderLeft:m.read?'':'3px solid var(--accent)'}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px'}},
+          h('div',{},
+            h('div',{style:{fontWeight:'600',fontSize:'13px',color:'var(--text)'}},esc(m.from||'Anonymous')),
+            h('div',{style:{fontSize:'11px',color:'var(--accent)',marginTop:'2px'}},esc(m.jamName||'General'))
+          ),
+          h('div',{style:{textAlign:'right',flexShrink:'0'}},
+            h('div',{style:{fontSize:'10px',color:'var(--muted)'}},dateStr),
+            !m.read?h('span',{class:'badge badge-accent',style:{marginTop:'4px'}},'NEW'):''
+          )
+        ),
+        h('p',{style:{marginTop:'10px',fontSize:'13px',lineHeight:'1.5',color:'#ccc'}},esc(m.message||'')),
+        h('div',{style:{display:'flex',gap:'8px',marginTop:'10px'}},
+          !m.read?h('button',{class:'btn',style:{fontSize:'11px',padding:'4px 10px',background:'var(--surface2)',color:'var(--muted)',border:'1px solid var(--border)'},onClick:()=>{db.ref('messages/'+key+'/read').set(true);}},'Mark read'):
+            h('button',{class:'btn',style:{fontSize:'11px',padding:'4px 10px',background:'var(--surface2)',color:'var(--muted)',border:'1px solid var(--border)'},onClick:()=>{db.ref('messages/'+key+'/read').set(false);}},'Mark unread'),
+          m.jamId?h('button',{class:'btn',style:{fontSize:'11px',padding:'4px 10px'},onClick:()=>{editingJam=m.jamId;currentTab=1;render();}},'Go to jam'):'',
+          h('button',{class:'btn',style:{fontSize:'11px',padding:'4px 10px',background:'rgba(255,91,91,0.1)',color:'var(--red)',border:'1px solid rgba(255,91,91,0.2)'},onClick:()=>{if(confirm('Delete this message?'))db.ref('messages/'+key).remove();}},'Delete')
+        )
+      );
+    }))
+  );
+}
+
 /* ===== RENDER: BLASTS ===== */
 function renderBlasts(){
   const subList=Object.entries(subscribers).sort((a,b)=>(b[1].created||0)-(a[1].created||0));
@@ -810,6 +861,7 @@ function render(){
   app.innerHTML='';
 
   const pendingCount=Object.values(submissions).filter(s=>s.status==='pending').length;
+  const unreadMsgCount=Object.values(messages).filter(m=>!m.read).length;
   const tabs=[
     {icon:'\ud83d\udcca',label:'Dashboard'},
     {icon:'\ud83c\udfb5',label:'Jams'},
@@ -817,6 +869,7 @@ function render(){
     {icon:'\ud83d\udc65',label:'Check-ins'},
     {icon:'\ud83c\udfb8',label:'Profiles'},
     {icon:'\ud83c\udfa4',label:'Hosts'},
+    {icon:'\u2709\ufe0f',label:'Messages'+(unreadMsgCount>0?' ('+unreadMsgCount+')':'')},
     {icon:'\ud83d\udcf1',label:'Blasts'}
   ];
 
@@ -837,7 +890,8 @@ function render(){
     case 3:content.appendChild(renderCheckins());break;
     case 4:content.appendChild(renderProfiles());break;
     case 5:content.appendChild(renderHosts());break;
-    case 6:content.appendChild(renderBlasts());break;
+    case 6:content.appendChild(renderMessages());break;
+    case 7:content.appendChild(renderBlasts());break;
   }
   app.appendChild(content);
 

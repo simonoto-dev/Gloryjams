@@ -384,6 +384,22 @@ header {
 .assign-menu-item:hover { background: #252525; color: #ffd700; }
 .assign-menu-item.new-set { color: #ff6b35; font-weight: 600; border-top: 1px solid #252525; margin-top: 4px; padding-top: 10px; }
 .assign-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99; }
+
+/* SUGGEST EDIT OVERLAY */
+.suggest-edit-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.suggest-edit-card { background: #1a1a1a; border: 1px solid #333; border-radius: 16px; padding: 24px; max-width: 360px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,0.6); }
+.suggest-edit-card h3 { font-family: 'Rock Salt', cursive; font-size: 0.9rem; color: #fff; margin-bottom: 6px; }
+.suggest-edit-card .se-jam { color: #ff6b35; font-size: 0.78rem; font-weight: 600; margin-bottom: 12px; }
+.suggest-edit-card textarea { width: 100%; min-height: 100px; background: #111; border: 1px solid #2a2a2a; border-radius: 10px; padding: 12px; color: #ccc; font-size: 0.85rem; line-height: 1.5; resize: vertical; font-family: inherit; }
+.suggest-edit-card textarea:focus { outline: none; border-color: #ff6b35; }
+.suggest-edit-card textarea::placeholder { color: #555; }
+.suggest-edit-btns { display: flex; gap: 8px; margin-top: 12px; }
+.suggest-edit-btns button { flex: 1; padding: 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+.suggest-edit-send { background: #ff6b35; color: #000; }
+.suggest-edit-send:hover { filter: brightness(1.1); }
+.suggest-edit-send:disabled { opacity: 0.5; cursor: not-allowed; }
+.suggest-edit-cancel { background: #252525; color: #888; border: 1px solid #333 !important; }
+.suggest-edit-cancel:hover { color: #ccc; }
 .set-add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; background: transparent; border: 1px dashed #333; border-radius: 10px; color: #555; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
 .set-add-btn:hover { border-color: #ff6b35; color: #ff6b35; }
 .roster-chip.assignable { cursor: pointer; position: relative; }
@@ -1558,7 +1574,7 @@ let partifulHtml='';
 if(jam.partiful_url&&safeUrl(jam.partiful_url)){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${safeUrl(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
 else{partifulHtml=`<div class="partiful-cta"><p>🎪 Rally your crew for this jam</p><a href="https://partiful.com/create" target="_blank" rel="noopener" class="partiful-link">Create a Partiful invite</a></div>`;}
 const detailHostLabel=jam.hostName?`<p style="color:#888;font-size:0.8rem;margin-top:6px;">🎤 Hosted by ${esc(jam.hostName)}</p>`:'';
-document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p>${detailHostLabel}</div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}${hostControls}${rosterHtml}</div><div class="sets-section" id="setsSection" style="${!isJamHost(id)&&getSetsForJam(id).length===0?'display:none':''}"><h3>🎵 Sets</h3><div id="setsContainer">${renderSetsInner(id)}</div></div><div class="detail-section"><h3>📡 Live Activity</h3><div class="feed-list" id="feedList"><p style="color:#555;font-size:0.85rem;">Loading feed...</p></div></div>${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
+document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p>${detailHostLabel}</div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}${hostControls}${rosterHtml}</div><div class="sets-section" id="setsSection" style="${!isJamHost(id)&&getSetsForJam(id).length===0?'display:none':''}"><h3>🎵 Sets</h3><div id="setsContainer">${renderSetsInner(id)}</div></div><div class="detail-section"><h3>📡 Live Activity</h3><div class="feed-list" id="feedList"><p style="color:#555;font-size:0.85rem;">Loading feed...</p></div></div>${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showSuggestEdit('${safeId(id)}')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
 startFeedListener(id);
 startSetsListener(id);
 showScreen('detail');}
@@ -1808,6 +1824,48 @@ h+=`</div></div>`;
 }
 
 return h;
+}
+
+// ============================================
+// SUGGEST EDIT (message to admin)
+// ============================================
+function showSuggestEdit(jamId){
+  const jam=jams.find(j=>j.id===jamId);
+  if(!jam)return;
+  closeSuggestEdit();
+  const overlay=document.createElement('div');
+  overlay.className='suggest-edit-backdrop';
+  overlay.id='suggestEditOverlay';
+  overlay.onclick=function(e){if(e.target===overlay)closeSuggestEdit();};
+  overlay.innerHTML=`<div class="suggest-edit-card"><h3>Suggest an edit</h3><div class="se-jam">${esc(jam.name)} — ${esc(jam.venue_name)}</div><textarea id="suggestEditText" placeholder="What needs updating? Wrong time, address, missing info..."></textarea><div class="suggest-edit-btns"><button class="suggest-edit-cancel" onclick="closeSuggestEdit()">Cancel</button><button class="suggest-edit-send" id="suggestEditBtn" onclick="sendSuggestEdit('${safeId(jamId)}')">Send</button></div></div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('suggestEditText').focus();
+}
+function closeSuggestEdit(){
+  const el=document.getElementById('suggestEditOverlay');
+  if(el)el.remove();
+}
+async function sendSuggestEdit(jamId){
+  const text=(document.getElementById('suggestEditText')||{}).value;
+  if(!text||!text.trim()){showToast('Type a message first.');return;}
+  const btn=document.getElementById('suggestEditBtn');
+  if(btn){btn.disabled=true;btn.textContent='Sending...';}
+  const jam=jams.find(j=>j.id===jamId);
+  try{
+    await db.ref('messages').push({
+      jamId:jamId,
+      jamName:jam?jam.name:'Unknown',
+      from:profile?profile.name:'Anonymous',
+      message:text.trim(),
+      timestamp:Date.now(),
+      read:false
+    });
+    closeSuggestEdit();
+    showToast('Message sent to admin!',3000);
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Send';}
+    showToast('Could not send message. Try again.',3000);
+  }
 }
 
 // ============================================

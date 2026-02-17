@@ -14,9 +14,7 @@
     },
     "hosts": {
       ".read": "auth != null",
-      "$uid": {
-        ".write": "auth != null && auth.token.email != null"
-      }
+      ".write": "auth != null && auth.token.email != null"
     },
     "ghosts": {
       ".read": "auth != null",
@@ -45,6 +43,11 @@
     "blasts": {
       ".read": "auth != null && auth.token.email != null",
       ".write": "auth != null && auth.token.email != null"
+    },
+    "messages": {
+      ".read": "auth != null && auth.token.email != null",
+      ".write": "auth != null",
+      ".indexOn": ["read", "timestamp"]
     },
     "$other": {
       ".read": false,
