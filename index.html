@@ -925,7 +925,7 @@ function getTodayName(){const d=pacificNow().getDay();return DAYS[d===0?6:d-1];}
 function getTodayDate(){const d=pacificNow();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function getDayIndex(day){return DAYS.indexOf(day);}
 function isOneOff(jam){return !!jam.date;}
-function isJamTonight(jam){if(isOneOff(jam))return jam.date===getTodayDate();return jam.day_of_week===getTodayName();}
+function isJamTonight(jam){if(isOneOff(jam))return jam.date===getTodayDate();if(jam.day_of_week!==getTodayName())return false;if(jam.frequency==='Monthly'&&jam.monthly_occurrence){const d=pacificNow();const dayOfMonth=d.getDate();const weekNum=Math.ceil(dayOfMonth/7);const occMap={'1st':1,'2nd':2,'3rd':3,'4th':4};if(jam.monthly_occurrence==='Last'){const next=new Date(d);next.setDate(dayOfMonth+7);return next.getMonth()!==d.getMonth();}return weekNum===(occMap[jam.monthly_occurrence]||0);}return true;}
 function isJamUpcoming(jam){if(!isOneOff(jam))return true;return jam.date>=getTodayDate();}
 function isJamPast(jam){return isOneOff(jam)&&jam.date<getTodayDate();}
 function formatDate(dateStr){const d=new Date(dateStr+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}

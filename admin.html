@@ -158,7 +158,10 @@ async function checkAuth(){
   }
 }
 
+let appShown=false;
 async function showApp(){
+  if(appShown)return;
+  appShown=true;
   document.getElementById('auth-gate').style.display='none';
   document.getElementById('app').style.display='flex';
   try{
@@ -166,12 +169,19 @@ async function showApp(){
     setupRealtimeSync();
     render();
   }catch(e){
+    appShown=false;
     console.error('Failed to load app:',e);
     document.getElementById('app').innerHTML='<div style="padding:40px;text-align:center;color:#ff5b5b;"><p style="font-size:16px;font-weight:600;">Failed to connect to Firebase</p><p style="color:#888;font-size:13px;margin-top:8px;">'+esc(e.message||'Unknown error')+'</p><button onclick="location.reload()" style="margin-top:16px;padding:8px 24px;border-radius:8px;border:none;background:#ff6b35;color:#000;font-weight:600;cursor:pointer;">Retry</button></div>';
   }
 }
 
+function detachListeners(){
+  ['jams','checkins','profiles','subscribers','submissions','blasts','hosts','messages'].forEach(p=>db.ref(p).off('value'));
+}
+
 function logout(){
+  detachListeners();
+  appShown=false;
   firebase.auth().signOut();
   adminUser=null;
   document.getElementById('auth-gate').style.display='flex';
@@ -727,7 +737,7 @@ function renderHosts(){
     h('div',{class:'label'},'Current Hosts ('+hostList.length+')'),
     ...hostList.map(([uid,ho])=>h('div',{class:'item-card'},
       h('div',{class:'item-name'},esc(ho.name||'Unknown')),
-      h('div',{class:'item-meta'},esc(ho.email||'')+' \u00b7 Jams: '+(ho.jamIds?toArray(ho.jamIds).join(', '):'none')),
+      h('div',{class:'item-meta'},esc(ho.email||'')+' \u00b7 Jams: '+(ho.jamIds?toArray(ho.jamIds).map(id=>jams[id]?esc(jams[id].name):id).join(', '):'none')),
       h('div',{style:{display:'flex',gap:'6px',marginTop:'8px'}},
         h('button',{class:'btn-red',style:{fontSize:'11px'},onClick:()=>{if(confirm('Remove host '+ho.name+'?')){
   // Unlink hostUid/hostName from associated jams
