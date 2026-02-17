@@ -789,6 +789,18 @@ function renderHosts(){
     h('p',{style:{color:'var(--muted)',fontSize:'13px',marginBottom:'16px'}},'Add hosts by email — they\'ll get a password reset link to set up their login. Hosts can manage their jams on gloryjams.com.'),
     h('div',{class:'card',style:{marginBottom:'16px'}},
       h('div',{style:{fontWeight:'600',marginBottom:'12px'}},'Add Host'),
+      h('div',{class:'form-group'},h('label',{},'Select Member'),
+        h('select',{class:'input',id:'h-member',onChange:(e)=>{
+          const key=e.target.value;
+          if(key&&profiles[key]){
+            document.getElementById('h-name').value=profiles[key].name;
+            document.getElementById('h-instrument').value=profiles[key].instrument||'';
+          }
+        }},
+          h('option',{value:''},'— type manually or pick a member —'),
+          ...Object.entries(profiles).filter(([,p])=>!Object.values(hosts).some(ho=>ho.name===p.name)).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||'')).map(([key,p])=>h('option',{value:key},esc(p.name)+' ('+esc(p.instrument)+')'))
+        )
+      ),
       h('div',{class:'form-row'},
         h('div',{class:'form-group'},h('label',{},'Email *'),h('input',{class:'input',id:'h-email',placeholder:'host@email.com',type:'email'})),
         h('div',{class:'form-group'},h('label',{},'Display Name *'),h('input',{class:'input',id:'h-name',placeholder:'Host name'}))
