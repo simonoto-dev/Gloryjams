@@ -913,7 +913,30 @@ function isJamUpcoming(jam){if(!isOneOff(jam))return true;return jam.date>=getTo
 function isJamPast(jam){return isOneOff(jam)&&jam.date<getTodayDate();}
 function formatDate(dateStr){const d=new Date(dateStr+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
 function daysUntil(dateStr){const now=new Date();now.setHours(0,0,0,0);const then=new Date(dateStr+'T00:00:00');return Math.ceil((then-now)/(1000*60*60*24));}
-function sortJamsFromToday(list){const ti=getDayIndex(getTodayName());return[...list].sort((a,b)=>{const aTonight=isJamTonight(a),bTonight=isJamTonight(b);if(aTonight&&!bTonight)return-1;if(!aTonight&&bTonight)return 1;if(isOneOff(a)&&isOneOff(b))return a.date.localeCompare(b.date);if(isOneOff(a)&&!isOneOff(b))return-1;if(!isOneOff(a)&&isOneOff(b))return 1;return((getDayIndex(a.day_of_week)-ti+7)%7)-((getDayIndex(b.day_of_week)-ti+7)%7);});}
+function nextOccurrenceDate(jam){
+// Returns YYYY-MM-DD of when this jam next happens
+if(isOneOff(jam))return jam.date;
+const now=pacificNow();const todayIdx=now.getDay()===0?6:now.getDay()-1; // Mon=0..Sun=6
+const jamIdx=getDayIndex(jam.day_of_week);
+let daysAhead=(jamIdx-todayIdx+7)%7;
+if(daysAhead===0)daysAhead=0; // today
+const d=new Date(now);d.setDate(d.getDate()+daysAhead);
+return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function sortJamsFromToday(list){return[...list].sort((a,b)=>{
+// Pinned jams always first
+if(a.pinned&&!b.pinned)return-1;
+if(!a.pinned&&b.pinned)return 1;
+// Tonight jams next
+const aTonight=isJamTonight(a),bTonight=isJamTonight(b);
+if(aTonight&&!bTonight)return-1;
+if(!aTonight&&bTonight)return 1;
+// Then by next occurrence date (nearest first)
+const aDate=nextOccurrenceDate(a),bDate=nextOccurrenceDate(b);
+if(aDate!==bDate)return aDate.localeCompare(bDate);
+// Same date — sort by start time
+return(a.time_start||'').localeCompare(b.time_start||'');
+});}
 function getInitials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 function genreClass(g){const m={jazz:'jazz',blues:'blues',funk:'funk',soul:'soul',latin:'latin',open:'open',rock:'rock','r&b':'rb'};return'genre-'+(m[g.toLowerCase()]||'open');}
 let toastTimer=null;function showToast(html,ms=3000){const t=document.getElementById('toast');t.innerHTML=html;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),ms);}
@@ -978,7 +1001,20 @@ return h;
 // ============================================
 // FIREBASE
 // ============================================
-function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();});checkProfilePin();
+let staleCleanupDone=false;
+function cleanStaleCheckins(){
+if(staleCleanupDone||!firebaseReady)return;
+staleCleanupDone=true;
+const today=getTodayDate();
+Object.entries(checkins).forEach(([jamId,jc])=>{
+const jam=jams.find(j=>j.id===jamId);
+if(!jam||isOneOff(jam))return; // keep one-off checkins (they're event-specific)
+Object.entries(jc).forEach(([key,c])=>{
+if(c.date&&c.date<today){db.ref('checkins/'+jamId+'/'+key).remove();}
+});
+});
+}
+function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();});checkProfilePin();
 // Check if this is a host (email-authenticated)
 if(user.email){const hSnap=await db.ref('hosts/'+user.uid).once('value');if(hSnap.exists()){isHost=true;hostData={...hSnap.val(),uid:user.uid};if(!profile){profile={name:hostData.name,instrument:hostData.instrument||'Other',hasPin:true};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}renderAll();}}else{isHost=false;hostData=null;}}else{jams=[...SEED_JAMS];dataLoaded=true;checkins={};isHost=false;hostData=null;renderAll();}});}
 async function hashPin(slug,pin){const data=new TextEncoder().encode(slug+':'+pin);const buf=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}

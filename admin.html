@@ -322,6 +322,7 @@ function renderJams(){
           h('div',{class:'item-meta'},esc(j.venue_name)+' \u00b7 '+(isOneOff(j)?j.date:(j.monthly_occurrence?j.monthly_occurrence+' ':'')+j.day_of_week+'s')+' \u00b7 '+esc(j.time_start))
         ),
         h('div',{style:{display:'flex',gap:'6px',alignItems:'center'}},
+          j.pinned?h('span',{class:'badge badge-accent'},'📌'):'',
           j.active===false?h('span',{class:'badge badge-red'},'inactive'):h('span',{class:'badge badge-green'},'active'),
           isOneOff(j)?h('span',{class:'badge badge-purple'},'one-off'):''
         )
@@ -413,11 +414,19 @@ function renderJamForm(jam){
       h('div',{class:'form-group'},h('label',{},'What to Expect'),h('textarea',{class:'input',id:'f-expect',rows:'2'},jam?jam.what_to_expect||'':'')),
       h('div',{class:'form-group'},h('label',{},'Partiful URL (optional)'),h('input',{class:'input',id:'f-partiful',value:jam&&jam.partiful_url?jam.partiful_url:''})),
 
-      isEdit?h('div',{style:{display:'flex',alignItems:'center',gap:'12px',marginTop:'12px',marginBottom:'12px'}},
-        h('label',{style:{color:'var(--muted)',fontSize:'12px',fontWeight:'600'}},'Active'),
-        h('div',{class:'toggle'+(jam.active!==false?' active':''),onClick:(e)=>{
-          const t=e.currentTarget;t.classList.toggle('active');
-        },id:'f-active'})
+      isEdit?h('div',{style:{display:'flex',gap:'24px',marginTop:'12px',marginBottom:'12px'}},
+        h('div',{style:{display:'flex',alignItems:'center',gap:'12px'}},
+          h('label',{style:{color:'var(--muted)',fontSize:'12px',fontWeight:'600'}},'Active'),
+          h('div',{class:'toggle'+(jam.active!==false?' active':''),onClick:(e)=>{
+            const t=e.currentTarget;t.classList.toggle('active');
+          },id:'f-active'})
+        ),
+        h('div',{style:{display:'flex',alignItems:'center',gap:'12px'}},
+          h('label',{style:{color:'var(--muted)',fontSize:'12px',fontWeight:'600'}},'📌 Pinned'),
+          h('div',{class:'toggle'+(jam.pinned?' active':''),onClick:(e)=>{
+            const t=e.currentTarget;t.classList.toggle('active');
+          },id:'f-pinned'})
+        )
       ):'',
 
       h('div',{style:{display:'flex',gap:'8px',marginTop:'16px'}},
@@ -470,8 +479,15 @@ function saveJam(existingId){
   if(existingId){
     const act=document.getElementById('f-active');
     data.active=act?act.classList.contains('active'):true;
+    const pin=document.getElementById('f-pinned');
+    data.pinned=pin?pin.classList.contains('active'):false;
     data.id=existingId;
-    data.created=jams[existingId]?jams[existingId].created:Date.now();
+    // Preserve fields not in form
+    const existing=jams[existingId]||{};
+    data.created=existing.created||Date.now();
+    if(existing.hostUid)data.hostUid=existing.hostUid;
+    if(existing.hostName)data.hostName=existing.hostName;
+    if(existing.houseBand)data.houseBand=existing.houseBand;
     db.ref('jams/'+existingId).set(data);
   } else {
     const id=uid();
