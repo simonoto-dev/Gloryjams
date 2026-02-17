@@ -237,8 +237,9 @@ function h(tag,attrs,...children){
   return el;
 }
 
-function getTodayName(){const d=new Date().getDay();return DAYS[d===0?6:d-1];}
-function getTodayDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function pacificNow(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));}
+function getTodayName(){const d=pacificNow().getDay();return DAYS[d===0?6:d-1];}
+function getTodayDate(){const d=pacificNow();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function isOneOff(jam){return!!jam.date;}
 function isJamTonight(jam){if(isOneOff(jam))return jam.date===getTodayDate();return jam.day_of_week===getTodayName();}
 function fmtDate(ts){if(!ts)return'';return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});}

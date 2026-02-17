@@ -851,8 +851,9 @@ let editingSubmissionKey=null; // for edit link
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function safeId(id){return typeof id==='string'?id.replace(/[^a-zA-Z0-9_\-]/g,''):'';}
 function safeUrl(url){if(!url)return'';try{const u=new URL(url);if(u.protocol==='https:'||u.protocol==='http:')return u.href;return'';}catch(e){if(/^[a-zA-Z0-9]/.test(url))return safeUrl('https://'+url);return'';}}
-function getTodayName(){const d=new Date().getDay();return DAYS[d===0?6:d-1];}
-function getTodayDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function pacificNow(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));}
+function getTodayName(){const d=pacificNow().getDay();return DAYS[d===0?6:d-1];}
+function getTodayDate(){const d=pacificNow();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function getDayIndex(day){return DAYS.indexOf(day);}
 function isOneOff(jam){return !!jam.date;}
 function isJamTonight(jam){if(isOneOff(jam))return jam.date===getTodayDate();return jam.day_of_week===getTodayName();}
