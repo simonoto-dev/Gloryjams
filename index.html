@@ -362,6 +362,34 @@ header {
 .roster-chip .host-btn:hover { color: #ffd700; border-color: #ffd700; }
 .roster-chip .host-btn.remove { background: #1a1400; color: #ffd700; border-color: #3a2a00; }
 
+/* SETS / COMBO BUILDER */
+.sets-section { margin-top: 18px; }
+.sets-section h3 { font-family: 'Rock Salt', cursive; font-size: 0.95rem; color: #fff; margin-bottom: 12px; }
+.set-card { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 14px; margin-bottom: 10px; transition: border-color 0.2s; }
+.set-card.active-set { border-color: #ff6b35; }
+.set-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.set-name { font-size: 0.88rem; font-weight: 700; color: #ffd700; flex: 1; }
+.set-name-input { background: transparent; border: 1px solid #3a2a00; border-radius: 6px; color: #ffd700; font-size: 0.85rem; font-weight: 700; padding: 3px 8px; width: 120px; }
+.set-header-btn { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; background: #1a1a1a; color: #666; border: 1px solid #333; cursor: pointer; transition: all 0.15s; }
+.set-header-btn:hover { color: #ffd700; border-color: #ffd700; }
+.set-header-btn.danger:hover { color: #ff4444; border-color: #ff4444; }
+.set-musicians { display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px; }
+.set-musicians:empty::after { content: 'Tap musicians below to add'; font-size: 0.72rem; color: #333; font-style: italic; }
+.set-empty-msg { font-size: 0.72rem; color: #444; font-style: italic; padding: 4px 0; }
+.unassigned-pool { margin-top: 14px; }
+.unassigned-pool h4 { font-size: 0.75rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+.unassigned-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.assign-menu { position: absolute; z-index: 100; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); min-width: 140px; }
+.assign-menu-item { display: block; width: 100%; text-align: left; padding: 8px 12px; font-size: 0.78rem; color: #ccc; background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: background 0.1s; }
+.assign-menu-item:hover { background: #252525; color: #ffd700; }
+.assign-menu-item.new-set { color: #ff6b35; font-weight: 600; border-top: 1px solid #252525; margin-top: 4px; padding-top: 10px; }
+.assign-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99; }
+.set-add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; background: transparent; border: 1px dashed #333; border-radius: 10px; color: #555; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+.set-add-btn:hover { border-color: #ff6b35; color: #ff6b35; }
+.roster-chip.assignable { cursor: pointer; position: relative; }
+.roster-chip.assignable:hover { border-color: #ff6b35; background: #1a1200; }
+.roster-chip.in-set { opacity: 0.4; pointer-events: none; }
+
 /* PROFILE / REGISTER */
 .register-screen { padding-top: 32px; padding-bottom: 60px; }
 .register-title { font-family: 'Rock Salt', cursive; font-size: 1.3rem; color: #fff; margin-bottom: 8px; line-height: 1.4; }
@@ -862,6 +890,10 @@ let placesReady=false;
 let placesAutocomplete=null;
 let manualVenueMode=false;
 let currentJamType='recurring'; // 'recurring' or 'oneoff'
+let sets={}; // {jamId: {date: {setId: {name, order, musicians}}}}
+let setsListener=null;
+let setsJamId=null; // jamId currently listening for sets
+let assignMenuOpen=null; // {slug, x, y} for assign popup
 let draftSaveTimer=null;
 let editingSubmissionKey=null; // for edit link
 
@@ -1489,8 +1521,9 @@ let partifulHtml='';
 if(jam.partiful_url&&safeUrl(jam.partiful_url)){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${safeUrl(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
 else{partifulHtml=`<div class="partiful-cta"><p>🎪 Rally your crew for this jam</p><a href="https://partiful.com/create" target="_blank" rel="noopener" class="partiful-link">Create a Partiful invite</a></div>`;}
 const detailHostLabel=jam.hostName?`<p style="color:#888;font-size:0.8rem;margin-top:6px;">🎤 Hosted by ${esc(jam.hostName)}</p>`:'';
-document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p>${detailHostLabel}</div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}${hostControls}${rosterHtml}</div><div class="detail-section"><h3>📡 Live Activity</h3><div class="feed-list" id="feedList"><p style="color:#555;font-size:0.85rem;">Loading feed...</p></div></div>${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
+document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p>${detailHostLabel}</div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}${hostControls}${rosterHtml}</div><div class="sets-section" id="setsSection" style="${!isJamHost(id)&&getSetsForJam(id).length===0?'display:none':''}"><h3>🎵 Sets</h3><div id="setsContainer">${renderSetsInner(id)}</div></div><div class="detail-section"><h3>📡 Live Activity</h3><div class="feed-list" id="feedList"><p style="color:#555;font-size:0.85rem;">Loading feed...</p></div></div>${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
 startFeedListener(id);
+startSetsListener(id);
 showScreen('detail');}
 
 let profileMode='register'; // 'register', 'login', or 'host-login'
@@ -1526,10 +1559,225 @@ async function handleSetPin(e){e.preventDefault();const pin=document.getElementB
 async function checkProfilePin(){if(!profile||!firebaseReady)return;const slug=nameSlug(profile.name);const snap=await db.ref('profiles/'+slug+'/pinHash').once('value');profile.hasPin=snap.exists();localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}
 
 // ============================================
+// SETS / COMBO BUILDER
+// ============================================
+function startSetsListener(jamId){
+stopSetsListener();
+if(!firebaseReady)return;
+setsJamId=jamId;
+const today=getTodayDate();
+const ref=db.ref('sets/'+jamId+'/'+today);
+setsListener=ref.on('value',snap=>{
+const data=snap.val()||{};
+if(!sets[jamId])sets[jamId]={};
+sets[jamId][today]=data;
+const setsEl=document.getElementById('setsContainer');
+if(setsEl)setsEl.innerHTML=renderSetsInner(jamId);
+const secEl=document.getElementById('setsSection');
+if(secEl){const hasSets=Object.keys(data).length>0;const hostView=isJamHost(jamId);secEl.style.display=(hostView||hasSets)?'':'none';}
+});
+}
+function stopSetsListener(){
+if(setsListener&&setsJamId){
+const today=getTodayDate();
+db.ref('sets/'+setsJamId+'/'+today).off('value',setsListener);
+setsListener=null;setsJamId=null;
+}}
+function getSetsForJam(jamId){
+const today=getTodayDate();
+const dayData=sets[jamId]&&sets[jamId][today]?sets[jamId][today]:{};
+return Object.entries(dayData).map(([id,s])=>({id,...s})).sort((a,b)=>(a.order||0)-(b.order||0));
+}
+function getAssignedSlugs(jamId){
+const ss=getSetsForJam(jamId);
+const slugs=new Set();
+ss.forEach(s=>(s.musicians||[]).forEach(m=>slugs.add(nameSlug(m.name))));
+return slugs;
+}
+async function createSet(jamId){
+if(!firebaseReady||!isJamHost(jamId))return;
+try{const today=getTodayDate();
+const existing=getSetsForJam(jamId);
+const num=existing.length+1;
+const setId='set_'+Date.now();
+await db.ref('sets/'+jamId+'/'+today+'/'+setId).set({name:'Set '+num,order:num-1,musicians:[]});
+}catch(e){showToast('Could not create set. Try logging in again.',3000);}
+}
+async function assignToSet(jamId,setId,musician){
+if(!firebaseReady||!isJamHost(jamId))return;
+try{const today=getTodayDate();
+const allSets=getSetsForJam(jamId);
+const slug=nameSlug(musician.name);
+for(const s of allSets){
+const idx=(s.musicians||[]).findIndex(m=>nameSlug(m.name)===slug);
+if(idx>=0){
+const updated=[...s.musicians];updated.splice(idx,1);
+await db.ref('sets/'+jamId+'/'+today+'/'+s.id+'/musicians').set(updated);
+}}
+const targetSnap=await db.ref('sets/'+jamId+'/'+today+'/'+setId+'/musicians').once('value');
+const current=targetSnap.val()||[];
+current.push({name:musician.name,instrument:musician.instrument,slug});
+await db.ref('sets/'+jamId+'/'+today+'/'+setId+'/musicians').set(current);
+closeAssignMenu();
+}catch(e){closeAssignMenu();showToast('Could not assign musician. Try logging in again.',3000);}
+}
+async function removeFromSet(jamId,setId,slug){
+if(!firebaseReady||!isJamHost(jamId))return;
+try{const today=getTodayDate();
+const snap=await db.ref('sets/'+jamId+'/'+today+'/'+setId+'/musicians').once('value');
+const current=snap.val()||[];
+const updated=current.filter(m=>nameSlug(m.name)!==slug);
+await db.ref('sets/'+jamId+'/'+today+'/'+setId+'/musicians').set(updated);
+}catch(e){showToast('Could not update set.',3000);}
+}
+async function renameSet(jamId,setId){
+const input=document.getElementById('setNameInput_'+setId);
+if(!input)return;
+const name=input.value.trim();
+if(!name)return;
+try{const today=getTodayDate();
+await db.ref('sets/'+jamId+'/'+today+'/'+setId+'/name').set(name);
+}catch(e){showToast('Could not rename set.',3000);}
+}
+async function reorderSet(jamId,setId,direction){
+if(!firebaseReady||!isJamHost(jamId))return;
+try{const today=getTodayDate();
+const allSets=getSetsForJam(jamId);
+const idx=allSets.findIndex(s=>s.id===setId);
+const swapIdx=idx+direction;
+if(swapIdx<0||swapIdx>=allSets.length)return;
+const updates={};
+updates[allSets[idx].id+'/order']=swapIdx;
+updates[allSets[swapIdx].id+'/order']=idx;
+await db.ref('sets/'+jamId+'/'+today).update(updates);
+}catch(e){showToast('Could not reorder set.',3000);}
+}
+async function deleteSet(jamId,setId){
+if(!firebaseReady||!isJamHost(jamId))return;
+try{const today=getTodayDate();
+await db.ref('sets/'+jamId+'/'+today+'/'+setId).remove();
+}catch(e){showToast('Could not delete set.',3000);}
+}
+async function clearSet(jamId,setId){
+if(!firebaseReady||!isJamHost(jamId))return;
+try{const today=getTodayDate();
+await db.ref('sets/'+jamId+'/'+today+'/'+setId+'/musicians').set([]);
+}catch(e){showToast('Could not clear set.',3000);}
+}
+function showAssignMenu(jamId,slug,name,instrument,el){
+closeAssignMenu();
+const rect=el.getBoundingClientRect();
+const allSets=getSetsForJam(jamId);
+const sid=safeId(jamId);
+let menuHtml='<div class="assign-backdrop" onclick="closeAssignMenu()"></div><div class="assign-menu" style="top:'+(rect.bottom+4)+'px;left:'+Math.max(8,Math.min(rect.left,window.innerWidth-160))+'px;">';
+allSets.forEach(s=>{
+menuHtml+=`<button class="assign-menu-item" onclick="assignToSet('${sid}','${s.id}',{name:'${esc(name).replace(/'/g,"\\'")}',instrument:'${esc(instrument).replace(/'/g,"\\'")}'})">${esc(s.name)}</button>`;
+});
+menuHtml+=`<button class="assign-menu-item new-set" onclick="createSetAndAssign('${sid}','${esc(name).replace(/'/g,"\\'")}','${esc(instrument).replace(/'/g,"\\'")}')"">+ New Set</button></div>`;
+const container=document.createElement('div');
+container.id='assignMenuContainer';
+container.innerHTML=menuHtml;
+document.body.appendChild(container);
+}
+async function createSetAndAssign(jamId,name,instrument){
+if(!firebaseReady||!isJamHost(jamId))return;
+try{const today=getTodayDate();
+const existing=getSetsForJam(jamId);
+const num=existing.length+1;
+const setId='set_'+Date.now();
+await db.ref('sets/'+jamId+'/'+today+'/'+setId).set({name:'Set '+num,order:num-1,musicians:[{name,instrument,slug:nameSlug(name)}]});
+closeAssignMenu();
+}catch(e){closeAssignMenu();showToast('Could not create set.',3000);}
+}
+function closeAssignMenu(){
+const el=document.getElementById('assignMenuContainer');
+if(el)el.remove();
+}
+
+function renderSetsInner(jamId){
+const sid=safeId(jamId);
+const isHostView=isJamHost(jamId);
+const allSets=getSetsForJam(jamId);
+const people=todayCheckins(jamId);
+const assigned=getAssignedSlugs(jamId);
+const unassigned=people.filter(p=>!assigned.has(nameSlug(p.name)));
+
+if(!isHostView&&allSets.length===0)return '';
+
+let h='';
+
+if(isHostView){
+h+=`<button class="set-add-btn" onclick="createSet('${sid}')">+ New Set</button>`;
+}
+
+allSets.forEach((s,idx)=>{
+const musicians=s.musicians||[];
+h+=`<div class="set-card">`;
+h+=`<div class="set-header">`;
+if(isHostView){
+h+=`<input class="set-name-input" id="setNameInput_${s.id}" value="${esc(s.name)}" onblur="renameSet('${sid}','${s.id}')" onkeydown="if(event.key==='Enter'){this.blur();}">`;
+h+=`<button class="set-header-btn" onclick="reorderSet('${sid}','${s.id}',-1)" title="Move up">▲</button>`;
+h+=`<button class="set-header-btn" onclick="reorderSet('${sid}','${s.id}',1)" title="Move down">▼</button>`;
+h+=`<button class="set-header-btn" onclick="clearSet('${sid}','${s.id}')" title="Clear set">Clear</button>`;
+h+=`<button class="set-header-btn danger" onclick="if(confirm('Delete ${esc(s.name)}?'))deleteSet('${sid}','${s.id}')" title="Delete set">✕</button>`;
+}else{
+h+=`<span class="set-name">${esc(s.name)}</span>`;
+}
+h+=`</div>`;
+h+=`<div class="set-musicians">`;
+if(musicians.length===0){
+h+=`<span class="set-empty-msg">${isHostView?'Tap musicians below to add':'No musicians yet'}</span>`;
+}else{
+const grouped={};
+musicians.forEach(m=>{const inst=m.instrument||'Other';if(!grouped[inst])grouped[inst]=[];grouped[inst].push(m);});
+INSTRUMENTS.forEach(inst=>{
+if(!grouped[inst])return;
+grouped[inst].forEach(m=>{
+const emoji=INSTRUMENT_EMOJI[m.instrument]||'🎶';
+h+=`<div class="roster-chip" style="border-color:#3a2a00;">`;
+h+=`<div class="chip-avatar">${esc(getInitials(m.name))}</div>`;
+h+=`<span style="font-size:0.7rem;">${emoji}</span> ${esc(m.name)}`;
+if(isHostView)h+=`<button class="host-btn remove" onclick="removeFromSet('${sid}','${s.id}','${nameSlug(m.name)}');event.stopPropagation();" title="Remove">✕</button>`;
+h+=`</div>`;
+});
+});
+}
+h+=`</div></div>`;
+});
+
+// Unassigned pool
+if(isHostView&&people.length>0){
+h+=`<div class="unassigned-pool"><h4>${allSets.length>0?'Not yet assigned':'Checked-in musicians'} (${unassigned.length})</h4><div class="unassigned-chips">`;
+unassigned.forEach(p=>{
+const slug=nameSlug(p.name);
+const emoji=INSTRUMENT_EMOJI[p.instrument]||'🎶';
+if(allSets.length>0){
+h+=`<div class="roster-chip assignable" onclick="showAssignMenu('${sid}','${slug}','${esc(p.name).replace(/'/g,"\\'")}','${esc(p.instrument).replace(/'/g,"\\'")}',this)">`;
+}else{
+h+=`<div class="roster-chip">`;
+}
+h+=`<div class="chip-avatar">${esc(getInitials(p.name))}</div>`;
+h+=`<span style="font-size:0.7rem;">${emoji}</span> ${esc(p.name)}`;
+h+=`</div>`;
+});
+h+=`</div></div>`;
+}else if(!isHostView&&allSets.length>0&&unassigned.length>0){
+h+=`<div class="unassigned-pool"><h4>Up Next (${unassigned.length})</h4><div class="unassigned-chips">`;
+unassigned.forEach(p=>{
+const emoji=INSTRUMENT_EMOJI[p.instrument]||'🎶';
+h+=`<div class="roster-chip"><div class="chip-avatar">${esc(getInitials(p.name))}</div><span style="font-size:0.7rem;">${emoji}</span> ${esc(p.name)}</div>`;
+});
+h+=`</div></div>`;
+}
+
+return h;
+}
+
+// ============================================
 // NAVIGATION
 // ============================================
 function showScreen(name){
-  if(name!=='detail')stopFeedListener();
+  if(name!=='detail'){stopFeedListener();stopSetsListener();closeAssignMenu();}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
   window.scrollTo(0,0);
