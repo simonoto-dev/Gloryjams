@@ -117,6 +117,9 @@ const INSTRUMENTS = ['Guitar','Bass','Drums','Keys/Piano','Saxophone','Trumpet',
 const firebaseConfig={apiKey:"AIzaSyAV5EYZAJ0IFy9qQ4ljWBqvk_pk6vhuxZg",authDomain:"glory-jams.firebaseapp.com",databaseURL:"https://glory-jams-default-rtdb.firebaseio.com",projectId:"glory-jams",storageBucket:"glory-jams.firebasestorage.app",messagingSenderId:"949960497662",appId:"1:949960497662:web:51efaa36e307204ab108af"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+// Secondary app for creating host accounts without signing out admin
+const secondaryApp=firebase.initializeApp(firebaseConfig,'secondary');
+const secondaryAuth=secondaryApp.auth();
 
 function toArray(val){
   if(Array.isArray(val))return val;
@@ -126,6 +129,13 @@ function toArray(val){
 
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function showToast(msg,dur){
+  dur=dur||3000;
+  let t=document.getElementById('adminToast');
+  if(!t){t=document.createElement('div');t.id='adminToast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a24;color:#e8e8ef;padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;border:1px solid #2a2a35;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity 0.3s;max-width:90vw;text-align:center;';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.opacity='0';},dur);
+}
 
 /* ===== AUTH (Firebase Email/Password) ===== */
 let adminUser=null;
@@ -500,6 +510,8 @@ function renderSubmissions(){
       s.description?h('p',{style:{fontSize:'12px',color:'var(--muted)',marginTop:'6px'}},esc(s.description)):'',
       toArray(s.genre).length>0?h('div',{style:{marginTop:'6px'}},...toArray(s.genre).map(g=>h('span',{class:'genre-chip'},g))):'',
       s.submitter_name?h('div',{style:{fontSize:'11px',color:'var(--muted)',marginTop:'8px'}},'Submitted by '+esc(s.submitter_name)+(s.submitter_email?' ('+esc(s.submitter_email)+')':'')+' \u00b7 '+fmtDateFull(s.submitted)):'',
+      s.status==='pending'&&!s.submitter_email?h('div',{style:{fontSize:'11px',color:'var(--red)',marginTop:'4px'}},'⚠️ No submitter email — host account will not be created'):'',
+      s.hostCreated?h('div',{style:{fontSize:'11px',color:'var(--green)',marginTop:'4px'}},'✅ Host account created'):'',
 
       s.editedAt?h('div',{style:{fontSize:'10px',color:'var(--purple)',marginTop:'4px'}},'✏️ Re-edited via edit link \u00b7 '+fmtDateFull(s.editedAt)):'',
       s.editToken?h('div',{style:{fontSize:'10px',color:'var(--muted)',marginTop:'4px',wordBreak:'break-all'}},'Edit link: '+window.location.origin+'/?edit='+s.editToken):'',
@@ -512,7 +524,7 @@ function renderSubmissions(){
   );
 }
 
-function approveSubmission(key,s){
+async function approveSubmission(key,s){
   const id=uid();
   const jam={
     id,
@@ -537,10 +549,57 @@ function approveSubmission(key,s){
   if(s.frequency==='One-off'&&s.event_date){jam.date=s.event_date;}
   else{jam.day_of_week=s.day_of_week||'Monday';if(s.monthly_occurrence)jam.monthly_occurrence=s.monthly_occurrence;}
 
-  db.ref('jams/'+id).set(jam);
-  db.ref('submissions/'+key+'/status').set('approved');
-  db.ref('submissions/'+key+'/reviewedAt').set(Date.now());
-  db.ref('submissions/'+key+'/approvedJamId').set(id);
+  // Auto-host: create host account for submitter
+  const email=s.submitter_email;
+  if(email){
+    try{
+      // Generate temp password
+      const tempPw=Array.from(crypto.getRandomValues(new Uint8Array(9)),b=>('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')[b%62]).join('');
+      // Create user on secondary app (doesn't sign out admin)
+      const cred=await secondaryAuth.createUserWithEmailAndPassword(email,tempPw);
+      const newUid=cred.user.uid;
+      await secondaryAuth.signOut();
+      // Write host record
+      await db.ref('hosts/'+newUid).set({name:s.submitter_name||s.name,email,instrument:'Other',jamIds:[id]});
+      // Link host to jam
+      jam.hostUid=newUid;
+      jam.hostName=s.submitter_name||s.name;
+      // Send password reset email
+      await secondaryAuth.sendPasswordResetEmail(email);
+      // Mark submission
+      await db.ref('submissions/'+key+'/hostCreated').set(true);
+      showToast('✅ Host account created for '+email+' — password reset email sent');
+    }catch(e){
+      if(e.code==='auth/email-already-in-use'){
+        // Existing user — find their host record and add this jam
+        try{
+          const hostsSnap=await db.ref('hosts').orderByChild('email').equalTo(email).once('value');
+          if(hostsSnap.exists()){
+            const hostEntries=Object.entries(hostsSnap.val());
+            const [existingUid,existingHost]=hostEntries[0];
+            const existingJamIds=existingHost.jamIds||[];
+            if(!existingJamIds.includes(id))existingJamIds.push(id);
+            await db.ref('hosts/'+existingUid+'/jamIds').set(existingJamIds);
+            jam.hostUid=existingUid;
+            jam.hostName=existingHost.name;
+            await db.ref('submissions/'+key+'/hostCreated').set(true);
+            showToast('✅ Existing host '+existingHost.name+' linked to this jam');
+          }else{
+            showToast('⚠️ Email exists but no host record found. Host not auto-linked.',4000);
+          }
+        }catch(e2){showToast('⚠️ Could not link existing host: '+e2.message,4000);}
+      }else{
+        showToast('⚠️ Host account not created: '+e.message,4000);
+      }
+    }
+  }else{
+    showToast('ℹ️ No submitter email — host account not created',3000);
+  }
+
+  await db.ref('jams/'+id).set(jam);
+  await db.ref('submissions/'+key+'/status').set('approved');
+  await db.ref('submissions/'+key+'/reviewedAt').set(Date.now());
+  await db.ref('submissions/'+key+'/approvedJamId').set(id);
 }
 
 /* ===== RENDER: CHECK-INS ===== */
