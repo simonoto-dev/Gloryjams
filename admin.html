@@ -679,15 +679,14 @@ function renderHosts(){
   const allJams=jamList().filter(j=>j.active!==false);
   return h('div',{},
     h('h2',{class:'section-title'},'Hosts'),
-    h('p',{style:{color:'var(--muted)',fontSize:'13px',marginBottom:'16px'}},'Create host accounts in Firebase Auth console, then add their UID here. Hosts log in on gloryjams.com with email/password.'),
+    h('p',{style:{color:'var(--muted)',fontSize:'13px',marginBottom:'16px'}},'Add hosts by email — they\'ll get a password reset link to set up their login. Hosts can manage their jams on gloryjams.com.'),
     h('div',{class:'card',style:{marginBottom:'16px'}},
       h('div',{style:{fontWeight:'600',marginBottom:'12px'}},'Add Host'),
       h('div',{class:'form-row'},
-        h('div',{class:'form-group'},h('label',{},'Firebase UID'),h('input',{class:'input',id:'h-uid',placeholder:'From Firebase Auth console'})),
-        h('div',{class:'form-group'},h('label',{},'Display Name'),h('input',{class:'input',id:'h-name',placeholder:'Host name'}))
+        h('div',{class:'form-group'},h('label',{},'Email *'),h('input',{class:'input',id:'h-email',placeholder:'host@email.com',type:'email'})),
+        h('div',{class:'form-group'},h('label',{},'Display Name *'),h('input',{class:'input',id:'h-name',placeholder:'Host name'}))
       ),
       h('div',{class:'form-row'},
-        h('div',{class:'form-group'},h('label',{},'Email'),h('input',{class:'input',id:'h-email',placeholder:'host@email.com'})),
         h('div',{class:'form-group'},h('label',{},'Instrument'),h('input',{class:'input',id:'h-instrument',placeholder:'Guitar, Keys, etc.'}))
       ),
       h('div',{class:'form-group'},h('label',{},'Assign to Jams'),
@@ -695,7 +694,8 @@ function renderHosts(){
           ...allJams.map(j=>h('button',{type:'button',class:'genre-chip',style:{fontSize:'11px'},onClick:(e)=>{e.currentTarget.classList.toggle('selected');if(e.currentTarget.classList.contains('selected')){e.currentTarget.style.background='var(--accent)';e.currentTarget.style.color='#000';}else{e.currentTarget.style.background='';e.currentTarget.style.color='';}},'data-id':j.id},esc(j.name)))
         )
       ),
-      h('button',{class:'btn',onClick:saveHost},'Add Host')
+      h('div',{id:'h-status'}),
+      h('button',{class:'btn',id:'h-submit-btn',onClick:saveHost},'Add Host')
     ),
     h('div',{class:'label'},'Current Hosts ('+hostList.length+')'),
     ...hostList.map(([uid,ho])=>h('div',{class:'item-card'},
@@ -707,24 +707,58 @@ function renderHosts(){
     ))
   );
 }
-function saveHost(){
-  const uid=document.getElementById('h-uid').value.trim();
+async function saveHost(){
   const name=document.getElementById('h-name').value.trim();
   const email=document.getElementById('h-email').value.trim();
   const instrument=document.getElementById('h-instrument').value.trim();
-  if(!uid||!name||!email){alert('UID, name, and email are required.');return;}
+  const statusEl=document.getElementById('h-status');
+  const btn=document.getElementById('h-submit-btn');
+  if(!name||!email){statusEl.innerHTML='<p style="color:var(--red);font-size:12px;margin:8px 0;">Name and email are required.</p>';return;}
   const jamIds=[];
   document.querySelectorAll('#h-jams .selected').forEach(b=>jamIds.push(b.dataset.id));
-  db.ref('hosts/'+uid).set({name,email,instrument:instrument||'Other',jamIds,created:Date.now()});
-  // Also update jam records with hostUid and hostName
-  jamIds.forEach(jid=>{
-    db.ref('jams/'+jid+'/hostUid').set(uid);
-    db.ref('jams/'+jid+'/hostName').set(name);
-  });
-  document.getElementById('h-uid').value='';
-  document.getElementById('h-name').value='';
-  document.getElementById('h-email').value='';
-  document.getElementById('h-instrument').value='';
+  btn.disabled=true;btn.textContent='Creating...';
+  statusEl.innerHTML='';
+  try{
+    // Try creating a new Firebase Auth account via secondary app
+    const tempPw=Array.from(crypto.getRandomValues(new Uint8Array(9)),b=>('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')[b%62]).join('');
+    let newUid;
+    try{
+      const cred=await secondaryAuth.createUserWithEmailAndPassword(email,tempPw);
+      newUid=cred.user.uid;
+      await secondaryAuth.signOut();
+      await secondaryAuth.sendPasswordResetEmail(email);
+    }catch(e){
+      if(e.code==='auth/email-already-in-use'){
+        // Find existing UID from hosts table
+        const snap=await db.ref('hosts').orderByChild('email').equalTo(email).once('value');
+        if(snap.exists()){
+          newUid=Object.keys(snap.val())[0];
+          statusEl.innerHTML='<p style="color:var(--accent);font-size:12px;margin:8px 0;">Existing host — updating jam assignments.</p>';
+        }else{
+          statusEl.innerHTML='<p style="color:var(--red);font-size:12px;margin:8px 0;">Email exists in Auth but no host record found. Contact them to log in first, or use Firebase console to get their UID.</p>';
+          btn.disabled=false;btn.textContent='Add Host';return;
+        }
+      }else{throw e;}
+    }
+    // Write host record
+    await db.ref('hosts/'+newUid).set({name,email,instrument:instrument||'Other',jamIds,created:Date.now()});
+    // Link jams
+    for(const jid of jamIds){
+      await db.ref('jams/'+jid+'/hostUid').set(newUid);
+      await db.ref('jams/'+jid+'/hostName').set(name);
+    }
+    // Clear form
+    document.getElementById('h-name').value='';
+    document.getElementById('h-email').value='';
+    document.getElementById('h-instrument').value='';
+    document.querySelectorAll('#h-jams .selected').forEach(b=>{b.classList.remove('selected');b.style.background='';b.style.color='';});
+    showToast('✅ Host '+name+' added — password reset email sent to '+email);
+    statusEl.innerHTML='';
+  }catch(err){
+    console.error('Failed to create host:',err);
+    statusEl.innerHTML='<p style="color:var(--red);font-size:12px;margin:8px 0;">Error: '+esc(err.message)+'</p>';
+  }
+  btn.disabled=false;btn.textContent='Add Host';
 }
 
 /* ===== RENDER: BLASTS ===== */
