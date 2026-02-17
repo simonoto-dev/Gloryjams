@@ -187,7 +187,10 @@ header {
 .filter-chip.tonight-chip.active::before { background: #000; }
 
 /* Genre chips */
-.genre-chip { padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; text-transform: lowercase; }
+.genre-chip { padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; text-transform: lowercase; animation: driftIn 5s ease-in-out infinite; }
+.genre-chip:nth-child(2n) { animation-delay: -1.2s; }
+.genre-chip:nth-child(3n) { animation-delay: -2.8s; }
+.genre-chip:nth-child(4n) { animation-delay: -0.6s; }
 .genre-jazz { background: #1a2744; color: #5b9aff; }
 .genre-blues { background: #1a1a44; color: #7b7bff; }
 .genre-funk { background: #2a1a3a; color: #c77bff; }
@@ -202,7 +205,7 @@ header {
 .jam-card {
   background: #111; border: 1px solid #222; border-radius: 14px;
   padding: 16px; cursor: pointer; transition: all 0.15s;
-  position: relative; overflow: hidden;
+  position: relative; overflow: visible;
 }
 .jam-card:hover { border-color: #444; transform: translateY(-3px) rotate(0.3deg); }
 .jam-card.tonight-card {
@@ -261,7 +264,7 @@ header {
 .jam-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.8rem; color: #666; }
 .jam-time { color: #ccc; font-weight: 600; }
 .jam-meta .sep { color: #333; }
-.jam-genres { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.jam-genres { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; padding-bottom: 4px; }
 
 .jam-checkins { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #1a1a1a; }
 .checkin-count { font-size: 0.8rem; font-weight: 700; color: #ffd700; }
