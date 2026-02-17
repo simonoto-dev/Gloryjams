@@ -202,14 +202,15 @@ let subFilter='pending';
 
 /* ===== DATA LOADING ===== */
 async function loadAllData(){
-  const [jSnap,cSnap,pSnap,sSnap,subSnap,bSnap,mSnap]=await Promise.all([
+  const [jSnap,cSnap,pSnap,sSnap,subSnap,bSnap,mSnap,hSnap]=await Promise.all([
     db.ref('jams').once('value'),
     db.ref('checkins').once('value'),
     db.ref('profiles').once('value'),
     db.ref('subscribers').once('value'),
     db.ref('submissions').once('value'),
     db.ref('blasts').once('value'),
-    db.ref('messages').once('value')
+    db.ref('messages').once('value'),
+    db.ref('hosts').once('value')
   ]);
   jams=jSnap.val()||{};
   checkins=cSnap.val()||{};
@@ -218,6 +219,7 @@ async function loadAllData(){
   submissions=subSnap.val()||{};
   blasts=bSnap.val()||{};
   messages=mSnap.val()||{};
+  hosts=hSnap.val()||{};
 
   // Migrate seed jams if Firebase is empty
   if(Object.keys(jams).length===0){
@@ -226,15 +228,21 @@ async function loadAllData(){
   }
 }
 
+let _renderTimer=null;
+function debouncedRender(){clearTimeout(_renderTimer);_renderTimer=setTimeout(()=>{
+  // Skip re-render if a form is actively being edited
+  if(editingJam||showAddJam)return;
+  render();
+},150);}
 function setupRealtimeSync(){
-  db.ref('jams').on('value',s=>{jams=s.val()||{};render();});
-  db.ref('checkins').on('value',s=>{checkins=s.val()||{};render();});
-  db.ref('profiles').on('value',s=>{profiles=s.val()||{};render();});
-  db.ref('subscribers').on('value',s=>{subscribers=s.val()||{};render();});
-  db.ref('submissions').on('value',s=>{submissions=s.val()||{};render();});
-  db.ref('blasts').on('value',s=>{blasts=s.val()||{};render();});
-  db.ref('hosts').on('value',s=>{hosts=s.val()||{};render();});
-  db.ref('messages').on('value',s=>{messages=s.val()||{};render();});
+  db.ref('jams').on('value',s=>{jams=s.val()||{};debouncedRender();});
+  db.ref('checkins').on('value',s=>{checkins=s.val()||{};debouncedRender();});
+  db.ref('profiles').on('value',s=>{profiles=s.val()||{};debouncedRender();});
+  db.ref('subscribers').on('value',s=>{subscribers=s.val()||{};debouncedRender();});
+  db.ref('submissions').on('value',s=>{submissions=s.val()||{};debouncedRender();});
+  db.ref('blasts').on('value',s=>{blasts=s.val()||{};debouncedRender();});
+  db.ref('hosts').on('value',s=>{hosts=s.val()||{};debouncedRender();});
+  db.ref('messages').on('value',s=>{messages=s.val()||{};debouncedRender();});
 }
 
 /* ===== HELPERS ===== */
@@ -445,6 +453,14 @@ function renderJamForm(jam){
         isEdit?h('button',{class:'btn-red',onClick:()=>{
           if(confirm('Delete "'+jam.name+'"? This cannot be undone.')){
             db.ref('jams/'+jam.id).remove();
+            db.ref('checkins/'+jam.id).remove();
+            db.ref('feed/'+jam.id).remove();
+            db.ref('sets/'+jam.id).remove();
+            // Unlink from host records
+            Object.entries(hosts).forEach(([uid,ho])=>{
+              const ids=Array.isArray(ho.jamIds)?ho.jamIds:(ho.jamIds?Object.values(ho.jamIds):[]);
+              if(ids.includes(jam.id)){db.ref('hosts/'+uid+'/jamIds').set(ids.filter(x=>x!==jam.id));}
+            });
             editingJam=null;render();
           }
         }},'Delete'):'',
@@ -604,7 +620,7 @@ async function approveSubmission(key,s){
           if(hostsSnap.exists()){
             const hostEntries=Object.entries(hostsSnap.val());
             const [existingUid,existingHost]=hostEntries[0];
-            const existingJamIds=existingHost.jamIds||[];
+            const existingJamIds=toArray(existingHost.jamIds);
             if(!existingJamIds.includes(id))existingJamIds.push(id);
             await db.ref('hosts/'+existingUid+'/jamIds').set(existingJamIds);
             jam.hostUid=existingUid;
@@ -711,9 +727,12 @@ function renderHosts(){
     h('div',{class:'label'},'Current Hosts ('+hostList.length+')'),
     ...hostList.map(([uid,ho])=>h('div',{class:'item-card'},
       h('div',{class:'item-name'},esc(ho.name||'Unknown')),
-      h('div',{class:'item-meta'},esc(ho.email||'')+' \u00b7 Jams: '+(ho.jamIds?ho.jamIds.join(', '):'none')),
+      h('div',{class:'item-meta'},esc(ho.email||'')+' \u00b7 Jams: '+(ho.jamIds?toArray(ho.jamIds).join(', '):'none')),
       h('div',{style:{display:'flex',gap:'6px',marginTop:'8px'}},
-        h('button',{class:'btn-red',style:{fontSize:'11px'},onClick:()=>{if(confirm('Remove host '+ho.name+'?'))db.ref('hosts/'+uid).remove();}},'Remove')
+        h('button',{class:'btn-red',style:{fontSize:'11px'},onClick:()=>{if(confirm('Remove host '+ho.name+'?')){
+  // Unlink hostUid/hostName from associated jams
+  toArray(ho.jamIds).forEach(jid=>{if(jams[jid]&&jams[jid].hostUid===uid){db.ref('jams/'+jid+'/hostUid').remove();db.ref('jams/'+jid+'/hostName').remove();}});
+  db.ref('hosts/'+uid).remove();}}},'Remove')
       )
     ))
   );
