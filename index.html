@@ -1424,8 +1424,9 @@ async function submitJam(e){
     document.getElementById('submitMsg').innerHTML='<p class="form-error" style="margin-top:12px;">Something went wrong. Please try again.</p>';
     return;
   }
-  // Clear draft
+  // Clear draft and reset form for next use
   localStorage.removeItem('gloryjams_draft');
+  form.reset();
   // Build edit link
   const editUrl=window.location.origin+window.location.pathname+'?edit='+editToken;
   document.getElementById('submitMsg').innerHTML=`
@@ -1819,6 +1820,15 @@ function showScreen(name){
   window.scrollTo(0,0);
   if(name==='profile')renderProfile();
   if(name==='submit'){
+    // Reset form visibility (hidden after successful submission)
+    const submitForm=document.getElementById('submitJamForm');
+    if(submitForm)submitForm.style.display='';
+    // Clear success/error message
+    const submitMsg=document.getElementById('submitMsg');
+    if(submitMsg)submitMsg.innerHTML='';
+    // Re-enable submit button
+    const submitBtn=document.getElementById('submitBtn');
+    if(submitBtn){submitBtn.disabled=false;submitBtn.textContent=editingSubmissionKey?'Update Submission':'Submit Jam';}
     renderSubmitGenres();
     setupFormValidation();
     // Mount Places element if loaded but not yet in DOM
