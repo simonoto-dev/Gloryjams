@@ -120,8 +120,7 @@ header {
 .hero-particles .p3 { width: 35px; height: 35px; background: radial-gradient(circle, #ff8c00, transparent 70%); bottom: 25%; left: 20%; animation: floatY 8s ease-in-out infinite; animation-delay: -3s; }
 .hero-particles .p4 { width: 60px; height: 60px; background: radial-gradient(circle, #ff6b35, transparent 70%); bottom: 10%; right: 5%; animation: orbitFloat 14s ease-in-out infinite; animation-delay: -5s; }
 .hero-particles .p5 { width: 25px; height: 25px; background: radial-gradient(circle, #ffd700, transparent 70%); top: 50%; left: 50%; animation: floatY 6s ease-in-out infinite; animation-delay: -1s; }
-.hero-logo { position: relative; z-index: 1; }
-.hero-logo { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px; }
+.hero-logo { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px; }
 .hero-wordmark {
   font-family: 'Asset', serif; font-size: clamp(3rem, 10vw, 4.5rem);
   letter-spacing: 4px; line-height: 1;
@@ -919,7 +918,7 @@ let editingSubmissionKey=null; // for edit link
 // ============================================
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function safeId(id){return typeof id==='string'?id.replace(/[^a-zA-Z0-9_\-]/g,''):'';}
-function safeUrl(url){if(!url)return'';try{const u=new URL(url);if(u.protocol==='https:'||u.protocol==='http:')return u.href;return'';}catch(e){if(/^[a-zA-Z0-9]/.test(url))return safeUrl('https://'+url);return'';}}
+function safeUrl(url,tried){if(!url)return'';try{const u=new URL(url);if(u.protocol==='https:'||u.protocol==='http:')return u.href;return'';}catch(e){if(!tried&&/^[a-zA-Z0-9]/.test(url))return safeUrl('https://'+url,true);return'';}}
 function pacificNow(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));}
 function getTodayName(){const d=pacificNow().getDay();return DAYS[d===0?6:d-1];}
 function getTodayDate(){const d=pacificNow();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -956,7 +955,7 @@ return(a.time_start||'').localeCompare(b.time_start||'');
 });}
 function getInitials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 function genreClass(g){const m={jazz:'jazz',blues:'blues',funk:'funk',soul:'soul',latin:'latin',open:'open',rock:'rock','r&b':'rb'};return'genre-'+(m[g.toLowerCase()]||'open');}
-let toastTimer=null;function showToast(html,ms=3000){const t=document.getElementById('toast');t.innerHTML=html;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),ms);}
+let toastTimer=null;function showToast(html,ms=3000){const t=document.getElementById('toast');if(!t)return;t.innerHTML=html;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),ms);}
 function timeAgo(ts){const diff=Date.now()-ts;if(diff<60000)return'just now';if(diff<3600000)return Math.floor(diff/60000)+' min ago';if(diff<86400000)return Math.floor(diff/3600000)+'h ago';return new Date(ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
 function getJamDate(jam){return isOneOff(jam)?jam.date:getTodayDate();}
 function getJamDateById(jamId){const jam=jams.find(j=>j.id===jamId);return jam?getJamDate(jam):getTodayDate();}
@@ -1039,11 +1038,11 @@ if(hostSyncDone||!isHost||!hostData||!hostData.jamIds||!dataLoaded)return;
 hostSyncDone=true;
 hostData.jamIds.forEach(jid=>{const j=jams.find(x=>x.id===jid);if(j&&!j.hostName){db.ref('jams/'+jid+'/hostUid').set(hostData.uid);db.ref('jams/'+jid+'/hostName').set(hostData.name);}});
 }
-function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();});checkProfilePin();
+function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();});checkProfilePin();
 // Check if this is a host (email-authenticated)
 if(user.email){const hSnap=await db.ref('hosts/'+user.uid).once('value');if(hSnap.exists()){isHost=true;hostData={...hSnap.val(),uid:user.uid};if(!profile){profile={name:hostData.name,instrument:hostData.instrument||'Other',hasPin:true};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}
 syncHostToJams();
-renderAll();}}else{isHost=false;hostData=null;}}else{jams=[...SEED_JAMS];dataLoaded=true;checkins={};isHost=false;hostData=null;hostSyncDone=false;renderAll();}});}
+renderAll();}}else{isHost=false;hostData=null;}}else{db.ref('jams').off('value');db.ref('checkins').off('value');jams=[...SEED_JAMS];dataLoaded=true;checkins={};isHost=false;hostData=null;hostSyncDone=false;renderAll();}});}
 async function hashPin(slug,pin){const data=new TextEncoder().encode(slug+':'+pin);const buf=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 function nameSlug(name){return name.toLowerCase().replace(/\s+/g,'_');}
 async function registerProfile(name,instrument,pin){const slug=nameSlug(name);if(firebaseReady){const snap=await db.ref('profiles').orderByChild('name_lower').equalTo(name.toLowerCase()).once('value');if(snap.exists())return{error:'That name is already taken. Try something else.'};const profileData={name,instrument,name_lower:name.toLowerCase(),created:Date.now()};if(pin)profileData.pinHash=await hashPin(slug,pin);await db.ref('profiles/'+slug).set(profileData);
@@ -1056,7 +1055,7 @@ function deleteProfile(){if(profile&&firebaseReady)db.ref('profiles/'+profile.na
 function isCheckedIn(jamId){if(!profile)return false;const jam=jams.find(j=>j.id===jamId);const date=jam?getJamDate(jam):getTodayDate();const jc=checkins[jamId]||{};return Object.values(jc).some(c=>c.name===profile.name&&c.date===date);}
 function firebaseCheckin(jamId){if(!profile||!firebaseReady)return;const jam=jams.find(j=>j.id===jamId);const date=jam?getJamDate(jam):getTodayDate();const key=nameSlug(profile.name)+'_'+date;db.ref('checkins/'+jamId+'/'+key).set({name:profile.name,instrument:profile.instrument,date,timestamp:Date.now()});db.ref('feed/'+jamId+'/'+date).push({type:'checkin',name:profile.name,instrument:profile.instrument,timestamp:Date.now()});showToast(`${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} You're in! <a href="#" onclick="showScreen('profile');return false;">View profile</a>`);}
 function firebaseUncheckin(jamId){if(!profile||!firebaseReady)return;const jam=jams.find(j=>j.id===jamId);const date=jam?getJamDate(jam):getTodayDate();const key=nameSlug(profile.name)+'_'+date;db.ref('checkins/'+jamId+'/'+key).remove();db.ref('feed/'+jamId+'/'+date).push({type:'uncheckin',name:profile.name,instrument:profile.instrument,timestamp:Date.now()});}
-function startFeedListener(jamId){stopFeedListener();if(!firebaseReady)return;currentDetailJamId=jamId;feedItems=[];const jam=jams.find(j=>j.id===jamId);const date=jam?getJamDate(jam):getTodayDate();feedListenerDate=date;const ref=db.ref('feed/'+jamId+'/'+date).orderByChild('timestamp');feedListener=ref.on('child_added',snap=>{const item=snap.val();if(!item)return;feedItems.unshift(item);updateFeedDisplay();if(item.type==='checkin'&&profile&&item.name!==profile.name){showToast(`${INSTRUMENT_EMOJI[item.instrument]||'🎶'} ${esc(item.name)} just checked in!`,2500);}});}
+function startFeedListener(jamId){stopFeedListener();if(!firebaseReady)return;currentDetailJamId=jamId;feedItems=[];const jam=jams.find(j=>j.id===jamId);const date=jam?getJamDate(jam):getTodayDate();feedListenerDate=date;const feedStartedAt=Date.now();const ref=db.ref('feed/'+jamId+'/'+date).orderByChild('timestamp');feedListener=ref.on('child_added',snap=>{const item=snap.val();if(!item)return;feedItems.unshift(item);updateFeedDisplay();if(item.type==='checkin'&&profile&&item.name!==profile.name&&item.timestamp>feedStartedAt-5000){showToast(`${INSTRUMENT_EMOJI[item.instrument]||'🎶'} ${esc(item.name)} just checked in!`,2500);}});}
 function stopFeedListener(){if(feedListener&&currentDetailJamId){const date=feedListenerDate||getTodayDate();db.ref('feed/'+currentDetailJamId+'/'+date).off('child_added',feedListener);feedListener=null;}currentDetailJamId=null;feedItems=[];feedListenerDate=null;}
 function updateFeedDisplay(){const el=document.getElementById('feedList');if(!el)return;el.innerHTML=feedItems.length>0?feedItems.map(item=>{const emoji=INSTRUMENT_EMOJI[item.instrument]||'🎶';const action=item.type==='checkin'?'checked in':'left';const cls=item.type==='uncheckin'?' uncheckin':'';return`<div class="feed-item${cls}"><span class="feed-emoji">${emoji}</span><div class="feed-text"><strong>${esc(item.name)}</strong> ${action}</div><span class="feed-time">${timeAgo(item.timestamp)}</span></div>`;}).join(''):'<p style="color:#555;font-size:0.85rem;">No activity yet. Be the first to check in.</p>';}
 async function subscribeBlast(){const phone=document.getElementById('blastPhone').value.trim();if(!phone||phone.length<7){document.getElementById('blastSignupMsg').innerHTML='<span style="color:#ff5b5b;">Enter a valid phone number</span>';return;}if(firebaseReady)await db.ref('subscribers/'+phone.replace(/\D/g,'')).set({phone,created:Date.now()});document.getElementById('blastSignupMsg').innerHTML='<span class="blast-success">You\'re in! We\'ll text you when it\'s time to pull up.</span>';document.getElementById('blastPhone').value='';}
@@ -1895,7 +1894,7 @@ async function sendSuggestEdit(jamId){
 function showScreen(name){
   if(name!=='detail'){stopFeedListener();stopSetsListener();closeAssignMenu();}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(`screen-${name}`).classList.add('active');
+  const screenEl=document.getElementById(`screen-${name}`);if(!screenEl)return;screenEl.classList.add('active');
   window.scrollTo(0,0);
   if(name==='profile')renderProfile();
   if(name==='submit'){
@@ -1932,7 +1931,7 @@ function surpriseMe(){const list=getFilteredJams();if(list.length===0)return;con
 // ============================================
 async function init(){
   // Check for admin redirect
-  if(window.location.search.includes('admin')){window.location.href='admin.html';return;}
+  if(new URLSearchParams(window.location.search).has('admin')){window.location.href='admin.html';return;}
   // Check for edit link
   const params=new URLSearchParams(window.location.search);
   const editToken=params.get('edit');
