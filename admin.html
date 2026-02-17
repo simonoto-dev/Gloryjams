@@ -592,7 +592,7 @@ async function approveSubmission(key,s){
       jam.hostUid=newUid;
       jam.hostName=s.submitter_name||s.name;
       // Send password reset email
-      await secondaryAuth.sendPasswordResetEmail(email);
+      await firebase.auth().sendPasswordResetEmail(email);
       // Mark submission
       await db.ref('submissions/'+key+'/hostCreated').set(true);
       showToast('✅ Host account created for '+email+' — password reset email sent');
@@ -737,7 +737,7 @@ async function saveHost(){
       const cred=await secondaryAuth.createUserWithEmailAndPassword(email,tempPw);
       newUid=cred.user.uid;
       await secondaryAuth.signOut();
-      await secondaryAuth.sendPasswordResetEmail(email);
+      await firebase.auth().sendPasswordResetEmail(email);
     }catch(e){
       if(e.code==='auth/email-already-in-use'){
         // Find existing UID from hosts table
