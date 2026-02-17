@@ -348,7 +348,7 @@ function renderJams(){
       h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
         h('div',{},
           h('div',{class:'item-name'},esc(j.name)),
-          h('div',{class:'item-meta'},esc(j.venue_name)+' \u00b7 '+(isOneOff(j)?j.date:(j.monthly_occurrence?j.monthly_occurrence+' ':'')+j.day_of_week+'s')+' \u00b7 '+esc(j.time_start))
+          h('div',{class:'item-meta'},esc(j.venue_name)+' \u00b7 '+(isOneOff(j)?j.date:(j.monthly_occurrence?j.monthly_occurrence+' ':'')+j.day_of_week+'s')+' \u00b7 '+esc(j.time_start)+(j.hostName?' \u00b7 🎤 '+esc(j.hostName):''))
         ),
         h('div',{style:{display:'flex',gap:'6px',alignItems:'center'}},
           j.pinned?h('span',{class:'badge badge-accent'},'📌'):'',
@@ -443,6 +443,13 @@ function renderJamForm(jam){
       h('div',{class:'form-group'},h('label',{},'What to Expect'),h('textarea',{class:'input',id:'f-expect',rows:'2'},jam?jam.what_to_expect||'':'')),
       h('div',{class:'form-group'},h('label',{},'Partiful URL (optional)'),h('input',{class:'input',id:'f-partiful',value:jam&&jam.partiful_url?jam.partiful_url:''})),
 
+      h('div',{class:'form-group'},h('label',{},'Host'),
+        h('select',{class:'input',id:'f-host'},
+          h('option',{value:''},'None'),
+          ...Object.entries(hosts).map(([uid,ho])=>h('option',Object.assign({value:uid},jam&&jam.hostUid===uid?{selected:'selected'}:{}),esc(ho.name)+' ('+esc(ho.email)+')'))
+        )
+      ),
+
       isEdit?h('div',{style:{display:'flex',gap:'24px',marginTop:'12px',marginBottom:'12px'}},
         h('div',{style:{display:'flex',alignItems:'center',gap:'12px'}},
           h('label',{style:{color:'var(--muted)',fontSize:'12px',fontWeight:'600'}},'Active'),
@@ -522,15 +529,41 @@ function saveJam(existingId){
     // Preserve fields not in form
     const existing=jams[existingId]||{};
     data.created=existing.created||Date.now();
-    if(existing.hostUid)data.hostUid=existing.hostUid;
-    if(existing.hostName)data.hostName=existing.hostName;
     if(existing.houseBand)data.houseBand=existing.houseBand;
+    // Host assignment from dropdown
+    const newHostUid=document.getElementById('f-host').value;
+    const oldHostUid=existing.hostUid||null;
+    if(newHostUid){
+      data.hostUid=newHostUid;
+      data.hostName=hosts[newHostUid]?hosts[newHostUid].name:'';
+    }
+    // Update host jamIds if host changed
+    if(newHostUid!==oldHostUid){
+      // Remove jam from old host's jamIds
+      if(oldHostUid&&hosts[oldHostUid]){
+        const oldIds=toArray(hosts[oldHostUid].jamIds).filter(id=>id!==existingId);
+        db.ref('hosts/'+oldHostUid+'/jamIds').set(oldIds);
+      }
+      // Add jam to new host's jamIds
+      if(newHostUid&&hosts[newHostUid]){
+        const newIds=toArray(hosts[newHostUid].jamIds);
+        if(!newIds.includes(existingId)){newIds.push(existingId);db.ref('hosts/'+newHostUid+'/jamIds').set(newIds);}
+      }
+    }
     db.ref('jams/'+existingId).set(data);
   } else {
     const id=uid();
     data.id=id;
     data.active=true;
     data.created=Date.now();
+    // Host assignment for new jam
+    const newHostUid=document.getElementById('f-host').value;
+    if(newHostUid&&hosts[newHostUid]){
+      data.hostUid=newHostUid;
+      data.hostName=hosts[newHostUid].name;
+      const hIds=toArray(hosts[newHostUid].jamIds);
+      if(!hIds.includes(id)){hIds.push(id);db.ref('hosts/'+newHostUid+'/jamIds').set(hIds);}
+    }
     db.ref('jams/'+id).set(data);
   }
   editingJam=null;showAddJam=false;render();
@@ -698,16 +731,53 @@ function renderProfiles(){
     h('p',{class:'section-sub'},all.length+' registered musician'+(all.length!==1?'s':'')),
 
     ...(all.length===0?[h('div',{class:'empty'},h('div',{class:'empty-icon'},'🎸'),h('p',{},'No profiles yet.'))]:
-    all.map(([key,p])=>h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
-      h('div',{},
-        h('div',{class:'item-name'},esc(p.name)),
-        h('div',{class:'item-meta'},esc(p.instrument)+(p.created?' \u00b7 Joined '+fmtDate(p.created):''))
-      ),
-      h('button',{class:'btn-red',style:{fontSize:'10px',padding:'3px 8px'},onClick:()=>{
-        if(confirm('Delete profile for '+p.name+'?'))db.ref('profiles/'+key).remove();
-      }},'Delete')
-    )))
+    all.map(([key,p])=>{
+      const isAlreadyHost=Object.values(hosts).some(ho=>ho.name===p.name||ho.email===p.email);
+      return h('div',{class:'card',style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        h('div',{},
+          h('div',{class:'item-name'},esc(p.name),isAlreadyHost?h('span',{style:{fontSize:'10px',color:'var(--accent)',marginLeft:'8px'}},'🎤 HOST'):''),
+          h('div',{class:'item-meta'},esc(p.instrument)+(p.created?' \u00b7 Joined '+fmtDate(p.created):''))
+        ),
+        h('div',{style:{display:'flex',gap:'6px'}},
+          isAlreadyHost?'':h('button',{class:'btn',style:{fontSize:'10px',padding:'3px 8px'},onClick:()=>upgradeToHost(key,p)},'Make Host'),
+          h('button',{class:'btn-red',style:{fontSize:'10px',padding:'3px 8px'},onClick:()=>{
+            if(confirm('Delete profile for '+p.name+'?'))db.ref('profiles/'+key).remove();
+          }},'Delete')
+        )
+      );
+    }))
   );
+}
+
+/* ===== UPGRADE PROFILE TO HOST ===== */
+async function upgradeToHost(key,profile){
+  const name=profile.name;
+  const email=prompt('Enter email address for '+name+':');
+  if(!email||!email.includes('@'))return;
+  // Check if already a host by name
+  if(Object.values(hosts).some(ho=>ho.name===name)){showToast('⚠️ '+name+' is already a host.');return;}
+  try{
+    const tempPw=Array.from(crypto.getRandomValues(new Uint8Array(9)),b=>('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')[b%62]).join('');
+    let newUid;
+    try{
+      const cred=await secondaryAuth.createUserWithEmailAndPassword(email,tempPw);
+      newUid=cred.user.uid;
+      await secondaryAuth.signOut();
+      await firebase.auth().sendPasswordResetEmail(email);
+    }catch(e){
+      if(e.code==='auth/email-already-in-use'){
+        const snap=await db.ref('hosts').orderByChild('email').equalTo(email).once('value');
+        if(snap.exists()){showToast('⚠️ That email is already a host.');return;}
+        showToast('⚠️ Email exists in Auth but no host record. They need to log in first, or create host manually.');return;
+      }
+      throw e;
+    }
+    await db.ref('hosts/'+newUid).set({name,email,instrument:profile.instrument||'Other',jamIds:[],created:Date.now()});
+    showToast('✅ '+name+' is now a host — password reset email sent to '+email);
+  }catch(err){
+    console.error('upgradeToHost failed:',err);
+    showToast('❌ Error: '+err.message);
+  }
 }
 
 /* ===== RENDER: HOSTS ===== */
