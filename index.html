@@ -342,6 +342,26 @@ header {
 .person-name { font-size: 0.85rem; font-weight: 600; color: #ccc; }
 .person-instrument { font-size: 0.75rem; color: #666; }
 
+/* INSTRUMENT-GROUPED ROSTER */
+.roster { display: flex; flex-direction: column; gap: 14px; }
+.roster-group { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 12px; }
+.roster-group.empty { border-style: dashed; border-color: #262626; opacity: 0.5; padding: 10px 12px; }
+.roster-group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.78rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
+.roster-group.empty .roster-group-header { margin-bottom: 0; color: #444; font-size: 0.72rem; }
+.roster-group-header .emoji { font-size: 1rem; }
+.roster-group-header .count { color: #ffd700; margin-left: auto; font-size: 0.72rem; font-weight: 600; }
+.roster-group-header .needed-label { color: #5bff7b; margin-left: auto; font-size: 0.68rem; font-weight: 600; }
+.roster-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.roster-chip { display: flex; align-items: center; gap: 6px; padding: 5px 10px 5px 5px; background: #1a1a1a; border: 1px solid #252525; border-radius: 20px; font-size: 0.8rem; color: #ccc; font-weight: 500; transition: all 0.15s; }
+.roster-chip .chip-avatar { width: 24px; height: 24px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 700; color: #ffd700; flex-shrink: 0; }
+.roster-chip.house-band { border-color: #5a4000; background: #1a1400; }
+.roster-chip.house-band .chip-avatar { background: linear-gradient(135deg, #ffd700, #ff6b35); color: #000; }
+.roster-chip.house-band::after { content: '⭐'; font-size: 0.6rem; margin-left: 2px; }
+.roster-chip.ghost { border-style: dashed; border-color: #333; opacity: 0.75; }
+.roster-chip .host-btn { font-size: 0.58rem; padding: 1px 5px; border-radius: 4px; background: #1a1a1a; color: #666; border: 1px solid #333; margin-left: 2px; cursor: pointer; line-height: 1.3; }
+.roster-chip .host-btn:hover { color: #ffd700; border-color: #ffd700; }
+.roster-chip .host-btn.remove { background: #1a1400; color: #ffd700; border-color: #3a2a00; }
+
 /* PROFILE / REGISTER */
 .register-screen { padding-top: 32px; padding-bottom: 60px; }
 .register-title { font-family: 'Rock Salt', cursive; font-size: 1.3rem; color: #fff; margin-bottom: 8px; line-height: 1.4; }
@@ -886,6 +906,43 @@ function renderInstrumentTags(jamId,compact){const bd=getInstrumentBreakdown(jam
 function renderNeedsYouBanner(jamId){if(!profile)return'';const bd=getInstrumentBreakdown(jamId);if(todayCheckins(jamId).length===0)return'';if(!bd[profile.instrument])return`<div class="needs-you-banner">🔥 No ${esc(profile.instrument)} checked in yet — they need you!</div>`;return'';}
 function renderInstrumentGrid(jamId){const bd=getInstrumentBreakdown(jamId);const missing=getMissingInstruments(jamId);if(todayCheckins(jamId).length===0)return'';let h='<div class="detail-section"><h3>🎵 Who\'s bringing what</h3><div class="instrument-grid">';Object.entries(bd).forEach(([inst,count])=>{h+=`<div class="instrument-grid-item"><span>${INSTRUMENT_EMOJI[inst]||'🎶'}</span> ${esc(inst)} <span class="inst-num">${count}</span></div>`;});missing.forEach(inst=>{h+=`<div class="instrument-grid-item" style="opacity:0.4;border:1px dashed #333;"><span>${INSTRUMENT_EMOJI[inst]||'🎶'}</span> ${esc(inst)} <span style="color:#5bff7b;font-size:0.68rem;">needed</span></div>`;});return h+'</div></div>';}
 
+function renderRoster(jamId,people,jam){
+if(people.length===0)return'';
+const hb=jam.houseBand||[];
+const isHostView=isJamHost(jamId);
+const sid=safeId(jamId);
+// Group people by instrument
+const groups={};
+people.forEach(p=>{const inst=p.instrument||'Other';if(!groups[inst])groups[inst]=[];groups[inst].push(p);});
+// Order: instruments with people first (in INSTRUMENTS order), then missing core instruments
+const filledInsts=INSTRUMENTS.filter(i=>groups[i]);
+const missing=CORE_INSTRUMENTS.filter(i=>!groups[i]);
+let h='<div class="roster">';
+// Render filled instrument groups
+filledInsts.forEach(inst=>{
+const players=groups[inst];
+const emoji=INSTRUMENT_EMOJI[inst]||'🎶';
+h+=`<div class="roster-group"><div class="roster-group-header"><span class="emoji">${emoji}</span>${esc(inst)}<span class="count">${players.length}</span></div><div class="roster-chips">`;
+players.forEach(p=>{
+const pSlug=nameSlug(p.name);
+const isHB=hb.includes(pSlug);
+const chipClass='roster-chip'+(isHB?' house-band':'')+(p.isGhost?' ghost':'');
+let hostBtn='';
+if(isHostView&&!isHB)hostBtn=`<button class="host-btn" onclick="toggleHouseBand('${sid}','${pSlug}',true);event.stopPropagation();">+ HB</button>`;
+else if(isHostView&&isHB)hostBtn=`<button class="host-btn remove" onclick="toggleHouseBand('${sid}','${pSlug}',false);event.stopPropagation();">✕</button>`;
+h+=`<div class="${chipClass}"><div class="chip-avatar"${isHB?' style="background:linear-gradient(135deg,#ffd700,#ff6b35);color:#000;"':''}${p.isGhost?' style="background:#333;color:#555;"':''}>${esc(getInitials(p.name))}</div>${esc(p.name)}${hostBtn}</div>`;
+});
+h+=`</div></div>`;
+});
+// Render missing instrument groups
+missing.forEach(inst=>{
+const emoji=INSTRUMENT_EMOJI[inst]||'🎶';
+h+=`<div class="roster-group empty"><div class="roster-group-header"><span class="emoji">${emoji}</span>${esc(inst)}<span class="needed-label">needed</span></div></div>`;
+});
+h+='</div>';
+return h;
+}
+
 // ============================================
 // FIREBASE
 // ============================================
@@ -1423,8 +1480,7 @@ function showDetail(id){const jam=jams.find(j=>j.id===id);if(!jam)return;const t
 const sid=safeId(id);
 let btn;if(!profile)btn=`<button class="checkin-btn needs-profile" onclick="showScreen('profile')">Register to check in</button>`;else if(amIn)btn=`<button class="checkin-btn checked-in" onclick="firebaseUncheckin('${sid}');showDetail('${sid}');">✓ You're checked in — tap to undo</button>`;else btn=`<button class="checkin-btn can-checkin" onclick="firebaseCheckin('${sid}');showDetail('${sid}');">I'm pulling up${tonight?' tonight':''}</button>`;
 const hostControls=isJamHost(id)?`<div style="background:#1a1400;border:1px solid #3a2a00;border-radius:10px;padding:14px;margin-top:12px;"><p style="color:#ffd700;font-size:0.82rem;font-weight:600;margin-bottom:8px;">🎤 Host Controls</p><form onsubmit="hostCheckinSomeone('${sid}',event)" style="display:flex;gap:8px;flex-wrap:wrap;"><input class="form-input" id="hostCheckinName" placeholder="Musician name" required style="flex:2;min-width:120px;"><select class="form-input" id="hostCheckinInstrument" style="flex:1;min-width:100px;"><option value="">Instrument</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select><button type="submit" class="form-submit" style="width:auto;padding:8px 16px;flex:0 0 auto;">Check in</button></form><div id="hostCheckinMsg"></div></div>`:'';
-const hb=jam.houseBand||[];
-const rosterHtml=people.length>0?`<div class="checkin-people">${people.map(p=>{const pSlug=nameSlug(p.name);const isHB=hb.includes(pSlug);const ghostStyle=p.isGhost?' style="border:1px dashed #444;opacity:0.8;"':'';const ghostLabel=p.isGhost?'<span style="font-size:0.65rem;color:#888;margin-left:4px;">(added by host)</span>':'';const hbBadge=isHB?'<span style="font-size:0.65rem;color:#ffd700;margin-left:4px;">⭐ house band</span>':'';const hostToggle=isJamHost(id)&&!isHB?`<button onclick="toggleHouseBand('${sid}','${pSlug}',true);event.stopPropagation();" style="font-size:0.6rem;padding:2px 6px;border-radius:4px;background:#1a1a1a;color:#888;border:1px solid #333;margin-left:6px;cursor:pointer;">+ house band</button>`:'';const hostUntoggle=isJamHost(id)&&isHB?`<button onclick="toggleHouseBand('${sid}','${pSlug}',false);event.stopPropagation();" style="font-size:0.6rem;padding:2px 6px;border-radius:4px;background:#1a1400;color:#ffd700;border:1px solid #3a2a00;margin-left:6px;cursor:pointer;">✕ remove</button>`:'';return`<div class="checkin-person"${ghostStyle}><div class="person-avatar"${p.isGhost?' style="background:#333;color:#888;"':''}${isHB?' style="background:linear-gradient(135deg,#ffd700,#ff6b35);color:#000;"':''}>${esc(getInitials(p.name))}</div><div><div class="person-name">${esc(p.name)}${hbBadge}${ghostLabel}${hostToggle}${hostUntoggle}</div><div class="person-instrument">${INSTRUMENT_EMOJI[p.instrument]||'🎶'} ${esc(p.instrument)}</div></div></div>`;}).join('')}</div>`:'';
+const rosterHtml=renderRoster(id,people,jam);
 const detailDayLabel=jam.monthly_occurrence?`${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s`:`${esc(jam.day_of_week)}s`;
 const whenStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${detailDayLabel} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
 const freqLabel=jam.monthly_occurrence?`${esc(jam.frequency)} (${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s)`:esc(jam.frequency);
@@ -1433,7 +1489,7 @@ let partifulHtml='';
 if(jam.partiful_url&&safeUrl(jam.partiful_url)){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${safeUrl(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
 else{partifulHtml=`<div class="partiful-cta"><p>🎪 Rally your crew for this jam</p><a href="https://partiful.com/create" target="_blank" rel="noopener" class="partiful-link">Create a Partiful invite</a></div>`;}
 const detailHostLabel=jam.hostName?`<p style="color:#888;font-size:0.8rem;margin-top:6px;">🎤 Hosted by ${esc(jam.hostName)}</p>`:'';
-document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p>${detailHostLabel}</div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}${hostControls}${rosterHtml}</div>${renderInstrumentGrid(sid)}<div class="detail-section"><h3>📡 Live Activity</h3><div class="feed-list" id="feedList"><p style="color:#555;font-size:0.85rem;">Loading feed...</p></div></div>${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
+document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p>${detailHostLabel}</div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}${hostControls}${rosterHtml}</div><div class="detail-section"><h3>📡 Live Activity</h3><div class="feed-list" id="feedList"><p style="color:#555;font-size:0.85rem;">Loading feed...</p></div></div>${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showScreen('submit')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
 startFeedListener(id);
 showScreen('detail');}
 
