@@ -1050,10 +1050,23 @@ if(hostSyncDone||!isHost||!hostData||!hostData.jamIds||!dataLoaded)return;
 hostSyncDone=true;
 toArray(hostData.jamIds).forEach(jid=>{const j=jams.find(x=>x.id===jid);if(j&&!j.hostName){db.ref('jams/'+jid+'/hostUid').set(hostData.uid);db.ref('jams/'+jid+'/hostName').set(hostData.name);}});
 }
-function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();});db.ref('hosts').on('value',snap=>{hosts=snap.val()||{};renderAll();});db.ref('claimed_names').on('value',snap=>{claimedNames=snap.val()||{};renderAll();});
+function autoCheckinHost(){
+if(!isHost||!hostData||!hostData.instrument||!hostData.jamIds||!dataLoaded||!firebaseReady)return;
+const slug=nameSlug(hostData.name);
+toArray(hostData.jamIds).forEach(jamId=>{
+const jam=jams.find(j=>j.id===jamId);
+if(!jam||!isJamTonight(jam))return;
+const date=getJamDate(jam);
+const key=slug+'_'+date;
+const jc=checkins[jamId]||{};
+if(jc[key])return;
+db.ref('checkins/'+jamId+'/'+key).set({name:hostData.name,instrument:hostData.instrument,date,timestamp:Date.now()});
+});
+}
+function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();autoCheckinHost();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();autoCheckinHost();});db.ref('hosts').on('value',snap=>{hosts=snap.val()||{};renderAll();});db.ref('claimed_names').on('value',snap=>{claimedNames=snap.val()||{};renderAll();});
 // Check if this is a host or claimed musician (email-authenticated)
 if(user.email){const hSnap=await db.ref('hosts/'+user.uid).once('value');if(hSnap.exists()){isHost=true;hostData={...hSnap.val(),uid:user.uid};isClaimedUser=false;if(!profile){profile={name:hostData.name,instrument:hostData.instrument||'Other'};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}
-syncHostToJams();
+syncHostToJams();autoCheckinHost();
 profileShowHostLogin=false;renderAll();showScreen('home');}else{
 // Not a host — check if claimed musician
 isHost=false;hostData=null;
