@@ -91,7 +91,7 @@ header {
 .nav-links { display: flex; gap: 8px; align-items: center; }
 .nav-btn {
   padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
-  transition: all 0.15s;
+  transition: all 0.15s; color: #ccc;
 }
 .nav-btn:hover { background: #222; }
 .nav-btn.primary { background: #ff6b35; color: #000; }
@@ -358,6 +358,8 @@ header {
 .roster-chip.house-band::after { content: '⭐'; font-size: 0.6rem; margin-left: 2px; }
 .roster-chip.verified-host { border-color: #5a3000; background: #1a1000; }
 .roster-chip.verified-host .chip-avatar { background: linear-gradient(135deg, #ff6b35, #ff9060); color: #fff; }
+.roster-chip.verified-musician { border-color: #2a4a2a; background: #0a1a0a; }
+.roster-chip.verified-musician::after { content: '✓'; font-size: 0.55rem; color: #5bff7b; margin-left: 3px; }
 .roster-chip .host-btn { font-size: 0.58rem; padding: 1px 5px; border-radius: 4px; background: #1a1a1a; color: #666; border: 1px solid #333; margin-left: 2px; cursor: pointer; line-height: 1.3; }
 .roster-chip .host-btn:hover { color: #ffd700; border-color: #ffd700; }
 .roster-chip .host-btn.remove { background: #1a1400; color: #ffd700; border-color: #3a2a00; }
@@ -379,7 +381,7 @@ header {
 .unassigned-pool { margin-top: 14px; }
 .unassigned-pool h4 { font-size: 0.75rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
 .unassigned-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.assign-menu { position: absolute; z-index: 100; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); min-width: 140px; }
+.assign-menu { position: fixed; z-index: 100; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); min-width: 140px; }
 .assign-menu-item { display: block; width: 100%; text-align: left; padding: 8px 12px; font-size: 0.78rem; color: #ccc; background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: background 0.1s; }
 .assign-menu-item:hover { background: #252525; color: #ffd700; }
 .assign-menu-item.new-set { color: #ff6b35; font-weight: 600; border-top: 1px solid #252525; margin-top: 4px; padding-top: 10px; }
@@ -914,12 +916,17 @@ let setsJamId=null; // jamId currently listening for sets
 let assignMenuOpen=null; // {slug, x, y} for assign popup
 let draftSaveTimer=null;
 let editingSubmissionKey=null; // for edit link
+let claimedNames={}; // {slug: {slug, uid, email}}
+let isClaimedUser=false;
+let claimFlowActive=false;
+let recoveryFlowActive=false;
 
 // ============================================
 // UTILITIES
 // ============================================
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function safeId(id){return typeof id==='string'?id.replace(/[^a-zA-Z0-9_\-]/g,''):'';}
+function toArray(v){return Array.isArray(v)?v:v?Object.values(v):[];}
 function safeUrl(url,tried){if(!url)return'';try{const u=new URL(url);if(u.protocol==='https:'||u.protocol==='http:')return u.href;return'';}catch(e){if(!tried&&/^[a-zA-Z0-9]/.test(url))return safeUrl('https://'+url,true);return'';}}
 function pacificNow(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));}
 function getTodayName(){const d=pacificNow().getDay();return DAYS[d===0?6:d-1];}
@@ -1002,7 +1009,8 @@ players.forEach(p=>{
 const pSlug=nameSlug(p.name);
 const isHB=hb.includes(pSlug);
 const isVHost=isVerifiedHost(p.name);
-const chipClass='roster-chip'+(isHB?' house-band':'')+(isVHost?' verified-host':'');
+const isVMusician=!isVHost&&!!claimedNames[pSlug];
+const chipClass='roster-chip'+(isHB?' house-band':'')+(isVHost?' verified-host':'')+(isVMusician?' verified-musician':'');
 let hostBtn='';
 if(isHostView&&!isHB)hostBtn=`<button class="host-btn" onclick="toggleHouseBand('${sid}','${pSlug}',true);event.stopPropagation();">+ HB</button>`;
 else if(isHostView&&isHB)hostBtn=`<button class="host-btn remove" onclick="toggleHouseBand('${sid}','${pSlug}',false);event.stopPropagation();">✕</button>`;
@@ -1040,22 +1048,37 @@ let hostSyncDone=false;
 function syncHostToJams(){
 if(hostSyncDone||!isHost||!hostData||!hostData.jamIds||!dataLoaded)return;
 hostSyncDone=true;
-hostData.jamIds.forEach(jid=>{const j=jams.find(x=>x.id===jid);if(j&&!j.hostName){db.ref('jams/'+jid+'/hostUid').set(hostData.uid);db.ref('jams/'+jid+'/hostName').set(hostData.name);}});
+toArray(hostData.jamIds).forEach(jid=>{const j=jams.find(x=>x.id===jid);if(j&&!j.hostName){db.ref('jams/'+jid+'/hostUid').set(hostData.uid);db.ref('jams/'+jid+'/hostName').set(hostData.name);}});
 }
-function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();});db.ref('hosts').on('value',snap=>{hosts=snap.val()||{};renderAll();});
-// Check if this is a host (email-authenticated)
-if(user.email){const hSnap=await db.ref('hosts/'+user.uid).once('value');if(hSnap.exists()){isHost=true;hostData={...hSnap.val(),uid:user.uid};if(!profile){profile={name:hostData.name,instrument:hostData.instrument||'Other'};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}
+function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();});db.ref('hosts').on('value',snap=>{hosts=snap.val()||{};renderAll();});db.ref('claimed_names').on('value',snap=>{claimedNames=snap.val()||{};renderAll();});
+// Check if this is a host or claimed musician (email-authenticated)
+if(user.email){const hSnap=await db.ref('hosts/'+user.uid).once('value');if(hSnap.exists()){isHost=true;hostData={...hSnap.val(),uid:user.uid};isClaimedUser=false;if(!profile){profile={name:hostData.name,instrument:hostData.instrument||'Other'};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}
 syncHostToJams();
-profileShowHostLogin=false;renderAll();showScreen('home');}}else{isHost=false;hostData=null;}}else{db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');jams=[...SEED_JAMS];dataLoaded=true;checkins={};hosts={};isHost=false;hostData=null;hostSyncDone=false;renderAll();}});}
+profileShowHostLogin=false;renderAll();showScreen('home');}else{
+// Not a host — check if claimed musician
+isHost=false;hostData=null;
+const claimSnap=await db.ref('profiles').orderByChild('claimedBy').equalTo(user.uid).once('value');
+if(claimSnap.exists()){let claimedProfile=null;claimSnap.forEach(child=>{claimedProfile=child.val();});
+if(claimedProfile){isClaimedUser=true;profile={name:claimedProfile.name,instrument:claimedProfile.instrument||'Other'};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));renderAll();}}else{isClaimedUser=false;}
+}}else{isHost=false;hostData=null;isClaimedUser=false;}}else{db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');jams=[...SEED_JAMS];dataLoaded=true;checkins={};hosts={};claimedNames={};isHost=false;hostData=null;isClaimedUser=false;hostSyncDone=false;renderAll();}});}
 function nameSlug(name){return name.toLowerCase().replace(/\s+/g,'_');}
-function setProfile(name,instrument){
+async function setProfile(name,instrument){
+  const slug=nameSlug(name);
+  // Name protection: check if claimed by someone else
+  const claim=claimedNames[slug];
+  const currentUid=firebase.auth().currentUser?firebase.auth().currentUser.uid:null;
+  if(claim&&claim.uid&&claim.uid!==currentUid){
+    showClaimedNameBlocker(name);
+    return false;
+  }
   profile={name,instrument};
   localStorage.setItem('gloryjams_profile',JSON.stringify(profile));
   // Write lightweight profile record on first check-in
-  if(firebaseReady){const slug=nameSlug(name);db.ref('profiles/'+slug).update({name,instrument,name_lower:name.toLowerCase(),lastSeen:Date.now()}).catch(()=>{});}
+  if(firebaseReady){db.ref('profiles/'+slug).update({name,instrument,name_lower:name.toLowerCase(),lastSeen:Date.now()}).catch(()=>{});}
   renderAll();
+  return true;
 }
-function clearProfile(){profile=null;localStorage.removeItem('gloryjams_profile');profileEditMode=false;renderAll();showScreen('profile');}
+function clearProfile(){profile=null;localStorage.removeItem('gloryjams_profile');profileEditMode=false;claimFlowActive=false;recoveryFlowActive=false;renderAll();showScreen('profile');}
 function isVerifiedHost(name){return Object.values(hosts).some(ho=>ho.name===name);}
 function isCheckedIn(jamId){if(!profile)return false;const jam=jams.find(j=>j.id===jamId);const date=jam?getJamDate(jam):getTodayDate();const jc=checkins[jamId]||{};return Object.values(jc).some(c=>c.name===profile.name&&c.date===date);}
 function firebaseCheckin(jamId){if(!profile||!firebaseReady)return;const jam=jams.find(j=>j.id===jamId);const date=jam?getJamDate(jam):getTodayDate();const key=nameSlug(profile.name)+'_'+date;db.ref('checkins/'+jamId+'/'+key).set({name:profile.name,instrument:profile.instrument,date,timestamp:Date.now()});db.ref('feed/'+jamId+'/'+date).push({type:'checkin',name:profile.name,instrument:profile.instrument,timestamp:Date.now()});db.ref('profiles/'+nameSlug(profile.name)).update({name:profile.name,instrument:profile.instrument,name_lower:profile.name.toLowerCase(),lastSeen:Date.now()}).catch(()=>{});showToast(`${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} You're in! <a href="#" onclick="showScreen('profile');return false;">View profile</a>`);}
@@ -1568,7 +1591,7 @@ function toggleGenreFilter(g){if(filters.genres.includes(g))filters.genres=filte
 function getFilteredJams(){let filtered=jams.filter(j=>(j.active!==false)&&(isJamUpcoming(j)||!isOneOff(j)));if(filters.region!=='all')filtered=filtered.filter(j=>j.region===filters.region);if(filters.day!=='any'){const today=getTodayName();if(filters.day===today){filtered=filtered.filter(j=>isJamTonight(j));}else{filtered=filtered.filter(j=>j.day_of_week===filters.day||isOneOff(j));}}if(filters.genres.length>0)filtered=filtered.filter(j=>(j.genre||[]).some(g=>filters.genres.includes(g)));return sortJamsFromToday(filtered);}
 
 function renderJamList(){const list=getFilteredJams();const today=getTodayName();document.getElementById('resultsCount').textContent=`${list.length} jam${list.length!==1?'s':''}`;if(!dataLoaded){document.getElementById('jamList').innerHTML=`<div class="empty-state"><div class="emoji" style="animation:pulse 1.5s ease-in-out infinite;">🎷</div><p style="color:#888;">Loading jams...</p></div>`;return;}if(list.length===0){document.getElementById('jamList').innerHTML=`<div class="empty-state"><div class="emoji">🎷</div><p>No jams match those filters.</p><p style="margin-top:4px;"><a href="#" onclick="showScreen('submit');return false;" style="color:#ff6b35;">Submit a jam</a> you know about.</p></div>`;return;}
-document.getElementById('jamList').innerHTML=list.map(jam=>{const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(jam.id):(oneoff?jamCheckins(jam.id,jam):[]);let ci='';if(people.length>0){const faces=people.slice(0,4).map(p=>`<div class="checkin-face" title="${esc(p.name)} — ${esc(p.instrument)}"${isVerifiedHost(p.name)?' style="border-color:#ff6b35;color:#ffd700;"':''}>${esc(getInitials(p.name))}</div>`).join('');ci=`<div class="jam-checkins"><span class="checkin-count">${people.length} pulling up</span><div class="checkin-faces">${faces}${people.length>4?`<span class="checkin-more">+${people.length-4}</span>`:''}</div></div>`;}
+document.getElementById('jamList').innerHTML=list.map(jam=>{const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(jam.id):(oneoff?jamCheckins(jam.id,jam):[]);let ci='';if(people.length>0){const faces=people.slice(0,4).map(p=>{const vHost=isVerifiedHost(p.name);const vMusician=!vHost&&!!claimedNames[nameSlug(p.name)];const faceStyle=vHost?' style="border-color:#ff6b35;color:#ffd700;"':(vMusician?' style="border-color:#2a4a2a;color:#5bff7b;"':'');return`<div class="checkin-face" title="${esc(p.name)} — ${esc(p.instrument)}"${faceStyle}>${esc(getInitials(p.name))}</div>`;}).join('');ci=`<div class="jam-checkins"><span class="checkin-count">${people.length} pulling up</span><div class="checkin-faces">${faces}${people.length>4?`<span class="checkin-more">+${people.length-4}</span>`:''}</div></div>`;}
 const cardClass=tonight?'tonight-card':(oneoff?'oneoff-card':'');
 let badge='';if(tonight){badge='<div class="tonight-badge"><span class="pulse-dot"></span>TONIGHT</div>';}else if(oneoff){const du=daysUntil(jam.date);const when=du===0?'Today':du===1?'Tomorrow':`In ${du} days`;badge=`<div class="oneoff-badge"><span class="oneoff-dot"></span>SPECIAL EVENT · ${when}</div>`;}
 const dayLabel=jam.monthly_occurrence?`${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s`:`${esc(jam.day_of_week)}s`;
@@ -1600,30 +1623,128 @@ if(profile){
 // Logged in — show profile card
 const mc=[];Object.keys(checkins).forEach(jid=>{if(isCheckedIn(jid)){const j=jams.find(x=>x.id===jid);if(j)mc.push(j);}});
 const hostBadge=isHost?`<div style="display:inline-block;background:linear-gradient(135deg,#ff6b35,#ffd700);color:#000;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:6px;letter-spacing:0.05em;">🎤 JAM HOST</div>`:'';
-const hostJamsHtml=isHost&&hostData&&hostData.jamIds?`<div class="your-checkins" style="margin-top:16px;"><h3>Your hosted jams</h3>${hostData.jamIds.map(jid=>{const j=jams.find(x=>x.id===jid);return j?`<div class="jam-card" onclick="showDetail('${safeId(j.id)}')" style="margin-bottom:8px;"><div class="jam-name">${esc(j.name)}</div><div class="jam-venue">${esc(j.venue_name)} · ${esc(j.day_of_week||'')} ${esc(j.time_start)}</div></div>`:''}).join('')}</div>`:'';
+const hostJamsHtml=isHost&&hostData&&hostData.jamIds?`<div class="your-checkins" style="margin-top:16px;"><h3>Your hosted jams</h3>${toArray(hostData.jamIds).map(jid=>{const j=jams.find(x=>x.id===jid);return j?`<div class="jam-card" onclick="showDetail('${safeId(j.id)}')" style="margin-bottom:8px;"><div class="jam-name">${esc(j.name)}</div><div class="jam-venue">${esc(j.venue_name)} · ${esc(j.day_of_week||'')} ${esc(j.time_start)}</div></div>`:''}).join('')}</div>`:'';
 // Jam history — scan all checkins for this name
 const history=[];Object.entries(checkins).forEach(([jid,jc])=>{Object.values(jc).forEach(ci=>{if(ci.name===profile.name){const j=jams.find(x=>x.id===jid);if(j)history.push({jam:j,date:ci.date,timestamp:ci.timestamp});}});});
 history.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
 const historyHtml=history.length>0?`<div class="your-checkins" style="margin-top:16px;"><h3>Your jam history (${history.length})</h3>${history.slice(0,20).map(h=>`<div class="jam-card" onclick="showDetail('${safeId(h.jam.id)}')" style="margin-bottom:8px;"><div class="jam-name">${esc(h.jam.name)}</div><div class="jam-venue">${esc(h.jam.venue_name)} · ${esc(h.date||'')}</div></div>`).join('')}${history.length>20?`<p style="color:#888;font-size:0.78rem;margin-top:8px;">...and ${history.length-20} more</p>`:''}</div>`:'';
-if(profileEditMode&&!isHost){
+if(claimFlowActive&&!isHost){
+// Claim flow — show email input
+c.innerHTML=`<h1 class="register-title">Claim "${esc(profile.name)}"</h1><p class="register-sub">Enter your email and we'll send a magic link. Click it to verify this name is yours — no password needed.</p><form onsubmit="submitClaim(event)"><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="claimEmail" type="email" required placeholder="your@email.com" autocomplete="email"><div id="claimError"></div></div><button type="submit" class="form-submit">Send magic link</button></form><p style="text-align:center;margin-top:12px;"><a href="#" onclick="claimFlowActive=false;renderProfile();return false;" style="color:#ff6b35;font-size:0.82rem;">← Back</a></p>`;
+}else if(profileEditMode&&!isHost){
 // Edit mode — let musician change name/instrument
-c.innerHTML=`<h1 class="register-title">Edit your info</h1><form onsubmit="handleEditProfile(event)"><div class="form-group"><label class="form-label">Username</label><input class="form-input" id="editName" value="${esc(profile.name)}" required autocomplete="off"></div><div class="form-group"><label class="form-label">Instrument</label><select class="form-input" id="editInstrument" required>${INSTRUMENTS.map(i=>`<option value="${i}"${i===profile.instrument?' selected':''}>${i}</option>`).join('')}</select></div><button type="submit" class="form-submit">Save</button></form><p style="text-align:center;margin-top:12px;"><a href="#" onclick="profileEditMode=false;renderProfile();return false;" style="color:#ff6b35;font-size:0.82rem;">Cancel</a></p>`;
+const nameReadonly=isClaimedUser?' readonly style="opacity:0.6;cursor:not-allowed;" title="Claimed names can\'t be changed"':'';
+c.innerHTML=`<h1 class="register-title">Edit your info</h1><form onsubmit="handleEditProfile(event)"><div class="form-group"><label class="form-label">Username${isClaimedUser?' <span style="color:#5bff7b;font-size:0.7rem;">✓ claimed</span>':''}</label><input class="form-input" id="editName" value="${esc(profile.name)}" required autocomplete="off"${nameReadonly}></div><div class="form-group"><label class="form-label">Instrument</label><select class="form-input" id="editInstrument" required>${INSTRUMENTS.map(i=>`<option value="${i}"${i===profile.instrument?' selected':''}>${i}</option>`).join('')}</select></div><button type="submit" class="form-submit">Save</button></form><p style="text-align:center;margin-top:12px;"><a href="#" onclick="profileEditMode=false;renderProfile();return false;" style="color:#ff6b35;font-size:0.82rem;">Cancel</a></p>`;
 }else{
-c.innerHTML=`<div class="profile-card"><div class="profile-avatar-big">${esc(getInitials(profile.name))}</div><div class="profile-name">${esc(profile.name)}</div><div class="profile-instrument">${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} ${esc(profile.instrument)}</div>${hostBadge}<div class="profile-actions">${!isHost?`<button class="profile-action-btn" onclick="profileEditMode=true;renderProfile();">Edit</button>`:''}${isHost?`<button class="profile-action-btn" onclick="logoutProfile();">Sign out</button>`:''}</div></div>${mc.length>0?`<div class="your-checkins"><h3>Your check-ins today</h3>${mc.map(j=>`<div class="jam-card" onclick="showDetail('${safeId(j.id)}')" style="margin-bottom:8px;"><div class="jam-name">${esc(j.name)}</div><div class="jam-venue">${esc(j.venue_name)} · ${esc(j.day_of_week||'')} ${esc(j.time_start)}</div></div>`).join('')}</div>`:''}${hostJamsHtml}${historyHtml}${!isHost?`<p style="color:#444;font-size:0.75rem;margin-top:20px;text-align:center;"><a href="#" onclick="clearProfile();return false;" style="color:#888;">Switch user</a> · <a href="#" onclick="profileShowHostLogin=true;renderProfile();return false;" style="color:#888;">🎤 Host login</a></p>`:''}`;};}
+const claimedBadge=isClaimedUser?`<div style="display:inline-block;background:linear-gradient(135deg,#1a3a1a,#2a4a2a);color:#5bff7b;font-size:0.7rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:6px;letter-spacing:0.05em;">✓ VERIFIED</div>`:'';
+const claimBtn=(!isHost&&!isClaimedUser)?`<button class="profile-action-btn" onclick="startClaimFlow();" style="color:#5bff7b;border-color:#2a4a2a;">Claim this name</button>`:'';
+const maskedEmail=isClaimedUser?(() => {const user=firebase.auth().currentUser;if(user&&user.email){const[local,domain]=user.email.split('@');return `<p style="color:#555;font-size:0.72rem;margin-top:4px;">${local[0]}${'•'.repeat(Math.max(1,local.length-2))}${local.slice(-1)}@${domain}</p>`;}return '';})():'';
+c.innerHTML=`<div class="profile-card"><div class="profile-avatar-big"${isClaimedUser?' style="border:2px solid #2a4a2a;"':''}>${esc(getInitials(profile.name))}</div><div class="profile-name">${esc(profile.name)}</div><div class="profile-instrument">${INSTRUMENT_EMOJI[profile.instrument]||'🎶'} ${esc(profile.instrument)}</div>${hostBadge}${claimedBadge}${maskedEmail}<div class="profile-actions">${!isHost?`<button class="profile-action-btn" onclick="profileEditMode=true;renderProfile();">Edit</button>`:''}${claimBtn}${isHost?`<button class="profile-action-btn" onclick="logoutProfile();">Sign out</button>`:''}</div></div>${mc.length>0?`<div class="your-checkins"><h3>Your check-ins today</h3>${mc.map(j=>`<div class="jam-card" onclick="showDetail('${safeId(j.id)}')" style="margin-bottom:8px;"><div class="jam-name">${esc(j.name)}</div><div class="jam-venue">${esc(j.venue_name)} · ${esc(j.day_of_week||'')} ${esc(j.time_start)}</div></div>`).join('')}</div>`:''}${hostJamsHtml}${historyHtml}${!isHost?`<p style="color:#444;font-size:0.75rem;margin-top:20px;text-align:center;"><a href="#" onclick="clearProfile();return false;" style="color:#888;">Switch user</a> · <a href="#" onclick="profileShowHostLogin=true;renderProfile();return false;" style="color:#888;">🎤 Host login</a></p>`:''}`;};}
 else if(profileShowHostLogin){
 // Host login form
 c.innerHTML=`<h1 class="register-title">Host Login</h1><p class="register-sub">Sign in with your host email and password to manage your jams.</p><form onsubmit="handleHostLogin(event)"><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="hostEmail" type="email" required placeholder="your@email.com" autocomplete="email"><div id="hostLoginError"></div></div><div class="form-group"><label class="form-label">Password</label><input class="form-input" id="hostPassword" type="password" required placeholder="Your password" autocomplete="current-password"></div><button type="submit" class="form-submit" id="hostLoginBtn">Sign in as Host</button></form><p style="color:#555;font-size:0.82rem;margin-top:16px;text-align:center;"><a href="#" onclick="profileShowHostLogin=false;renderProfile();return false;" style="color:#ff6b35;font-weight:600;">← Back</a></p>`;}
+else if(recoveryFlowActive){
+// Recovery flow — sign in with email to restore claimed name
+c.innerHTML=`<h1 class="register-title">Sign in with email</h1><p class="register-sub">Enter the email you used to claim your name. We'll send a magic link to restore your profile.</p><form onsubmit="handleRecovery(event)"><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="recoveryEmail" type="email" required placeholder="your@email.com" autocomplete="email"><div id="recoveryError"></div></div><button type="submit" class="form-submit">Send magic link</button></form><p style="text-align:center;margin-top:12px;"><a href="#" onclick="recoveryFlowActive=false;renderProfile();return false;" style="color:#ff6b35;font-size:0.82rem;">← Back</a></p>`;}
 else{
 // No profile — simple username + instrument form
-c.innerHTML=`<h1 class="register-title">Check in to jams</h1><p class="register-sub">Pick a username and your instrument. That's it — you're ready to check in.</p><form onsubmit="handleQuickProfile(event)"><div class="form-group"><label class="form-label">Username</label><input class="form-input" id="qpName" required placeholder="What people call you" autocomplete="off"></div><div class="form-group"><label class="form-label">Instrument</label><select class="form-input" id="qpInstrument" required><option value="">Pick one</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select></div><button type="submit" class="form-submit">Let's go</button></form><p style="color:#444;font-size:0.75rem;margin-top:20px;text-align:center;"><a href="#" onclick="profileShowHostLogin=true;renderProfile();return false;" style="color:#888;">🎤 Are you a jam host? Sign in here</a></p>`;}}
+c.innerHTML=`<h1 class="register-title">Check in to jams</h1><p class="register-sub">Pick a username and your instrument. That's it — you're ready to check in.</p><form onsubmit="handleQuickProfile(event)"><div class="form-group"><label class="form-label">Username</label><input class="form-input" id="qpName" required placeholder="What people call you" autocomplete="off"></div><div class="form-group"><label class="form-label">Instrument</label><select class="form-input" id="qpInstrument" required><option value="">Pick one</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select></div><button type="submit" class="form-submit">Let's go</button></form><p style="color:#444;font-size:0.75rem;margin-top:20px;text-align:center;"><a href="#" onclick="recoveryFlowActive=true;renderProfile();return false;" style="color:#888;">Already claimed a name? Sign in with email</a> · <a href="#" onclick="profileShowHostLogin=true;renderProfile();return false;" style="color:#888;">🎤 Host login</a></p>`;}}
 let profileEditMode=false;
-function handleQuickProfile(e){e.preventDefault();const name=document.getElementById('qpName').value.trim();const instrument=document.getElementById('qpInstrument').value;if(!name||!instrument)return;setProfile(name,instrument);showScreen('home');}
-function handleEditProfile(e){e.preventDefault();const name=document.getElementById('editName').value.trim();const instrument=document.getElementById('editInstrument').value;if(!name||!instrument)return;setProfile(name,instrument);profileEditMode=false;renderProfile();}
+async function handleQuickProfile(e){e.preventDefault();const name=document.getElementById('qpName').value.trim();const instrument=document.getElementById('qpInstrument').value;if(!name||!instrument)return;const ok=await setProfile(name,instrument);if(ok)showScreen('home');}
+async function handleEditProfile(e){e.preventDefault();const name=document.getElementById('editName').value.trim();const instrument=document.getElementById('editInstrument').value;if(!name||!instrument)return;const ok=await setProfile(name,instrument);if(ok){profileEditMode=false;renderProfile();}}
 function logoutProfile(){if(isHost){hostLogout();}else{clearProfile();}}
+function showClaimedNameBlocker(name){const c=document.getElementById('profileContent');c.innerHTML=`<div style="text-align:center;padding:40px 0;"><div style="font-size:2.5rem;margin-bottom:16px;">🔒</div><h2 style="font-family:'Rock Salt',cursive;font-size:1.1rem;margin-bottom:12px;">Name taken</h2><p style="color:#888;font-size:0.88rem;margin-bottom:20px;">"${esc(name)}" has been claimed by someone. If this is you, sign in with the email you used to claim it.</p><button class="form-submit" onclick="startRecoveryFlow()" style="margin-bottom:12px;">Sign in with email</button><p style="margin-top:12px;"><a href="#" onclick="renderProfile();return false;" style="color:#ff6b35;font-size:0.82rem;">← Use a different name</a></p></div>`;showScreen('profile');}
+// ============================================
+// CLAIM / RECOVERY / MAGIC LINK
+// ============================================
+function startClaimFlow(){claimFlowActive=true;renderProfile();}
+async function submitClaim(e){
+  e.preventDefault();
+  const email=document.getElementById('claimEmail').value.trim();
+  if(!email||!email.includes('@'))return;
+  if(!profile)return;
+  const slug=nameSlug(profile.name);
+  const actionCodeSettings={url:'https://gloryjams.com?finishClaim=1&slug='+encodeURIComponent(slug),handleCodeInApp:true};
+  try{
+    await firebase.auth().sendSignInLinkToEmail(email,actionCodeSettings);
+    localStorage.setItem('gloryjams_claim_email',email);
+    const c=document.getElementById('profileContent');
+    c.innerHTML=`<div style="text-align:center;padding:40px 0;"><div style="font-size:2.5rem;margin-bottom:16px;">📧</div><h2 style="font-family:'Rock Salt',cursive;font-size:1.1rem;margin-bottom:12px;">Check your email</h2><p style="color:#888;font-size:0.88rem;">We sent a verification link to <strong style="color:#fff;">${esc(email)}</strong>. Click it to claim "${esc(profile.name)}" as yours.</p><p style="color:#555;font-size:0.78rem;margin-top:16px;">Didn't get it? Check spam, or <a href="#" onclick="claimFlowActive=true;renderProfile();return false;" style="color:#ff6b35;">try again</a>.</p></div>`;
+  }catch(err){
+    const msgEl=document.getElementById('claimError');
+    if(msgEl)msgEl.innerHTML=`<p class="form-error">${esc(err.message)}</p>`;
+  }
+}
+function startRecoveryFlow(){recoveryFlowActive=true;renderProfile();}
+async function handleRecovery(e){
+  e.preventDefault();
+  const email=document.getElementById('recoveryEmail').value.trim();
+  if(!email||!email.includes('@'))return;
+  const actionCodeSettings={url:'https://gloryjams.com?recoverName=1',handleCodeInApp:true};
+  try{
+    await firebase.auth().sendSignInLinkToEmail(email,actionCodeSettings);
+    localStorage.setItem('gloryjams_claim_email',email);
+    const c=document.getElementById('profileContent');
+    c.innerHTML=`<div style="text-align:center;padding:40px 0;"><div style="font-size:2.5rem;margin-bottom:16px;">📧</div><h2 style="font-family:'Rock Salt',cursive;font-size:1.1rem;margin-bottom:12px;">Check your email</h2><p style="color:#888;font-size:0.88rem;">We sent a sign-in link to <strong style="color:#fff;">${esc(email)}</strong>. Click it to recover your profile.</p></div>`;
+  }catch(err){
+    const msgEl=document.getElementById('recoveryError');
+    if(msgEl)msgEl.innerHTML=`<p class="form-error">${esc(err.message)}</p>`;
+  }
+}
+async function handleEmailLinkCallback(){
+  const url=window.location.href;
+  if(!firebase.auth().isSignInWithEmailLink(url))return;
+  const params=new URLSearchParams(window.location.search);
+  let email=localStorage.getItem('gloryjams_claim_email');
+  if(!email){email=window.prompt('Please enter the email you used:');if(!email)return;}
+  try{
+    if(params.get('finishClaim')==='1'){
+      // Claim flow: upgrade anonymous account
+      const slug=decodeURIComponent(params.get('slug')||'');
+      const credential=firebase.auth.EmailAuthProvider.credentialWithLink(email,url);
+      const user=firebase.auth().currentUser;
+      if(user&&user.isAnonymous){
+        await user.linkWithCredential(credential);
+      }else{
+        await firebase.auth().signInWithEmailLink(email,url);
+      }
+      const uid=firebase.auth().currentUser.uid;
+      // Write claim data
+      if(slug){
+        await db.ref('profiles/'+slug).update({claimed:true,claimedBy:uid,claimedAt:Date.now(),email});
+        await db.ref('claimed_names/'+slug).set({slug,uid,email});
+      }
+      isClaimedUser=true;
+      localStorage.removeItem('gloryjams_claim_email');
+      showToast('✅ Name claimed! You\'re verified.',4000);
+    }else if(params.get('recoverName')==='1'){
+      // Recovery flow: sign in and restore profile
+      await firebase.auth().signInWithEmailLink(email,url);
+      const uid=firebase.auth().currentUser.uid;
+      const snap=await db.ref('profiles').orderByChild('claimedBy').equalTo(uid).once('value');
+      if(snap.exists()){
+        let found=null;snap.forEach(child=>{found=child.val();});
+        if(found){
+          profile={name:found.name,instrument:found.instrument||'Other'};
+          localStorage.setItem('gloryjams_profile',JSON.stringify(profile));
+          isClaimedUser=true;
+          showToast('👋 Welcome back, '+esc(found.name)+'!',4000);
+        }
+      }
+      localStorage.removeItem('gloryjams_claim_email');
+    }
+  }catch(err){
+    console.error('Email link callback error:',err);
+    showToast('⚠️ Link expired or invalid. Try again.',4000);
+  }
+  // Clean URL
+  history.replaceState(null,'',window.location.pathname);
+  renderAll();
+}
 async function hostLogin(email,password){try{await firebase.auth().signInWithEmailAndPassword(email,password);return{success:true};}catch(e){const msg=e.code==='auth/user-not-found'?'No host account with that email.':e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'?'Wrong password.':e.code==='auth/invalid-email'?'Invalid email address.':'Login failed. Try again.';return{error:msg};}}
 async function handleHostLogin(e){e.preventDefault();const email=document.getElementById('hostEmail').value.trim();const password=document.getElementById('hostPassword').value;if(!email||!password)return;document.getElementById('hostLoginBtn').disabled=true;document.getElementById('hostLoginBtn').textContent='Signing in...';document.getElementById('hostLoginError').innerHTML='';const result=await hostLogin(email,password);if(result.error){document.getElementById('hostLoginError').innerHTML=`<p class="form-error">${esc(result.error)}</p>`;document.getElementById('hostLoginBtn').disabled=false;document.getElementById('hostLoginBtn').textContent='Sign in as Host';return;}/* auth state change handler will do the rest */}
-async function hostLogout(){isHost=false;hostData=null;hostSyncDone=false;profile=null;localStorage.removeItem('gloryjams_profile');await firebase.auth().signOut();await firebase.auth().signInAnonymously();renderAll();showScreen('profile');}
-function isJamHost(jamId){return isHost&&hostData&&hostData.jamIds&&hostData.jamIds.includes(jamId);}
+async function hostLogout(){isHost=false;hostData=null;isClaimedUser=false;hostSyncDone=false;profile=null;localStorage.removeItem('gloryjams_profile');claimFlowActive=false;recoveryFlowActive=false;await firebase.auth().signOut();await firebase.auth().signInAnonymously();renderAll();showScreen('profile');}
+function isJamHost(jamId){return isHost&&hostData&&toArray(hostData.jamIds).includes(jamId);}
 async function toggleHouseBand(jamId,slug,add){if(!isHost||!firebaseReady)return;const jam=jams.find(j=>j.id===jamId);if(!jam)return;let hb=jam.houseBand||[];if(add&&!hb.includes(slug)){hb.push(slug);}else if(!add){hb=hb.filter(s=>s!==slug);}await db.ref('jams/'+jamId+'/houseBand').set(hb);jam.houseBand=hb;showDetail(jamId);}
 async function hostCheckinSomeone(jamId,e){e.preventDefault();if(!isHost||!firebaseReady)return;const name=document.getElementById('hostCheckinName').value.trim();const instrument=document.getElementById('hostCheckinInstrument').value||'Other';const msgEl=document.getElementById('hostCheckinMsg');if(!name){msgEl.innerHTML='<p class="form-error">Enter a name.</p>';return;}
 const slug=nameSlug(name);const today=getJamDateById(jamId);const key=slug+'_'+today;
@@ -1956,6 +2077,10 @@ async function init(){
   const params=new URLSearchParams(window.location.search);
   const editToken=params.get('edit');
   initFirebase();
+  // Handle email magic link callback (claim or recovery)
+  if(firebaseReady&&firebase.auth().isSignInWithEmailLink(window.location.href)){
+    handleEmailLinkCallback();
+  }
   renderAll();
   renderSubmitGenres();
   setupFormValidation();
