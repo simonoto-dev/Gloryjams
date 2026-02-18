@@ -1046,7 +1046,7 @@ function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll
 // Check if this is a host (email-authenticated)
 if(user.email){const hSnap=await db.ref('hosts/'+user.uid).once('value');if(hSnap.exists()){isHost=true;hostData={...hSnap.val(),uid:user.uid};if(!profile){profile={name:hostData.name,instrument:hostData.instrument||'Other'};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}
 syncHostToJams();
-renderAll();}}else{isHost=false;hostData=null;}}else{db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');jams=[...SEED_JAMS];dataLoaded=true;checkins={};hosts={};isHost=false;hostData=null;hostSyncDone=false;renderAll();}});}
+profileShowHostLogin=false;renderAll();showScreen('home');}}else{isHost=false;hostData=null;}}else{db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');jams=[...SEED_JAMS];dataLoaded=true;checkins={};hosts={};isHost=false;hostData=null;hostSyncDone=false;renderAll();}});}
 function nameSlug(name){return name.toLowerCase().replace(/\s+/g,'_');}
 function setProfile(name,instrument){
   profile={name,instrument};
