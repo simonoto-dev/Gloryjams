@@ -49,6 +49,14 @@
       ".write": "auth != null",
       ".indexOn": ["read", "timestamp"]
     },
+    "host_requests": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email != null"
+    },
+    "claimed_names": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
     "$other": {
       ".read": false,
       ".write": false

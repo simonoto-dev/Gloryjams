@@ -920,6 +920,7 @@ let claimedNames={}; // {slug: {slug, uid, email}}
 let isClaimedUser=false;
 let claimFlowActive=false;
 let recoveryFlowActive=false;
+let hostRequests={}; // {jamId: {uid: {name, email, timestamp}}}
 
 // ============================================
 // UTILITIES
@@ -927,6 +928,19 @@ let recoveryFlowActive=false;
 function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function safeId(id){return typeof id==='string'?id.replace(/[^a-zA-Z0-9_\-]/g,''):'';}
 function toArray(v){return Array.isArray(v)?v:v?Object.values(v):[];}
+function getHostNames(jam){
+if(jam.hostNames)return Object.values(jam.hostNames);
+if(jam.hostName)return[jam.hostName];
+return[];
+}
+function isHostOfJam(jamId){
+if(!isHost||!hostData)return false;
+const jam=jams.find(j=>j.id===jamId);
+if(!jam)return false;
+if(jam.hostNames&&jam.hostNames[hostData.uid])return true;
+if(jam.hostUid===hostData.uid)return true;
+return toArray(hostData.jamIds).includes(jamId);
+}
 function safeUrl(url,tried){if(!url)return'';try{const u=new URL(url);if(u.protocol==='https:'||u.protocol==='http:')return u.href;return'';}catch(e){if(!tried&&/^[a-zA-Z0-9]/.test(url))return safeUrl('https://'+url,true);return'';}}
 function pacificNow(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles'}));}
 function getTodayName(){const d=pacificNow().getDay();return DAYS[d===0?6:d-1];}
@@ -1048,7 +1062,7 @@ let hostSyncDone=false;
 function syncHostToJams(){
 if(hostSyncDone||!isHost||!hostData||!hostData.jamIds||!dataLoaded)return;
 hostSyncDone=true;
-toArray(hostData.jamIds).forEach(jid=>{const j=jams.find(x=>x.id===jid);if(j&&!j.hostName){db.ref('jams/'+jid+'/hostUid').set(hostData.uid);db.ref('jams/'+jid+'/hostName').set(hostData.name);}});
+toArray(hostData.jamIds).forEach(jid=>{const j=jams.find(x=>x.id===jid);if(j){db.ref('jams/'+jid+'/hostNames/'+hostData.uid).set(hostData.name);}});
 }
 function autoCheckinHost(){
 if(!isHost||!hostData||!hostData.instrument||!hostData.jamIds||!dataLoaded||!firebaseReady)return;
@@ -1063,7 +1077,60 @@ if(jc[key])return;
 db.ref('checkins/'+jamId+'/'+key).set({name:hostData.name,instrument:hostData.instrument,date,timestamp:Date.now()});
 });
 }
-function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();autoCheckinHost();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();autoCheckinHost();});db.ref('hosts').on('value',snap=>{hosts=snap.val()||{};renderAll();});db.ref('claimed_names').on('value',snap=>{claimedNames=snap.val()||{};renderAll();});
+function toggleHostJam(jamId){
+if(!isHost||!hostData||!firebaseReady)return;
+if(isHostOfJam(jamId)){
+// Stop hosting
+db.ref('jams/'+jamId+'/hostNames/'+hostData.uid).remove();
+// Also clean old scalar fields if they match
+const jam=jams.find(j=>j.id===jamId);
+if(jam&&jam.hostUid===hostData.uid){db.ref('jams/'+jamId+'/hostName').remove();db.ref('jams/'+jamId+'/hostUid').remove();}
+// Remove from jamIds
+const curIds=toArray(hostData.jamIds).filter(id=>id!==jamId);
+db.ref('hosts/'+hostData.uid+'/jamIds').set(curIds.length?curIds:null);
+hostData.jamIds=curIds;
+// Remove auto-checkin
+const slug=nameSlug(hostData.name);
+if(jam){const date=getJamDate(jam);db.ref('checkins/'+jamId+'/'+slug+'_'+date).remove();}
+showToast('Stopped hosting');
+}else{
+// Start hosting (admin = instant, otherwise would use requestHostJam)
+db.ref('jams/'+jamId+'/hostNames/'+hostData.uid).set(hostData.name);
+const curIds=toArray(hostData.jamIds);
+if(!curIds.includes(jamId)){curIds.push(jamId);db.ref('hosts/'+hostData.uid+'/jamIds').set(curIds);hostData.jamIds=curIds;}
+showToast('Now hosting this jam');
+}
+if(currentDetailJamId===jamId)setTimeout(()=>showDetail(jamId),300);
+}
+function requestHostJam(jamId){
+if(!isHost||!hostData||!firebaseReady)return;
+db.ref('host_requests/'+jamId+'/'+hostData.uid).set({name:hostData.name,email:hostData.email||'',timestamp:Date.now()});
+showToast('Host request sent');
+if(currentDetailJamId===jamId)setTimeout(()=>showDetail(jamId),300);
+}
+function approveHostRequest(jamId,uid){
+if(!firebaseReady)return;
+const req=(hostRequests[jamId]||{})[uid];
+if(!req)return;
+// Add them as host
+db.ref('jams/'+jamId+'/hostNames/'+uid).set(req.name);
+// Add jamId to their jamIds
+db.ref('hosts/'+uid+'/jamIds').once('value').then(snap=>{
+const curIds=toArray(snap.val());
+if(!curIds.includes(jamId)){curIds.push(jamId);db.ref('hosts/'+uid+'/jamIds').set(curIds);}
+});
+// Remove request
+db.ref('host_requests/'+jamId+'/'+uid).remove();
+showToast(req.name+' approved as host');
+if(currentDetailJamId===jamId)setTimeout(()=>showDetail(jamId),300);
+}
+function denyHostRequest(jamId,uid){
+if(!firebaseReady)return;
+db.ref('host_requests/'+jamId+'/'+uid).remove();
+showToast('Request denied');
+if(currentDetailJamId===jamId)setTimeout(()=>showDetail(jamId),300);
+}
+function initFirebase(){if(!firebaseReady){dataLoaded=true;checkins={};renderAll();return;}firebase.auth().onAuthStateChanged(async user=>{if(user){db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');db.ref('host_requests').off('value');db.ref('jams').on('value',snap=>{const fbJams=snap.val();if(fbJams){jams=Object.values(fbJams).filter(j=>j&&j.id);}else{jams=[...SEED_JAMS];}dataLoaded=true;renderAll();cleanStaleCheckins();syncHostToJams();autoCheckinHost();});db.ref('checkins').on('value',snap=>{checkins=snap.val()||{};renderAll();cleanStaleCheckins();autoCheckinHost();});db.ref('hosts').on('value',snap=>{hosts=snap.val()||{};renderAll();});db.ref('claimed_names').on('value',snap=>{claimedNames=snap.val()||{};renderAll();});db.ref('host_requests').on('value',snap=>{hostRequests=snap.val()||{};renderAll();});
 // Check if this is a host or claimed musician (email-authenticated)
 if(user.email){const hSnap=await db.ref('hosts/'+user.uid).once('value');if(hSnap.exists()){isHost=true;hostData={...hSnap.val(),uid:user.uid};isClaimedUser=false;if(!profile){profile={name:hostData.name,instrument:hostData.instrument||'Other'};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));}
 syncHostToJams();autoCheckinHost();
@@ -1073,7 +1140,7 @@ isHost=false;hostData=null;
 const claimSnap=await db.ref('profiles').orderByChild('claimedBy').equalTo(user.uid).once('value');
 if(claimSnap.exists()){let claimedProfile=null;claimSnap.forEach(child=>{claimedProfile=child.val();});
 if(claimedProfile){isClaimedUser=true;profile={name:claimedProfile.name,instrument:claimedProfile.instrument||'Other'};localStorage.setItem('gloryjams_profile',JSON.stringify(profile));renderAll();}}else{isClaimedUser=false;}
-}}else{isHost=false;hostData=null;isClaimedUser=false;}}else{db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');jams=[...SEED_JAMS];dataLoaded=true;checkins={};hosts={};claimedNames={};isHost=false;hostData=null;isClaimedUser=false;hostSyncDone=false;renderAll();}});}
+}}else{isHost=false;hostData=null;isClaimedUser=false;}}else{db.ref('jams').off('value');db.ref('checkins').off('value');db.ref('hosts').off('value');db.ref('claimed_names').off('value');db.ref('host_requests').off('value');jams=[...SEED_JAMS];dataLoaded=true;checkins={};hosts={};claimedNames={};hostRequests={};isHost=false;hostData=null;isClaimedUser=false;hostSyncDone=false;renderAll();}});}
 function nameSlug(name){return name.toLowerCase().replace(/\s+/g,'_');}
 async function setProfile(name,instrument){
   const slug=nameSlug(name);
@@ -1609,13 +1676,23 @@ const cardClass=tonight?'tonight-card':(oneoff?'oneoff-card':'');
 let badge='';if(tonight){badge='<div class="tonight-badge"><span class="pulse-dot"></span>TONIGHT</div>';}else if(oneoff){const du=daysUntil(jam.date);const when=du===0?'Today':du===1?'Tomorrow':`In ${du} days`;badge=`<div class="oneoff-badge"><span class="oneoff-dot"></span>SPECIAL EVENT · ${when}</div>`;}
 const dayLabel=jam.monthly_occurrence?`${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s`:`${esc(jam.day_of_week)}s`;
 const timeStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${dayLabel} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
-const hostLabel=jam.hostName?`<div style="margin-top:6px;font-size:0.72rem;color:#888;">🎤 Hosted by ${esc(jam.hostName)}</div>`:'';
+const hn=getHostNames(jam);const hostLabel=hn.length?`<div style="margin-top:6px;font-size:0.72rem;color:#888;">🎤 Hosted by ${hn.map(n=>esc(n)).join(' & ')}</div>`:'';
 return`<div class="jam-card ${cardClass}" onclick="showDetail('${safeId(jam.id)}')">${badge}<div class="jam-name">${esc(jam.name)}</div><div class="jam-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</div><div class="jam-meta"><span class="jam-time">${timeStr}</span><span class="sep">·</span><span>${esc(jam.frequency)}</span><span class="sep">·</span><span>${SIGNUP_ICONS[jam.signup_process]||'📋'} ${esc(jam.signup_process)}</span></div><div class="jam-genres">${(jam.genre||[]).map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div>${jam.vibe?`<div style="margin-top:8px;font-size:0.75rem;color:#555;font-style:italic;">Vibe: ${esc(jam.vibe)}</div>`:''}${hostLabel}${ci}${renderInstrumentTags(jam.id,true)}</div>`;}).join('');}
 
 function showDetail(id){const jam=jams.find(j=>j.id===id);if(!jam)return;const tonight=isJamTonight(jam);const oneoff=isOneOff(jam);const people=tonight?todayCheckins(id):jamCheckins(id,jam);const amIn=isCheckedIn(id);
 const sid=safeId(id);
 let btn;if(!profile)btn=`<button class="checkin-btn needs-profile" onclick="showScreen('profile')">Set up your name to check in</button>`;else if(amIn)btn=`<button class="checkin-btn checked-in" onclick="firebaseUncheckin('${sid}');showDetail('${sid}');">✓ You're checked in — tap to undo</button>`;else btn=`<button class="checkin-btn can-checkin" onclick="firebaseCheckin('${sid}');showDetail('${sid}');">I'm pulling up${tonight?' tonight':''}</button>`;
-const hostControls=isJamHost(id)?`<div style="background:#1a1400;border:1px solid #3a2a00;border-radius:10px;padding:14px;margin-top:12px;"><p style="color:#ffd700;font-size:0.82rem;font-weight:600;margin-bottom:8px;">🎤 Host Controls</p><form onsubmit="hostCheckinSomeone('${sid}',event)" style="display:flex;gap:8px;flex-wrap:wrap;"><input class="form-input" id="hostCheckinName" placeholder="Musician name" required style="flex:2;min-width:120px;"><select class="form-input" id="hostCheckinInstrument" style="flex:1;min-width:100px;"><option value="">Instrument</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select><button type="submit" class="form-submit" style="width:auto;padding:8px 16px;flex:0 0 auto;">Check in</button></form><div id="hostCheckinMsg"></div></div>`:'';
+const amHosting=isHostOfJam(id);
+const pendingReqs=Object.entries(hostRequests[id]||{});
+let hostToggleHtml='';
+if(isHost&&hostData){
+if(amHosting){hostToggleHtml=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span style="color:#5bff7b;font-size:0.78rem;font-weight:600;">✓ You're hosting</span><button onclick="toggleHostJam('${sid}')" style="background:none;border:1px solid #4a2a2a;color:#f87171;font-size:0.72rem;padding:3px 10px;border-radius:6px;cursor:pointer;">Stop hosting</button></div>`;}
+else if(hostData.admin){hostToggleHtml=`<button onclick="toggleHostJam('${sid}')" style="background:linear-gradient(135deg,#3a2a00,#1a1400);border:1px solid #5a4a00;color:#ffd700;font-size:0.78rem;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:10px;">🎤 Host this jam</button>`;}
+else{const alreadyRequested=(hostRequests[id]||{})[hostData.uid];hostToggleHtml=alreadyRequested?`<p style="color:#888;font-size:0.78rem;margin-bottom:10px;">⏳ Host request pending</p>`:`<button onclick="requestHostJam('${sid}')" style="background:none;border:1px solid #3a2a00;color:#ffd700;font-size:0.78rem;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:10px;">🎤 Request to host</button>`;}
+}
+let reqsHtml='';
+if(pendingReqs.length>0&&(amHosting||hostData&&hostData.admin)){reqsHtml=`<div style="background:#1a0a0a;border:1px solid #3a1a1a;border-radius:8px;padding:10px;margin-top:10px;"><p style="color:#f87171;font-size:0.75rem;font-weight:600;margin-bottom:6px;">Pending host requests</p>${pendingReqs.map(([uid,r])=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="color:#ccc;font-size:0.8rem;">${esc(r.name)}</span><button onclick="approveHostRequest('${sid}','${uid}')" style="background:#1a3a1a;border:1px solid #2a5a2a;color:#5bff7b;font-size:0.68rem;padding:2px 8px;border-radius:4px;cursor:pointer;">Approve</button><button onclick="denyHostRequest('${sid}','${uid}')" style="background:#3a1a1a;border:1px solid #5a2a2a;color:#f87171;font-size:0.68rem;padding:2px 8px;border-radius:4px;cursor:pointer;">Deny</button></div>`).join('')}</div>`;}
+const hostControls=isJamHost(id)?`<div style="background:#1a1400;border:1px solid #3a2a00;border-radius:10px;padding:14px;margin-top:12px;"><p style="color:#ffd700;font-size:0.82rem;font-weight:600;margin-bottom:8px;">🎤 Host Controls</p>${hostToggleHtml}<form onsubmit="hostCheckinSomeone('${sid}',event)" style="display:flex;gap:8px;flex-wrap:wrap;"><input class="form-input" id="hostCheckinName" placeholder="Musician name" required style="flex:2;min-width:120px;"><select class="form-input" id="hostCheckinInstrument" style="flex:1;min-width:100px;"><option value="">Instrument</option>${INSTRUMENTS.map(i=>`<option value="${i}">${i}</option>`).join('')}</select><button type="submit" class="form-submit" style="width:auto;padding:8px 16px;flex:0 0 auto;">Check in</button></form><div id="hostCheckinMsg"></div>${reqsHtml}</div>`:'';
 const rosterHtml=renderRoster(id,people,jam);
 const detailDayLabel=jam.monthly_occurrence?`${esc(jam.monthly_occurrence)} ${esc(jam.day_of_week)}s`:`${esc(jam.day_of_week)}s`;
 const whenStr=oneoff?`${formatDate(jam.date)} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`:`${detailDayLabel} · ${esc(jam.time_start)}${jam.time_end?'–'+esc(jam.time_end):''}`;
@@ -1624,7 +1701,7 @@ const freqCard=oneoff?`<div class="detail-card"><div class="detail-card-label">�
 let partifulHtml='';
 if(jam.partiful_url&&safeUrl(jam.partiful_url)){partifulHtml=`<div class="partiful-cta"><p>🎉 This jam has a Partiful event — RSVP and rally your crew</p><a href="${safeUrl(jam.partiful_url)}" target="_blank" rel="noopener" class="partiful-link">🎪 RSVP on Partiful</a></div>`;}
 else{partifulHtml=`<div class="partiful-cta"><p>🎪 Rally your crew for this jam</p><a href="https://partiful.com/create" target="_blank" rel="noopener" class="partiful-link">Create a Partiful invite</a></div>`;}
-const detailHostLabel=jam.hostName?`<p style="color:#888;font-size:0.8rem;margin-top:6px;">🎤 Hosted by ${esc(jam.hostName)}</p>`:'';
+const dhn=getHostNames(jam);const detailHostLabel=dhn.length?`<p style="color:#888;font-size:0.8rem;margin-top:6px;">🎤 Hosted by ${dhn.map(n=>esc(n)).join(' & ')}</p>`:'';
 document.getElementById('detailContent').innerHTML=`<div class="detail-header">${oneoff?'<div class="oneoff-badge" style="margin-bottom:8px;"><span class="oneoff-dot"></span>SPECIAL EVENT</div>':''}<div class="jam-genres" style="margin-bottom:10px;">${jam.genre.map(g=>`<span class="genre-chip ${genreClass(g)}">${esc(g)}</span>`).join('')}</div><h1 class="detail-name">${esc(jam.name)}</h1><p class="detail-venue">${esc(jam.venue_name)} · ${esc(jam.city)}</p>${detailHostLabel}</div>${jam.vibe?`<div class="vibe-badge">${esc(jam.vibe)}</div>`:''}<div class="detail-grid"><div class="detail-card"><div class="detail-card-label">📅 When</div><div class="detail-card-value">${whenStr}</div></div>${freqCard}<div class="detail-card"><div class="detail-card-label">📋 Sign-up</div><div class="detail-card-value">${esc(jam.signup_process)||'Not specified'}</div></div><div class="detail-card"><div class="detail-card-label">📍 Address</div><div class="detail-card-value">${esc(jam.venue_address)}</div></div></div>${renderNeedsYouBanner(sid)}<div class="checkin-section"><h3>Who's pulling up${tonight?' tonight':''}? ${people.length>0?`<span style="color:#ffd700;margin-left:4px;">(${people.length})</span>`:''}</h3>${btn}${hostControls}${rosterHtml}</div><div class="sets-section" id="setsSection" style="${!isJamHost(id)&&getSetsForJam(id).length===0?'display:none':''}"><h3>🎵 Sets</h3><div id="setsContainer">${renderSetsInner(id)}</div></div><div class="detail-section"><h3>📡 Live Activity</h3><div class="feed-list" id="feedList"><p style="color:#555;font-size:0.85rem;">Loading feed...</p></div></div>${jam.description?`<div class="detail-section"><h3>About this jam</h3><p>${esc(jam.description)}</p></div>`:''}${jam.what_to_expect?`<div class="first-timer-box"><h3>👋 First-timer tips</h3><p style="color:#999;font-size:0.88rem;line-height:1.6;margin-top:8px;">${esc(jam.what_to_expect)}</p></div>`:''}${partifulHtml}<div style="display:flex;gap:10px;margin-top:20px;"><button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy link',1500);" class="profile-action-btn" style="flex:1;">Copy link</button><button onclick="showSuggestEdit('${safeId(id)}')" class="profile-action-btn" style="flex:1;">Suggest an edit</button></div>`;
 startFeedListener(id);
 startSetsListener(id);
