@@ -93,6 +93,8 @@ select.input{appearance:auto;}
 <br><input id="auth-pw" type="password" placeholder="Password" style="width:260px;padding:10px 16px;border-radius:10px;border:1px solid #2a2a2a;background:#141414;color:#e8e8e8;font-size:14px;text-align:center;outline:none;" onkeydown="if(event.key==='Enter')checkAuth()">
 <br><button onclick="checkAuth()" id="auth-btn" style="margin-top:12px;padding:8px 32px;border-radius:10px;border:none;background:#ff6b35;color:#000;font-weight:600;font-size:14px;cursor:pointer;">Sign In</button>
 <div id="auth-err" style="color:#ff5b5b;font-size:12px;margin-top:10px;display:none;"></div>
+<div style="margin-top:14px;"><a href="#" onclick="adminPasswordReset();return false;" style="color:#888;font-size:12px;text-decoration:none;">Forgot password?</a></div>
+<div id="auth-reset-msg" style="font-size:12px;margin-top:8px;display:none;"></div>
 </div>
 </div>
 <div class="app" id="app" style="display:none;"></div>
@@ -155,6 +157,19 @@ async function checkAuth(){
     btn.disabled=false;btn.textContent='Sign In';
     const msg=e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'?'Invalid email or password':e.code==='auth/user-not-found'?'No admin account with that email':e.code==='auth/too-many-requests'?'Too many attempts — try again later':e.message||'Sign in failed';
     errEl.textContent=msg;errEl.style.display='block';
+  }
+}
+
+async function adminPasswordReset(){
+  const email=document.getElementById('auth-email').value.trim();
+  const msgEl=document.getElementById('auth-reset-msg');
+  if(!email){msgEl.style.display='block';msgEl.style.color='#ff5b5b';msgEl.textContent='Enter your email above first.';return;}
+  try{
+    await firebase.auth().sendPasswordResetEmail(email);
+    msgEl.style.display='block';msgEl.style.color='#5bff7b';msgEl.textContent='Password reset email sent to '+email;
+  }catch(e){
+    const msg=e.code==='auth/user-not-found'?'No account found with that email.':'Could not send reset email. Try again.';
+    msgEl.style.display='block';msgEl.style.color='#ff5b5b';msgEl.textContent=msg;
   }
 }
 
