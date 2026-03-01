@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glory Jams — Find Live Jam Sessions Near You</title>
+<meta name="description" content="The free platform for finding and hosting live jam sessions. No account needed. Just musicians getting in rooms together. Oakland, SF, LA, NYC, and growing.">
+<link rel="canonical" href="https://gloryjams.com/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gloryjams.com/">
+<meta property="og:title" content="Glory Jams — Find Live Jam Sessions Near You">
+<meta property="og:description" content="The free platform for finding and hosting live jam sessions. No account needed. Just musicians getting in rooms together.">
+<meta property="og:image" content="https://gloryjams.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Glory Jams">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Glory Jams — Find Live Jam Sessions Near You">
+<meta name="twitter:description" content="The free platform for finding and hosting live jam sessions. No account needed. Just musicians getting in rooms together.">
+<meta name="twitter:image" content="https://gloryjams.com/og-image.png">
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Glory Jams",
+  "url": "https://gloryjams.com/",
+  "description": "The free platform for finding and hosting live jam sessions. No account needed. Just musicians getting in rooms together.",
+  "applicationCategory": "MusicApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "creator": {
+    "@type": "Person",
+    "name": "Simonoto",
+    "url": "https://simonoto.com"
+  }
+}
+</script>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Asset&family=Rock+Salt&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #0a0a0a;
+  color: #e8e8e8;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ── ANIMATIONS ── */
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes glowPulse {
+  0%, 100% { filter: drop-shadow(0 0 24px rgba(255,107,53,0.35)) drop-shadow(0 0 48px rgba(255,215,0,0.12)); }
+  50% { filter: drop-shadow(0 0 40px rgba(255,107,53,0.55)) drop-shadow(0 0 80px rgba(255,215,0,0.25)); }
+}
+@keyframes orbitFloat {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(6px, -4px) rotate(2deg); }
+  50%  { transform: translate(0, -8px) rotate(0deg); }
+  75%  { transform: translate(-6px, -4px) rotate(-2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Scroll-triggered reveal */
+.rv {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1);
+}
+.rv.vis { opacity: 1; transform: translateY(0); }
+.rv-d1 { transition-delay: 0.1s; }
+.rv-d2 { transition-delay: 0.2s; }
+.rv-d3 { transition-delay: 0.3s; }
+
+/* ── LAYOUT ── */
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── HEADER ── */
+header {
+  padding: 20px 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo-text {
+  font-family: 'Rock Salt', cursive;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #ff6b35, #ffd700, #ff8c00, #ffd700, #ff6b35);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 8s ease-in-out infinite;
+}
+.logo-text .jams {
+  background: linear-gradient(90deg, #ffd700, #ff6b35, #ff8c00, #ff6b35, #ffd700);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-left: 5px;
+  animation: shimmer 8s ease-in-out infinite reverse;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 64px 0 56px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-particles span {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.10;
+}
+.p1 { width: 90px; height: 90px; background: radial-gradient(circle, #ff6b35, transparent 70%); top: 5%; left: 4%; animation: orbitFloat 13s ease-in-out infinite; }
+.p2 { width: 55px; height: 55px; background: radial-gradient(circle, #ffd700, transparent 70%); top: 15%; right: 8%; animation: orbitFloat 10s ease-in-out infinite reverse; }
+.p3 { width: 40px; height: 40px; background: radial-gradient(circle, #ff8c00, transparent 70%); bottom: 20%; left: 15%; animation: floatY 9s ease-in-out infinite; animation-delay: -3s; }
+.p4 { width: 65px; height: 65px; background: radial-gradient(circle, #ff6b35, transparent 70%); bottom: 8%; right: 4%; animation: orbitFloat 15s ease-in-out infinite; animation-delay: -5s; }
+
+.hero-wordmark {
+  position: relative;
+  z-index: 1;
+  font-family: 'Asset', serif;
+  font-size: clamp(2.8rem, 12vw, 5rem);
+  letter-spacing: 4px;
+  line-height: 1;
+  margin-bottom: 24px;
+  animation: glowPulse 4s ease-in-out infinite;
+}
+.hero-wordmark .glory {
+  display: block;
+  background: linear-gradient(90deg, #ff6b35, #ffd700, #ff8c00, #ffd700, #ff6b35);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 6s ease-in-out infinite;
+}
+.hero-wordmark .jams-word {
+  display: block;
+  background: linear-gradient(90deg, #ffd700, #ff6b35, #ff8c00, #ff6b35, #ffd700);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 6s ease-in-out infinite reverse;
+}
+
+.hero-headline {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.5rem, 5vw, 2.1rem);
+  font-weight: 700;
+  color: #f0f0f0;
+  line-height: 1.25;
+  margin-bottom: 14px;
+}
+.hero-subhead {
+  position: relative;
+  z-index: 1;
+  font-size: 1.05rem;
+  color: #888;
+  line-height: 1.55;
+  margin-bottom: 36px;
+}
+
+/* ── CTA ── */
+.cta-wrap {
+  position: relative;
+  z-index: 1;
+}
+.cta-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #ff6b35, #ff8c00);
+  color: #000;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 16px 40px;
+  border-radius: 12px;
+  letter-spacing: 0.3px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 24px rgba(255,107,53,0.35);
+  cursor: pointer;
+  text-decoration: none;
+}
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(255,107,53,0.5);
+}
+.cta-btn:active { transform: translateY(0); }
+.cta-note {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.cta-btn-outline {
+  display: inline-block;
+  background: none;
+  color: #ff8c00;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 32px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,140,0,0.35);
+  transition: all 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+}
+.cta-btn-outline:hover {
+  border-color: #ff8c00;
+  background: rgba(255,140,0,0.08);
+  transform: translateY(-2px);
+}
+
+/* ── SECTION HEADERS ── */
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #ff8c00;
+  margin-bottom: 10px;
+}
+.section-title {
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+  font-weight: 700;
+  color: #f0f0f0;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.section-desc {
+  font-size: 0.95rem;
+  color: #777;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+/* ── VALUE PROPS ── */
+.props {
+  padding: 56px 0 64px;
+  border-top: 1px solid #1a1a1a;
+}
+.props-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 540px) {
+  .props-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+.prop-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 28px 20px;
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 16px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.prop-card:hover {
+  border-color: #333;
+  transform: translateY(-3px);
+}
+.prop-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,215,0,0.08));
+  border: 1px solid rgba(255,107,53,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.prop-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f0f0f0;
+}
+.prop-desc {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* ── HOW IT WORKS ── */
+.how-it-works {
+  padding: 64px 0;
+  border-top: 1px solid #1a1a1a;
+}
+.how-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.step {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 24px 0;
+  position: relative;
+}
+/* Connecting line */
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 23px;
+  top: 72px;
+  bottom: -24px;
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(255,140,0,0.25), rgba(255,140,0,0.05));
+}
+.step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(255,215,0,0.08));
+  border: 2px solid rgba(255,107,53,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ff8c00;
+  flex-shrink: 0;
+}
+.step-content { flex: 1; padding-top: 4px; }
+.step-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 6px;
+}
+.step-desc {
+  font-size: 0.9rem;
+  color: #777;
+  line-height: 1.55;
+}
+
+/* ── MANIFESTO ── */
+.manifesto {
+  padding: 64px 0;
+  border-top: 1px solid #1a1a1a;
+  position: relative;
+}
+.manifesto-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+.manifesto-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+}
+.manifesto-quote {
+  font-size: clamp(1.15rem, 3vw, 1.4rem);
+  font-weight: 600;
+  color: #d0d0d0;
+  line-height: 1.65;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+.manifesto-quote em {
+  color: #ff8c00;
+  font-style: italic;
+}
+.manifesto-attr {
+  font-size: 0.78rem;
+  color: #555;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── CITIES ── */
+.cities {
+  padding: 64px 0;
+  border-top: 1px solid #1a1a1a;
+}
+.cities-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 540px) {
+  .city-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.city-card {
+  padding: 20px 16px;
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: default;
+}
+.city-card:hover {
+  border-color: #333;
+  transform: translateY(-2px);
+}
+.city-card.active {
+  border-color: rgba(255,107,53,0.3);
+  background: linear-gradient(135deg, rgba(255,107,53,0.06), rgba(255,215,0,0.02));
+}
+.city-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 4px;
+}
+.city-status {
+  font-size: 0.72rem;
+  color: #555;
+}
+.city-card.active .city-status {
+  color: #ff8c00;
+}
+.city-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.dot-live { background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,0.4); }
+.dot-soon { background: #ff8c00; }
+.dot-next { background: #555; }
+
+/* ── HOST ── */
+.host {
+  padding: 64px 0;
+  border-top: 1px solid #1a1a1a;
+}
+.host-card {
+  background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(255,215,0,0.03));
+  border: 1px solid rgba(255,107,53,0.15);
+  border-radius: 16px;
+  padding: 40px 36px;
+  text-align: center;
+}
+.host-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 12px;
+}
+.host-desc {
+  font-size: 0.95rem;
+  color: #888;
+  line-height: 1.6;
+  max-width: 440px;
+  margin: 0 auto 28px;
+}
+.host-features {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.host-feat {
+  font-size: 0.8rem;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.host-check {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* ── BOTTOM CTA ── */
+.bottom-cta {
+  padding: 72px 0 80px;
+  text-align: center;
+  border-top: 1px solid #1a1a1a;
+}
+.bottom-cta-title {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 14px;
+}
+.bottom-cta-sub {
+  font-size: 1rem;
+  color: #777;
+  margin-bottom: 32px;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid #1a1a1a;
+  padding: 24px 0;
+  text-align: center;
+}
+.footer-inner {
+  font-size: 0.78rem;
+  color: #444;
+}
+.footer-inner a {
+  color: #666;
+  transition: color 0.15s;
+}
+.footer-inner a:hover {
+  color: #ff6b35;
+}
+.footer-links {
+  margin-top: 8px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+.footer-links a {
+  font-size: 0.75rem;
+  color: #444;
+}
+.footer-links a:hover { color: #ff6b35; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+  .city-grid { grid-template-columns: repeat(2, 1fr); }
+  .host-card { padding: 32px 24px; }
+  .host-features { flex-direction: column; align-items: center; gap: 10px; }
+  .step { gap: 16px; }
+  .step-num { width: 40px; height: 40px; font-size: 0.85rem; }
+  .step:not(:last-child)::after { left: 19px; top: 64px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo-text">GLORY<span class="jams">JAMS</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-particles" aria-hidden="true">
+      <span class="p1"></span>
+      <span class="p2"></span>
+      <span class="p3"></span>
+      <span class="p4"></span>
+    </div>
+
+    <div class="container">
+      <div class="hero-wordmark" aria-label="Glory Jams">
+        <span class="glory">GLORY</span>
+        <span class="jams-word">JAMS</span>
+      </div>
+
+      <h1 class="hero-headline">Never Miss a Jam Session Again</h1>
+      <p class="hero-subhead">Find open sessions. Check in. Show up and play. Free forever, no account needed.</p>
+
+      <div class="cta-wrap">
+        <a href="index.html" class="cta-btn">Find Sessions Near You</a>
+        <p class="cta-note">Works in your browser &mdash; no app download needed</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUE PROPS -->
+  <section class="props">
+    <div class="container">
+      <div class="props-grid">
+
+        <div class="prop-card rv rv-d1">
+          <div class="prop-icon" aria-hidden="true">&#127757;</div>
+          <div class="prop-title">Find Sessions</div>
+          <p class="prop-desc">Browse jam sessions happening near you tonight. Filtered by city, genre, instrument, and vibe.</p>
+        </div>
+
+        <div class="prop-card rv rv-d2">
+          <div class="prop-icon" aria-hidden="true">&#127925;</div>
+          <div class="prop-title">Check In</div>
+          <p class="prop-desc">Let people know you're going. See who else is showing up. Bring your instrument and meet new players.</p>
+        </div>
+
+        <div class="prop-card rv rv-d3">
+          <div class="prop-icon" aria-hidden="true">&#128101;</div>
+          <div class="prop-title">Build Your Crew</div>
+          <p class="prop-desc">Grow your network by playing together. Not through DMs, not through algorithms. Through music.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="how-header rv">
+        <div class="section-label">How It Works</div>
+        <h2 class="section-title">Three steps. Zero friction.</h2>
+        <p class="section-desc" style="margin:0 auto">No signups, no paywalls, no friction between you and playing music tonight.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step rv rv-d1">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Search your city</div>
+            <p class="step-desc">Type in your location. We use Google Places to find jam sessions, open mics, and musician meetups happening nearby.</p>
+          </div>
+        </div>
+        <div class="step rv rv-d2">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Pick a session</div>
+            <p class="step-desc">See dates, times, venues, genres. Read what other musicians have said. Find the one that fits your vibe and your schedule.</p>
+          </div>
+        </div>
+        <div class="step rv rv-d3">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Show up and play</div>
+            <p class="step-desc">Check in so others know you're going. Bring your instrument. That's it. No cover, no audition, no barriers.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="manifesto">
+    <div class="manifesto-glow" aria-hidden="true"></div>
+    <div class="container">
+      <div class="manifesto-inner rv">
+        <p class="manifesto-quote">
+          &ldquo;The music industry is really good at making music into content and really bad at getting musicians <em>in a room together</em>. We wanted to fix the second one.&rdquo;
+        </p>
+        <p class="manifesto-attr">&mdash; Simonoto, founder</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CITIES -->
+  <section class="cities">
+    <div class="container">
+      <div class="cities-header rv">
+        <div class="section-label">Where We Are</div>
+        <h2 class="section-title">Growing city by city</h2>
+        <p class="section-desc" style="margin:0 auto">Sessions are community-submitted. If your city isn't here yet, you can add the first one.</p>
+      </div>
+
+      <div class="city-grid">
+        <div class="city-card active rv rv-d1">
+          <div class="city-name">Oakland / SF</div>
+          <div class="city-status"><span class="city-dot dot-live"></span> Live</div>
+        </div>
+        <div class="city-card rv rv-d1">
+          <div class="city-name">Los Angeles</div>
+          <div class="city-status"><span class="city-dot dot-soon"></span> Growing</div>
+        </div>
+        <div class="city-card rv rv-d2">
+          <div class="city-name">New York</div>
+          <div class="city-status"><span class="city-dot dot-soon"></span> Growing</div>
+        </div>
+        <div class="city-card rv rv-d2">
+          <div class="city-name">Nashville</div>
+          <div class="city-status"><span class="city-dot dot-soon"></span> Growing</div>
+        </div>
+        <div class="city-card rv rv-d3">
+          <div class="city-name">Austin</div>
+          <div class="city-status"><span class="city-dot dot-next"></span> Coming soon</div>
+        </div>
+        <div class="city-card rv rv-d3">
+          <div class="city-name">London</div>
+          <div class="city-status"><span class="city-dot dot-next"></span> Coming soon</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOST A SESSION -->
+  <section class="host">
+    <div class="container">
+      <div class="host-card rv">
+        <h2 class="host-title">Run a jam? Put it on the map.</h2>
+        <p class="host-desc">If you host a regular session, open mic, or musician meetup, list it on Glory Jams for free. Reach players who are actively looking to play.</p>
+        <div class="host-features">
+          <span class="host-feat"><span class="host-check">&#10003;</span> Free forever</span>
+          <span class="host-feat"><span class="host-check">&#10003;</span> No account needed</span>
+          <span class="host-feat"><span class="host-check">&#10003;</span> SMS subscriber list</span>
+          <span class="host-feat"><span class="host-check">&#10003;</span> Check-in tracking</span>
+        </div>
+        <a href="index.html" class="cta-btn-outline">List Your Session</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM CTA -->
+  <section class="bottom-cta">
+    <div class="container rv">
+      <h2 class="bottom-cta-title">Ready to play?</h2>
+      <p class="bottom-cta-sub">Find a session happening near you tonight.</p>
+      <a href="index.html" class="cta-btn">Open Glory Jams</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      &copy; 2026 Glory Jams &mdash; Built in Oakland, CA
+      <div class="footer-links">
+        <a href="index.html">Open the app</a>
+        <a href="https://simonoto.com" target="_blank" rel="noopener">By Simonoto</a>
+        <a href="https://instagram.com/simonoto" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Scroll reveal */
+const revEls = document.querySelectorAll('.rv');
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(x => {
+    if (x.isIntersecting) {
+      x.target.classList.add('vis');
+      revObs.unobserve(x.target);
+    }
+  });
+}, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
+revEls.forEach(e => revObs.observe(e));
+</script>
+
+</body>
+</html>
