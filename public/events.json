@@ -1,0 +1,276 @@
+{
+  "meta": {
+    "version": "0.1.0",
+    "lastUpdated": "2026-03-13",
+    "description": "Glory Jams Oakland — jam session directory prototype data"
+  },
+  "venues": {
+    "elis-mile-high": {
+      "name": "Eli's Mile High Club",
+      "address": "3629 M.L.K. Jr Way, Oakland, CA 94609",
+      "neighborhood": "North Oakland",
+      "phone": "(510) 808-7565",
+      "website": "https://www.elismilehighclub.com",
+      "instagram": "elismilehighclub",
+      "googleMapsUrl": "https://maps.google.com/?q=Eli's+Mile+High+Club+Oakland",
+      "lat": 37.8315,
+      "lng": -122.2713,
+      "venueType": "bar"
+    },
+    "legionnaire-saloon": {
+      "name": "The Legionnaire Saloon",
+      "address": "2272 Telegraph Ave, Oakland, CA 94612",
+      "neighborhood": "Uptown",
+      "phone": "(510) 250-9861",
+      "website": "https://www.legionnairesaloon.com",
+      "instagram": "legabornintheeast",
+      "googleMapsUrl": "https://maps.google.com/?q=Legionnaire+Saloon+Oakland",
+      "lat": 37.8120,
+      "lng": -122.2665,
+      "venueType": "bar"
+    },
+    "alley-piano-bar": {
+      "name": "The Alley Piano Bar",
+      "address": "3325 Grand Ave, Oakland, CA 94610",
+      "neighborhood": "Grand Lake",
+      "phone": "(510) 444-8505",
+      "website": null,
+      "instagram": null,
+      "googleMapsUrl": "https://maps.google.com/?q=The+Alley+Piano+Bar+Oakland",
+      "lat": 37.8114,
+      "lng": -122.2384,
+      "venueType": "bar"
+    },
+    "yoshis": {
+      "name": "Yoshi's Oakland",
+      "address": "510 Embarcadero West, Oakland, CA 94607",
+      "neighborhood": "Jack London Square",
+      "phone": "(510) 238-9200",
+      "website": "https://yoshis.com",
+      "instagram": "yoshisoakland",
+      "googleMapsUrl": "https://maps.google.com/?q=Yoshi's+Oakland",
+      "lat": 37.7955,
+      "lng": -122.2796,
+      "venueType": "jazz-club"
+    },
+    "oakland-public-conservatory": {
+      "name": "Oakland Public Conservatory of Music",
+      "address": "1616 Franklin St, Oakland, CA 94612",
+      "neighborhood": "Downtown",
+      "phone": null,
+      "website": "https://opcmusic.org",
+      "instagram": "opcmusic",
+      "googleMapsUrl": "https://maps.google.com/?q=Oakland+Public+Conservatory+of+Music",
+      "lat": 37.8060,
+      "lng": -122.2690,
+      "venueType": "conservatory"
+    },
+    "tea-cakes": {
+      "name": "Tea Cakes",
+      "address": "4318 MLK Blvd, Oakland, CA 94609",
+      "neighborhood": "Temescal",
+      "phone": null,
+      "website": null,
+      "instagram": null,
+      "googleMapsUrl": "https://maps.google.com/?q=Tea+Cakes+4318+MLK+Oakland",
+      "lat": 37.8340,
+      "lng": -122.2710,
+      "venueType": "cafe"
+    },
+    "park-station": {
+      "name": "Park Station Hashery",
+      "address": "1200 Park St, Alameda, CA 94501",
+      "neighborhood": "Alameda",
+      "phone": "(510) 671-2903",
+      "website": null,
+      "instagram": null,
+      "googleMapsUrl": "https://maps.google.com/?q=Park+Station+1200+Park+St+Alameda",
+      "lat": 37.7653,
+      "lng": -122.2420,
+      "venueType": "restaurant"
+    },
+    "geoffreys-inner-circle": {
+      "name": "Geoffrey's Inner Circle",
+      "address": "410 14th St, Oakland, CA 94612",
+      "neighborhood": "Downtown",
+      "phone": "(510) 839-4644",
+      "website": "https://geoffreysinnercircle.com",
+      "instagram": "geoffreysinnercircle",
+      "googleMapsUrl": "https://maps.google.com/?q=Geoffrey's+Inner+Circle+Oakland",
+      "lat": 37.8040,
+      "lng": -122.2698,
+      "venueType": "lounge"
+    }
+  },
+  "events": [
+    {
+      "id": "blue-monday-blues",
+      "name": "Blue Monday Blues Jam",
+      "venueId": "elis-mile-high",
+      "hostId": null,
+      "description": "Oakland's longest-running blues jam is back with rotating hosts. Sign up at the door starting at 7pm, jammers called up in order. House backline provided. All skill levels welcome — come play.",
+      "genreTags": ["blues"],
+      "recurrence": {
+        "type": "weekly",
+        "dayOfWeek": "monday"
+      },
+      "startTime": "19:00",
+      "endTime": "23:00",
+      "instrumentsWelcome": ["all"],
+      "backlineProvided": ["drums", "bass-amp", "guitar-amp"],
+      "coverCharge": "free",
+      "ageRestriction": "21+",
+      "signupProcess": "Sign up at 7pm, called up in order",
+      "status": "active",
+      "featured": true
+    },
+    {
+      "id": "tuesday-funk-soul",
+      "name": "The Tuesday Night Funk & Soul Jam",
+      "venueId": "legionnaire-saloon",
+      "hostId": null,
+      "description": "Weekly funk and soul jam in the heart of Uptown Oakland. House band kicks it off at 9:30, then the floor opens up. Bring your instrument, pick up a groove, and sit in. The vibe is loose, loud, and funky.",
+      "genreTags": ["funk", "soul", "r&b"],
+      "recurrence": {
+        "type": "weekly",
+        "dayOfWeek": "tuesday"
+      },
+      "startTime": "21:00",
+      "endTime": "00:00",
+      "instrumentsWelcome": ["all"],
+      "backlineProvided": ["drums", "bass-amp", "guitar-amp", "keys"],
+      "coverCharge": "free",
+      "ageRestriction": "21+",
+      "signupProcess": "Sign up at the door",
+      "status": "active",
+      "featured": true
+    },
+    {
+      "id": "wednesday-jazz-alley",
+      "name": "Jazz at the Alley",
+      "venueId": "alley-piano-bar",
+      "hostId": null,
+      "description": "Intimate jazz jam in one of Oakland's most classic dive bars. Piano trio hosts, standards and originals welcome. Low-key vibes, cold drinks, real music.",
+      "genreTags": ["jazz", "blues"],
+      "recurrence": {
+        "type": "weekly",
+        "dayOfWeek": "wednesday"
+      },
+      "startTime": "20:00",
+      "endTime": "23:00",
+      "instrumentsWelcome": ["all"],
+      "backlineProvided": ["piano"],
+      "coverCharge": "free",
+      "ageRestriction": "21+",
+      "signupProcess": "Talk to the host",
+      "status": "active",
+      "featured": false
+    },
+    {
+      "id": "thursday-soul-geoffreys",
+      "name": "Thursday Night Soul Session",
+      "venueId": "geoffreys-inner-circle",
+      "hostId": null,
+      "description": "R&B and soul night at Geoffrey's Inner Circle in downtown Oakland. Live band, sit-in slots available for vocalists and instrumentalists. Dress code: come correct.",
+      "genreTags": ["soul", "r&b", "funk"],
+      "recurrence": {
+        "type": "weekly",
+        "dayOfWeek": "thursday"
+      },
+      "startTime": "21:00",
+      "endTime": "01:00",
+      "instrumentsWelcome": ["vocals", "horns", "guitar", "bass", "keys"],
+      "backlineProvided": ["drums", "bass-amp", "keys"],
+      "coverCharge": "$5",
+      "ageRestriction": "21+",
+      "signupProcess": "Check in with the band leader",
+      "status": "active",
+      "featured": false
+    },
+    {
+      "id": "first-friday-jazz-opc",
+      "name": "First Friday Jazz Jam",
+      "venueId": "oakland-public-conservatory",
+      "hostId": null,
+      "description": "Monthly community jazz jam at the Oakland Public Conservatory of Music. Open to all levels — students, hobbyists, and pros share the bandstand. Standards book provided. Part of Oakland's First Friday scene.",
+      "genreTags": ["jazz"],
+      "recurrence": {
+        "type": "monthly",
+        "dayOfWeek": "friday",
+        "weekOfMonth": 1
+      },
+      "startTime": "19:00",
+      "endTime": "22:00",
+      "instrumentsWelcome": ["all"],
+      "backlineProvided": ["drums", "bass-amp", "piano"],
+      "coverCharge": "free",
+      "ageRestriction": "all-ages",
+      "signupProcess": "First come first served",
+      "status": "active",
+      "featured": true
+    },
+    {
+      "id": "sunday-blues-tea-cakes",
+      "name": "Sunday Blues at Tea Cakes",
+      "venueId": "tea-cakes",
+      "hostId": null,
+      "description": "Chill Sunday afternoon blues jam on MLK Blvd. Grab some food, grab your guitar, sit in on a shuffle. Relaxed and welcoming.",
+      "genreTags": ["blues"],
+      "recurrence": {
+        "type": "weekly",
+        "dayOfWeek": "sunday"
+      },
+      "startTime": "18:00",
+      "endTime": "21:30",
+      "instrumentsWelcome": ["all"],
+      "backlineProvided": ["drums", "bass-amp", "guitar-amp"],
+      "coverCharge": "free",
+      "ageRestriction": "all-ages",
+      "signupProcess": "Sign up at the door",
+      "status": "active",
+      "featured": false
+    },
+    {
+      "id": "wednesday-jazz-park-station",
+      "name": "Park Station Jazz Jam",
+      "venueId": "park-station",
+      "hostId": null,
+      "description": "Pro-level and semi-pro jazz jam in Alameda. Full backline provided (drums, bass amp, guitar amp, keyboards). No cover charge. Come ready to play — the level is high and the hang is good.",
+      "genreTags": ["jazz"],
+      "recurrence": {
+        "type": "weekly",
+        "dayOfWeek": "wednesday"
+      },
+      "startTime": "18:00",
+      "endTime": "21:00",
+      "instrumentsWelcome": ["all"],
+      "backlineProvided": ["drums", "bass-amp", "guitar-amp", "keys"],
+      "coverCharge": "free",
+      "ageRestriction": "all-ages",
+      "signupProcess": "First come first served",
+      "status": "active",
+      "featured": false
+    },
+    {
+      "id": "friday-open-jam-elis",
+      "name": "Friday Night Open Jam",
+      "venueId": "elis-mile-high",
+      "hostId": null,
+      "description": "End-of-week open jam at Eli's. All genres welcome — blues, funk, rock, whatever the room wants to play. The house band sets the tone and the floor opens up. Expect loud, loose, and late.",
+      "genreTags": ["blues", "rock", "funk", "open"],
+      "recurrence": {
+        "type": "weekly",
+        "dayOfWeek": "friday"
+      },
+      "startTime": "21:00",
+      "endTime": "01:00",
+      "instrumentsWelcome": ["all"],
+      "backlineProvided": ["drums", "bass-amp", "guitar-amp"],
+      "coverCharge": "$5 suggested donation",
+      "ageRestriction": "21+",
+      "signupProcess": "Sign up at the door",
+      "status": "active",
+      "featured": false
+    }
+  ]
+}

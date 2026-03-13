@@ -1,0 +1,2494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glory Jams — Oakland Jam Sessions</title>
+<meta name="description" content="Oakland's nightly jam session community. Find sessions, meet musicians, make music. No gatekeepers, no algorithms — just people in rooms playing together.">
+<meta property="og:title" content="Glory Jams — Oakland Jam Sessions">
+<meta property="og:description" content="Oakland's nightly jam session community. No gatekeepers, no algorithms — just people in rooms playing together.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gloryjams.com">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://gloryjams.com/">
+
+<!-- Typography: Fraunces (headlines), Nunito (body), Azeret Mono (labels) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=Nunito:wght@400;600;700&family=Azeret+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ===================================================
+   GLORY JAMS — Community Hub
+   Aesthetic: gig poster meets Oakland zine
+   Colors matched to simonoto.com palette
+   =================================================== */
+
+:root {
+  --blk: #161210;
+  --deep: #1A1218;
+  --wine: #2A1A22;
+  --caramel: #A6711A;
+  --brown: #6B4A2A;
+  --coral: #FF9090;
+  --red: #ED2024;
+  --orange: #E07540;
+  --lav: #CDB1CC;
+  --lav-dark: #7A6279;
+  --cream: #F5EDE0;
+  --paper: #EDE3D4;
+  --dust: #A69882;
+  --faded: #8B7D6B;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--cream);
+  color: var(--blk);
+  overflow-x: hidden;
+  line-height: 1.65;
+}
+
+/* Grain texture overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 10000;
+  mix-blend-mode: multiply;
+}
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+.wrap { max-width: 1100px; margin: 0 auto; }
+
+/* Section labels — Azeret Mono uppercase with leading line */
+.s-label {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .55rem;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.s-label::before {
+  content: '';
+  width: 32px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.s-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1, 'opsz' 72;
+  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+  line-height: 1.06;
+  margin-bottom: 22px;
+}
+
+.s-sub {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-variation-settings: 'WONK' 0;
+  font-size: .95rem;
+  max-width: 460px;
+  line-height: 1.8;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 32px;
+  font-family: 'Azeret Mono', monospace;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all .35s;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.1);
+  transform: translateX(-101%);
+  transition: transform .4s;
+}
+.btn:hover::before { transform: translateX(0); }
+.btn-red {
+  background: var(--red);
+  color: var(--cream);
+}
+.btn-red:hover {
+  transform: translateY(-4px) rotate(-1.5deg);
+  box-shadow: 0 10px 32px rgba(237,32,36,.4);
+}
+.btn-out {
+  background: none;
+  color: var(--cream);
+  border: 1.5px solid var(--lav-dark);
+}
+.btn-out:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+  transform: translateY(-4px) rotate(1.5deg);
+}
+.btn-coral {
+  background: var(--coral);
+  color: var(--deep);
+}
+.btn-coral:hover {
+  transform: translateY(-4px) rotate(-1.5deg);
+  box-shadow: 0 10px 32px rgba(255,144,144,.35);
+}
+.btn-dark {
+  background: var(--blk);
+  color: var(--cream);
+}
+.btn-dark:hover {
+  transform: translateY(-4px) rotate(1.5deg);
+  box-shadow: 0 10px 32px rgba(0,0,0,.3);
+}
+
+/* Reveal animations */
+.rv {
+  opacity: 0;
+  transform: translateY(40px) rotate(2deg);
+  transition: all .7s cubic-bezier(.16,1,.3,1);
+}
+.rv.vis {
+  opacity: 1;
+  transform: translateY(0) rotate(0);
+}
+.rv-d1 { transition-delay: .1s; }
+.rv-d2 { transition-delay: .2s; }
+.rv-d3 { transition-delay: .3s; }
+.rv-d4 { transition-delay: .4s; }
+
+/* Cursor glow for dark sections */
+.cursor-glow {
+  position: fixed;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,144,144,.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: opacity .3s;
+  opacity: 0;
+}
+.cursor-glow.active { opacity: 1; }
+
+
+/* ===================================================
+   NAVIGATION
+   =================================================== */
+
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: 18px 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all .4s;
+}
+nav.scrolled {
+  background: rgba(22,18,16,.95);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 4px 40px rgba(0,0,0,.25);
+}
+.nav-logo {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.3rem;
+  color: var(--cream);
+  text-decoration: none;
+  transition: all .3s;
+}
+.nav-logo:hover {
+  color: var(--coral);
+  transform: rotate(-2deg);
+}
+.nav-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+}
+.nav-links a {
+  text-decoration: none;
+  color: var(--lav);
+  font-family: 'Azeret Mono', monospace;
+  font-size: .62rem;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  opacity: .5;
+  transition: all .3s;
+}
+.nav-links a:hover {
+  opacity: 1;
+  color: var(--coral);
+  transform: translateY(-2px);
+}
+
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 20px;
+  position: relative;
+  z-index: 1001;
+}
+.menu-btn span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--cream);
+  position: absolute;
+  left: 0;
+  transition: all .3s;
+}
+.menu-btn span:nth-child(1) { top: 0; }
+.menu-btn span:nth-child(2) { top: 9px; }
+.menu-btn span:nth-child(3) { top: 18px; }
+.menu-btn.active span:nth-child(1) { top: 9px; transform: rotate(45deg); }
+.menu-btn.active span:nth-child(2) { opacity: 0; }
+.menu-btn.active span:nth-child(3) { top: 9px; transform: rotate(-45deg); }
+
+
+/* ===================================================
+   HERO
+   =================================================== */
+
+.hero {
+  min-height: 100vh;
+  background: var(--deep);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  padding: 130px 44px 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative radial glow */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -15%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255,144,144,.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(166,113,26,.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.hero-text { position: relative; }
+
+.hero-tag {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .6rem;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: slideUp .7s .3s forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1, 'opsz' 144;
+  font-size: clamp(2.6rem, 6.5vw, 5.4rem);
+  line-height: 1.02;
+  margin-bottom: 24px;
+}
+.hero h1 .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(60px) rotate(3deg);
+  animation: wordDrop .8s forwards;
+  animation-timing-function: cubic-bezier(.16,1,.3,1);
+  text-shadow:
+    0 2px 0 rgba(237,32,36,.6),
+    0 4px 0 rgba(200,20,20,.4),
+    0 6px 0 rgba(160,15,15,.25),
+    0 8px 0 rgba(120,10,10,.15),
+    0 12px 25px rgba(0,0,0,.5),
+    0 0 60px rgba(255,144,144,.08);
+  transition: text-shadow .4s, transform .4s, color .4s;
+}
+.hero h1 .word:hover {
+  text-shadow:
+    0 2px 0 rgba(237,32,36,.8),
+    0 4px 0 rgba(200,20,20,.6),
+    0 6px 0 rgba(160,15,15,.4),
+    0 8px 0 rgba(120,10,10,.3),
+    0 14px 35px rgba(0,0,0,.6),
+    0 0 80px rgba(255,144,144,.15);
+  transform: translateY(-3px) scale(1.03);
+  cursor: default;
+}
+.hero h1 .word:nth-child(1) { animation-delay: .4s; }
+.hero h1 .word:nth-child(2) { animation-delay: .55s; color: var(--coral); }
+
+@keyframes wordDrop {
+  from { opacity: 0; transform: translateY(60px) rotate(3deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+.hero-sub {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-variation-settings: 'WONK' 0;
+  font-size: clamp(.92rem, 1.6vw, 1.12rem);
+  color: var(--lav);
+  max-width: 420px;
+  line-height: 1.8;
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: slideUp .8s .9s forwards;
+}
+
+.hero-btns {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: slideUp .7s 1.1s forwards;
+}
+
+/* Hero visual — poster-style collage */
+.hero-visual {
+  position: relative;
+  height: 480px;
+  perspective: 800px;
+}
+
+.poster-main {
+  position: absolute;
+  width: 80%;
+  height: 85%;
+  top: 5%;
+  left: 10%;
+  background: var(--wine);
+  border: 3px solid rgba(255,144,144,.12);
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 22px 28px 70px rgba(0,0,0,.5), 0 0 80px rgba(255,144,144,.06);
+  transform: rotate(-2deg);
+  transition: transform .6s cubic-bezier(.16,1,.3,1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px;
+  text-align: center;
+}
+.poster-main:hover {
+  transform: rotate(-4deg) scale(1.02);
+}
+
+.poster-date {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .55rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 16px;
+}
+.poster-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  color: var(--cream);
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.poster-venue {
+  font-family: 'Nunito', sans-serif;
+  font-size: .85rem;
+  color: var(--lav);
+  margin-bottom: 8px;
+}
+.poster-genre {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--dust);
+  margin-bottom: 24px;
+}
+.poster-divider {
+  width: 60px;
+  height: 2px;
+  background: var(--coral);
+  margin-bottom: 24px;
+  opacity: .5;
+}
+.poster-details {
+  font-family: 'Nunito', sans-serif;
+  font-size: .8rem;
+  color: var(--lav-dark);
+  line-height: 1.8;
+}
+
+/* Floating stamps */
+.hero-stamp {
+  position: absolute;
+  z-index: 5;
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: .68rem;
+  color: var(--cream);
+  background: var(--red);
+  padding: 11px 20px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  box-shadow: 5px 7px 20px rgba(237,32,36,.35);
+  opacity: 0;
+  animation: stampIn .5s forwards;
+}
+.hero-stamp-1 {
+  bottom: 8%;
+  right: 2%;
+  transform: rotate(7deg);
+  animation-delay: 1.3s;
+}
+.hero-stamp-2 {
+  top: 2%;
+  left: 0%;
+  font-family: 'Azeret Mono', monospace;
+  font-size: .52rem;
+  font-weight: 600;
+  color: var(--coral);
+  background: none;
+  border: 1.5px solid var(--coral);
+  padding: 6px 14px;
+  transform: rotate(-4deg);
+  letter-spacing: .15em;
+  box-shadow: none;
+  animation-delay: 1.5s;
+}
+
+@keyframes stampIn {
+  from { opacity: 0; transform: scale(.5) rotate(15deg); }
+  to { opacity: 1; }
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  opacity: 0;
+  animation: slideUp 1s 1.6s forwards;
+  text-align: center;
+}
+.scroll-hint span {
+  display: block;
+  font-family: 'Azeret Mono', monospace;
+  font-size: .52rem;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--lav);
+  opacity: .35;
+  margin-bottom: 6px;
+}
+.scroll-arrow {
+  width: 16px;
+  height: 16px;
+  border-right: 1.5px solid var(--coral);
+  border-bottom: 1.5px solid var(--coral);
+  transform: rotate(45deg);
+  margin: 0 auto;
+  animation: bounce 2.2s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: rotate(45deg) translate(0,0); }
+  50% { transform: rotate(45deg) translate(5px,5px); }
+}
+
+
+/* ===================================================
+   MARQUEE
+   =================================================== */
+
+.marquee {
+  overflow: hidden;
+  padding: 20px 0;
+  background: var(--blk);
+  border-top: 2px solid rgba(255,255,255,.03);
+  border-bottom: 2px solid rgba(255,255,255,.03);
+  contain: content;
+}
+.marquee-inner {
+  display: flex;
+  gap: 50px;
+  animation: scrollX 25s linear infinite;
+  width: max-content;
+  will-change: transform;
+}
+.marquee-inner span {
+  font-family: 'Fraunces', serif;
+  font-weight: 800;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.marquee .t1 { color: rgba(255,144,144,.16); }
+.marquee .t2 { color: rgba(205,177,204,.1); }
+@keyframes scrollX {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+
+/* ===================================================
+   ABOUT SECTION
+   =================================================== */
+
+#about {
+  background: var(--cream);
+  padding: clamp(80px,12vw,160px) 44px;
+  position: relative;
+}
+#about .s-label { color: var(--caramel); }
+#about .s-label::before { background: var(--caramel); }
+
+.about-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+  margin-top: 48px;
+}
+
+.about-copy {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-variation-settings: 'WONK' 0;
+  font-size: 1.02rem;
+  line-height: 1.85;
+  color: var(--brown);
+}
+.about-copy em {
+  color: var(--red);
+  font-style: normal;
+  font-weight: 600;
+}
+.about-copy p + p {
+  margin-top: 20px;
+}
+
+.about-manifesto {
+  background: var(--blk);
+  color: var(--cream);
+  padding: 44px;
+  border-radius: 2px;
+  transform: rotate(.4deg);
+  position: relative;
+  overflow: hidden;
+}
+.about-manifesto::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--coral);
+}
+.about-manifesto blockquote {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 16px;
+}
+.about-manifesto cite {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .62rem;
+  color: var(--coral);
+  font-style: normal;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* Value cards */
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 64px;
+}
+.value-card {
+  background: var(--paper);
+  padding: 28px 24px;
+  border: 1px dashed rgba(0,0,0,.1);
+  border-radius: 2px;
+  transition: all .45s cubic-bezier(.16,1,.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.value-card:nth-child(1) { transform: rotate(-.4deg); }
+.value-card:nth-child(2) { transform: rotate(.3deg); }
+.value-card:nth-child(3) { transform: rotate(-.2deg); }
+.value-card:hover {
+  transform: rotate(-1deg) !important;
+  border-color: var(--red);
+  box-shadow: 0 12px 36px rgba(0,0,0,.06);
+}
+.value-card .vc-hover-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--red);
+  transition: width .4s;
+}
+.value-card:hover .vc-hover-line { width: 100%; }
+.value-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  color: var(--blk);
+}
+.value-card p {
+  font-size: .88rem;
+  color: var(--faded);
+  line-height: 1.7;
+}
+.value-icon {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  color: var(--red);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  opacity: .7;
+}
+
+
+/* ===================================================
+   UPCOMING JAMS — loaded from events.json
+   =================================================== */
+
+#jams {
+  background: var(--wine);
+  color: var(--cream);
+  padding: clamp(80px,12vw,160px) 44px;
+  position: relative;
+  overflow: hidden;
+}
+#jams .s-label { color: var(--coral); }
+#jams .s-label::before { background: var(--coral); }
+
+/* Background scanlines */
+#jams::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,.04) 2px,
+      rgba(0,0,0,.04) 4px
+    );
+  pointer-events: none;
+  opacity: .4;
+}
+
+.jams-header {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 48px;
+}
+
+/* Day filter tabs */
+.day-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  position: relative;
+  z-index: 2;
+}
+.day-btn {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .52rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.1);
+  color: var(--lav-dark);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all .3s;
+}
+.day-btn:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+.day-btn.active {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: var(--deep);
+}
+.day-btn .today-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--coral);
+  margin-left: 5px;
+  vertical-align: middle;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.day-btn.active .today-dot {
+  background: var(--deep);
+}
+
+.jams-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.jam-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 28px;
+  border-radius: 2px;
+  transition: all .45s cubic-bezier(.16,1,.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.jam-card:nth-child(odd) { transform: rotate(-.3deg); }
+.jam-card:nth-child(even) { transform: rotate(.3deg); }
+.jam-card:hover {
+  transform: translateY(-6px) rotate(-1deg) !important;
+  border-color: rgba(255,144,144,.3);
+  box-shadow: 0 18px 50px rgba(0,0,0,.15);
+}
+.jam-card .jc-hover-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--coral);
+  transition: width .4s;
+}
+.jam-card:hover .jc-hover-line { width: 100%; }
+
+.jam-card-badge {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.jam-card-badge.tonight { color: var(--coral); }
+.jam-card-badge.weekly { color: var(--caramel); }
+.jam-card-badge.monthly { color: var(--lav); }
+.jam-card-badge .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--coral);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(.7); }
+}
+
+.jam-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+.jam-card .venue {
+  font-size: .85rem;
+  color: var(--lav);
+  margin-bottom: 4px;
+}
+.jam-card .venue a {
+  color: var(--lav);
+  text-decoration: none;
+  transition: color .2s;
+  border-bottom: 1px dotted rgba(205,177,204,.3);
+}
+.jam-card .venue a:hover {
+  color: var(--coral);
+  border-bottom-color: var(--coral);
+}
+.jam-card .neighborhood {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--lav-dark);
+  margin-bottom: 10px;
+}
+.jam-card .details {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .65rem;
+  color: var(--lav-dark);
+  line-height: 1.8;
+}
+.jam-card .jam-description {
+  font-size: .82rem;
+  color: var(--lav);
+  line-height: 1.7;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  display: none;
+}
+.jam-card.expanded .jam-description {
+  display: block;
+}
+.jam-card .jam-expand {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  color: var(--coral);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: all .2s;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.jam-card .jam-expand:hover {
+  transform: translateX(4px);
+}
+.jam-card .genre-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.genre-tag {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.genre-tag.funk { color: #c77bff; border-color: rgba(199,123,255,.3); background: rgba(199,123,255,.08); }
+.genre-tag.soul, .genre-tag.r\&b { color: var(--coral); border-color: rgba(255,144,144,.3); background: rgba(255,144,144,.08); }
+.genre-tag.jazz { color: #5b9aff; border-color: rgba(91,154,255,.3); background: rgba(91,154,255,.08); }
+.genre-tag.blues { color: #7b7bff; border-color: rgba(123,123,255,.3); background: rgba(123,123,255,.08); }
+.genre-tag.open, .genre-tag.rock { color: #5bff7b; border-color: rgba(91,255,123,.3); background: rgba(91,255,123,.08); }
+.genre-tag.latin { color: var(--orange); border-color: rgba(224,117,64,.3); background: rgba(224,117,64,.08); }
+
+.jams-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-size: 1rem;
+  color: var(--lav-dark);
+}
+
+.jams-cta {
+  text-align: center;
+  margin-top: 56px;
+  position: relative;
+  z-index: 2;
+}
+.jams-cta p {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .6rem;
+  color: var(--lav-dark);
+  letter-spacing: .1em;
+  margin-top: 14px;
+}
+
+
+/* ===================================================
+   COMMUNITY GUIDELINES
+   =================================================== */
+
+#guidelines {
+  background: var(--paper);
+  padding: clamp(80px,12vw,160px) 44px;
+  position: relative;
+}
+#guidelines .s-label { color: var(--caramel); }
+#guidelines .s-label::before { background: var(--caramel); }
+
+.guidelines-intro {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-variation-settings: 'WONK' 0;
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--brown);
+  max-width: 600px;
+  margin-bottom: 48px;
+}
+
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+.rule-card {
+  background: var(--cream);
+  padding: 28px 24px;
+  border: 1px solid rgba(0,0,0,.05);
+  border-radius: 2px;
+  transition: all .45s cubic-bezier(.16,1,.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.rule-card:nth-child(1) { transform: rotate(-.3deg); }
+.rule-card:nth-child(2) { transform: rotate(.2deg); }
+.rule-card:nth-child(3) { transform: rotate(.3deg); }
+.rule-card:nth-child(4) { transform: rotate(-.2deg); }
+.rule-card:nth-child(5) { transform: rotate(.15deg); }
+.rule-card:nth-child(6) { transform: rotate(-.4deg); }
+.rule-card:hover {
+  transform: translateY(-5px) rotate(0deg) !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,.06);
+  border-color: var(--caramel);
+}
+.rule-card .rc-hover-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--caramel);
+  transition: width .4s;
+}
+.rule-card:hover .rc-hover-line { width: 100%; }
+.rule-num {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  color: var(--caramel);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: .7;
+}
+.rule-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: var(--blk);
+}
+.rule-card p {
+  font-size: .85rem;
+  color: var(--faded);
+  line-height: 1.7;
+}
+
+
+/* ===================================================
+   COMMUNITY / INSTAGRAM
+   =================================================== */
+
+#community {
+  background: var(--cream);
+  padding: clamp(80px,12vw,160px) 44px;
+  position: relative;
+}
+#community .s-label { color: var(--red); }
+#community .s-label::before { background: var(--red); }
+
+.community-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: start;
+  margin-top: 48px;
+}
+
+.community-text h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+  color: var(--blk);
+}
+.community-text p {
+  font-size: .92rem;
+  color: var(--brown);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.community-text p em {
+  color: var(--red);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.ig-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.ig-tile {
+  aspect-ratio: 1;
+  background: var(--paper);
+  border: 1px dashed rgba(0,0,0,.08);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .35s cubic-bezier(.16,1,.3,1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.ig-tile:nth-child(odd) { transform: rotate(-.5deg); }
+.ig-tile:nth-child(even) { transform: rotate(.5deg); }
+.ig-tile:hover {
+  transform: rotate(-2deg) scale(1.05) !important;
+  border-color: var(--coral);
+  box-shadow: 0 8px 28px rgba(0,0,0,.08);
+}
+.ig-tile-inner {
+  text-align: center;
+  padding: 12px;
+}
+.ig-tile-icon {
+  font-size: 1.6rem;
+  margin-bottom: 6px;
+  display: block;
+}
+.ig-tile-label {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .45rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+
+.ig-follow {
+  margin-top: 20px;
+  text-align: center;
+}
+.ig-follow a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Azeret Mono', monospace;
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--red);
+  text-decoration: none;
+  transition: all .3s;
+}
+.ig-follow a:hover {
+  color: var(--coral);
+  transform: translateX(4px);
+}
+.ig-follow a::after {
+  content: '\2192';
+  transition: transform .3s;
+}
+.ig-follow a:hover::after {
+  transform: translateX(4px);
+}
+
+
+/* ===================================================
+   PHOTO BREAK
+   =================================================== */
+
+.photo-break {
+  padding: 0;
+  height: clamp(200px, 25vw, 340px);
+  overflow: hidden;
+  position: relative;
+  background: var(--deep);
+}
+.photo-break-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+  text-align: center;
+}
+.photo-break h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+  color: var(--cream);
+  line-height: 1.1;
+}
+.photo-break h2 em {
+  color: var(--coral);
+  font-style: normal;
+}
+.photo-break-stamp {
+  position: absolute;
+  bottom: 24px;
+  right: 40px;
+  font-family: 'Azeret Mono', monospace;
+  font-size: .52rem;
+  font-weight: 600;
+  color: var(--cream);
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  transform: rotate(-1deg);
+}
+
+
+/* ===================================================
+   VENUES MAP
+   =================================================== */
+
+#venues {
+  background: var(--blk);
+  color: var(--cream);
+  padding: clamp(80px,12vw,160px) 44px;
+  position: relative;
+  overflow: hidden;
+}
+#venues::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0px, transparent 3px, rgba(205,177,204,.012) 3px, rgba(205,177,204,.012) 4px);
+  pointer-events: none;
+}
+#venues .s-label { color: var(--coral); }
+#venues .s-label::before { background: var(--coral); }
+
+.venues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 48px;
+  position: relative;
+  z-index: 2;
+}
+.venue-card {
+  background: var(--wine);
+  border: 1px solid rgba(255,255,255,.06);
+  padding: 24px;
+  border-radius: 2px;
+  transition: all .45s cubic-bezier(.16,1,.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.venue-card:nth-child(odd) { transform: rotate(-.2deg); }
+.venue-card:nth-child(even) { transform: rotate(.3deg); }
+.venue-card:hover {
+  transform: translateY(-5px) rotate(0deg) !important;
+  border-color: rgba(255,144,144,.2);
+  box-shadow: 0 14px 40px rgba(0,0,0,.25);
+}
+.venue-card .ven-hover-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--coral);
+  transition: width .4s;
+}
+.venue-card:hover .ven-hover-line { width: 100%; }
+.venue-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+.venue-card .ven-hood {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 10px;
+}
+.venue-card .ven-address {
+  font-size: .8rem;
+  color: var(--lav-dark);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.venue-card .ven-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.venue-card .ven-links a {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--lav);
+  text-decoration: none;
+  transition: all .2s;
+  padding: 4px 0;
+}
+.venue-card .ven-links a:hover {
+  color: var(--coral);
+  transform: translateX(3px);
+}
+.venue-card .ven-jam-count {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .48rem;
+  color: var(--dust);
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+
+/* ===================================================
+   JOIN / SIGNUP
+   =================================================== */
+
+#join {
+  background: var(--cream);
+  padding: clamp(80px,12vw,160px) 44px;
+  position: relative;
+}
+#join .s-label { color: var(--caramel); }
+#join .s-label::before { background: var(--caramel); }
+
+.join-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.join-card {
+  background: var(--blk);
+  color: var(--cream);
+  padding: 44px;
+  border-radius: 2px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.join-card:first-child { transform: rotate(-.3deg); }
+.join-card:last-child { transform: rotate(.3deg); }
+.join-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--coral), var(--red), var(--orange), var(--caramel));
+}
+.join-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+.join-card p {
+  font-size: .88rem;
+  color: var(--lav);
+  line-height: 1.7;
+  margin-bottom: 24px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.join-form {
+  display: flex;
+  gap: 8px;
+  max-width: 360px;
+  margin: 0 auto 16px;
+}
+.join-form input, .submit-form input, .submit-form select, .submit-form textarea {
+  flex: 1;
+  padding: 12px 16px;
+  font-family: 'Nunito', sans-serif;
+  font-size: .82rem;
+  background: rgba(255,255,255,.08);
+  border: 1.5px solid rgba(255,255,255,.12);
+  border-radius: 2px;
+  color: var(--cream);
+  outline: none;
+  transition: all .3s;
+}
+.join-form input::placeholder, .submit-form input::placeholder, .submit-form textarea::placeholder {
+  color: var(--lav-dark);
+}
+.join-form input:focus, .submit-form input:focus, .submit-form select:focus, .submit-form textarea:focus {
+  border-color: var(--coral);
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 0 0 3px rgba(255,144,144,.1);
+}
+.join-form button, .submit-form button {
+  padding: 12px 20px;
+  font-family: 'Azeret Mono', monospace;
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  background: var(--red);
+  color: var(--cream);
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all .35s;
+  white-space: nowrap;
+}
+.join-form button:hover, .submit-form button:hover {
+  background: var(--coral);
+  color: var(--deep);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(237,32,36,.3);
+}
+.join-note {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  color: var(--lav-dark);
+  letter-spacing: .1em;
+}
+.join-success, .submit-success {
+  display: none;
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.05rem;
+  color: var(--coral);
+  padding: 20px;
+}
+
+/* Submit session form */
+.submit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.submit-form select {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .75rem;
+}
+.submit-form select option {
+  background: var(--deep);
+  color: var(--cream);
+}
+.submit-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.submit-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+
+/* ===================================================
+   FOOTER
+   =================================================== */
+
+footer {
+  background: var(--blk);
+  color: var(--cream);
+  padding: 56px 44px 40px;
+  position: relative;
+}
+footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red), var(--coral), var(--orange), var(--caramel), var(--lav));
+}
+
+.footer-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 48px;
+}
+
+.footer-brand .nav-logo {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 1.4rem;
+}
+.footer-brand p {
+  font-size: .85rem;
+  color: var(--lav-dark);
+  line-height: 1.7;
+  max-width: 300px;
+}
+
+.footer-col h4 {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .55rem;
+  font-weight: 600;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--dust);
+  margin-bottom: 18px;
+}
+.footer-col ul {
+  list-style: none;
+}
+.footer-col li {
+  margin-bottom: 10px;
+}
+.footer-col a {
+  font-size: .82rem;
+  color: var(--lav-dark);
+  transition: all .3s;
+  text-decoration: none;
+}
+.footer-col a:hover {
+  color: var(--coral);
+  transform: translateX(4px);
+  display: inline-block;
+}
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: 40px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-copy {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .52rem;
+  color: rgba(255,255,255,.2);
+  letter-spacing: .1em;
+}
+.footer-by a {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .52rem;
+  color: rgba(255,255,255,.2);
+  letter-spacing: .1em;
+  text-decoration: none;
+  transition: color .3s;
+}
+.footer-by a:hover { color: var(--coral); }
+
+
+/* ===================================================
+   RESPONSIVE
+   =================================================== */
+
+@media (max-width: 1024px) {
+  nav { padding: 16px 28px; }
+  .hero { padding: 120px 28px 80px; }
+  .hero-content { gap: 48px; }
+  section { padding-left: 28px !important; padding-right: 28px !important; }
+}
+
+@media (max-width: 768px) {
+  nav { padding: 14px 20px; }
+  .nav-links { display: none; }
+  .menu-btn { display: block; }
+
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(22,18,16,.98);
+    backdrop-filter: blur(20px);
+    justify-content: center;
+    align-items: center;
+    gap: 28px;
+    z-index: 999;
+  }
+  .nav-links.open a {
+    font-size: .85rem;
+    opacity: 1;
+  }
+
+  .hero { padding: 100px 20px 60px; min-height: auto; }
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .hero-visual {
+    height: 340px;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 10vw, 3.4rem);
+  }
+
+  .about-layout,
+  .community-layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .jams-grid,
+  .rules-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .join-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .value-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .venues-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  section { padding-left: 20px !important; padding-right: 20px !important; }
+
+  .cursor-glow { display: none; }
+}
+
+@media (max-width: 480px) {
+  .hero-btns { flex-direction: column; }
+  .hero-btns .btn { text-align: center; justify-content: center; }
+
+  .join-form {
+    flex-direction: column;
+  }
+  .join-card {
+    padding: 32px 20px;
+  }
+  .submit-form .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ig-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .poster-main { width: 90%; left: 5%; padding: 24px; }
+
+  .day-filter {
+    gap: 6px;
+  }
+  .day-btn {
+    padding: 6px 12px;
+    font-size: .48rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, .rv, .rv-d1, .rv-d2, .rv-d3, .rv-d4 {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .marquee-inner { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn, .day-btn { min-height: 44px; }
+  .jam-card:hover { transform: none !important; }
+  .venue-card:hover { transform: none !important; }
+  .value-card:hover { transform: none !important; }
+  .rule-card:hover { transform: none !important; }
+  * { -webkit-tap-highlight-color: transparent; }
+  button, .btn, .nav-links a, .jam-card, .venue-card {
+    -webkit-tap-highlight-color: rgba(255,144,144,.15);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Cursor glow -->
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Glory Jams</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#about">About</a></li>
+    <li><a href="#jams">Sessions</a></li>
+    <li><a href="#venues">Venues</a></li>
+    <li><a href="#guidelines">Guidelines</a></li>
+    <li><a href="#community">Community</a></li>
+    <li><a href="#join">Get In</a></li>
+  </ul>
+  <button class="menu-btn" id="menuBtn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+
+<!-- ===================================================
+     HERO
+     =================================================== -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-tag">Oakland, California</div>
+      <h1>
+        <span class="word">Glory</span>
+        <span class="word">Jams</span>
+      </h1>
+      <p class="hero-sub">Musicians getting in rooms together. Every night, somewhere in Oakland, somebody's running a jam. We help you find it.</p>
+      <div class="hero-btns">
+        <a href="#jams" class="btn btn-red">Find a Session</a>
+        <a href="#join" class="btn btn-out">Get on the List</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="poster-main" id="heroPoster">
+        <div class="poster-date">Every Tuesday</div>
+        <div class="poster-title">The Funk & Soul Jam</div>
+        <div class="poster-venue">The Legionnaire Saloon</div>
+        <div class="poster-genre">Funk / Soul / R&B</div>
+        <div class="poster-divider"></div>
+        <div class="poster-details">
+          Doors 8pm / Music 9pm<br>
+          All instruments welcome<br>
+          No cover / 21+
+        </div>
+      </div>
+      <div class="hero-stamp hero-stamp-1">Pull Up</div>
+      <div class="hero-stamp hero-stamp-2">#gloryjams</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-inner">
+    <span class="t1">Funk</span>
+    <span class="t2">Soul</span>
+    <span class="t1">Jazz</span>
+    <span class="t2">Blues</span>
+    <span class="t1">R&B</span>
+    <span class="t2">Latin</span>
+    <span class="t1">Open Jam</span>
+    <span class="t2">Oakland</span>
+    <span class="t1">Funk</span>
+    <span class="t2">Soul</span>
+    <span class="t1">Jazz</span>
+    <span class="t2">Blues</span>
+    <span class="t1">R&B</span>
+    <span class="t2">Latin</span>
+    <span class="t1">Open Jam</span>
+    <span class="t2">Oakland</span>
+  </div>
+</div>
+
+
+<!-- ===================================================
+     ABOUT
+     =================================================== -->
+<section id="about">
+  <div class="wrap">
+    <div class="s-label rv">The Mission</div>
+    <div class="s-title rv">Every night is a jam night<br>if you know where to look.</div>
+
+    <div class="about-layout">
+      <div class="about-copy rv rv-d1">
+        <p>Glory Jams started as a simple idea: <em>musicians should play together more</em>. Not through streaming algorithms, not through social media content funnels, not through networking events where nobody actually plays.</p>
+        <p>Through <em>jam sessions</em>. The oldest, most honest way musicians have found each other for a hundred years. You show up, you sit in, you play. No audition. No cover charge. No followers required.</p>
+        <p>Oakland has one of the deepest music scenes on the West Coast, but finding out where the jams are happening means knowing someone who knows someone. We're building the map so you don't need to.</p>
+      </div>
+      <div class="about-manifesto rv rv-d2">
+        <blockquote>"The music industry is really good at turning music into content and really bad at getting musicians in a room together. We're fixing the second one."</blockquote>
+        <cite>-- Simonoto, founder</cite>
+      </div>
+    </div>
+
+    <div class="value-grid">
+      <div class="value-card rv rv-d1">
+        <div class="vc-hover-line"></div>
+        <div class="value-icon">01 / No Gatekeepers</div>
+        <h3>Open to Everyone</h3>
+        <p>If you play an instrument, you're welcome. No auditions, no prerequisites, no velvet ropes. Beginners sit in next to pros.</p>
+      </div>
+      <div class="value-card rv rv-d2">
+        <div class="vc-hover-line"></div>
+        <div class="value-icon">02 / Free Forever</div>
+        <h3>Community-Powered</h3>
+        <p>Glory Jams is free to use, free to list sessions, free to find sessions. No subscriptions, no premium tiers, no ads.</p>
+      </div>
+      <div class="value-card rv rv-d3">
+        <div class="vc-hover-line"></div>
+        <div class="value-icon">03 / Local First</div>
+        <h3>Oakland Roots</h3>
+        <p>Born in Oakland, growing neighborhood by neighborhood. Every city has jams happening -- we're starting with ours.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     UPCOMING JAMS — dynamically loaded from events.json
+     =================================================== -->
+<section id="jams">
+  <div class="wrap">
+    <div class="jams-header">
+      <div class="s-label rv">Sessions</div>
+      <div class="s-title rv" style="color: var(--cream);">This week in<br>Oakland.</div>
+      <div class="s-sub rv rv-d1" style="color: var(--lav);">Jam sessions, open mics, and musician meetups happening near you. Show up, sit in, play.</div>
+      <div class="day-filter rv rv-d2" id="dayFilter">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <div class="jams-grid" id="jamsGrid">
+      <!-- Populated from events.json by JS -->
+      <div class="jams-empty">Loading sessions...</div>
+    </div>
+
+    <div class="jams-cta rv">
+      <a href="#join" class="btn btn-coral">List Your Session</a>
+      <p>Running a jam? Put it on the map. Free forever.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- BREAK -->
+<div class="photo-break">
+  <div class="photo-break-inner">
+    <h2 class="rv">No followers required.<br>Just <em>show up and play</em>.</h2>
+  </div>
+  <div class="photo-break-stamp">Oakland, CA</div>
+</div>
+
+
+<!-- ===================================================
+     VENUES
+     =================================================== -->
+<section id="venues">
+  <div class="wrap">
+    <div class="s-label rv">Venues</div>
+    <div class="s-title rv" style="color: var(--cream);">The spots.</div>
+    <div class="s-sub rv rv-d1" style="color: var(--lav);">Oakland bars, clubs, and community spaces that keep the music going. These are the rooms where it happens.</div>
+
+    <div class="venues-grid" id="venuesGrid">
+      <!-- Populated from events.json by JS -->
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     COMMUNITY GUIDELINES
+     =================================================== -->
+<section id="guidelines">
+  <div class="wrap">
+    <div class="s-label rv">Jam Etiquette</div>
+    <div class="s-title rv">The unwritten rules,<br>written down.</div>
+    <p class="guidelines-intro rv rv-d1">Jam sessions work because musicians look out for each other. These aren't policies -- they're the common-sense code that keeps sessions fun, fair, and musical for everyone.</p>
+
+    <div class="rules-grid">
+      <div class="rule-card rv rv-d1">
+        <div class="rc-hover-line"></div>
+        <div class="rule-num">01</div>
+        <h3>Listen More Than You Play</h3>
+        <p>The best musicians at a jam are the best listeners. Leave space. Lock in with the groove. Your moment will come.</p>
+      </div>
+      <div class="rule-card rv rv-d2">
+        <div class="rc-hover-line"></div>
+        <div class="rule-num">02</div>
+        <h3>Respect the Sign-Up</h3>
+        <p>Wait your turn. Don't jump the list. If the host says three songs, play three songs. Everybody gets a shot.</p>
+      </div>
+      <div class="rule-card rv rv-d1">
+        <div class="rc-hover-line"></div>
+        <div class="rule-num">03</div>
+        <h3>Support the Venue</h3>
+        <p>Buy a drink. Tip the bartender. These spots give us a room for free -- the least we can do is be good customers.</p>
+      </div>
+      <div class="rule-card rv rv-d2">
+        <div class="rc-hover-line"></div>
+        <div class="rule-num">04</div>
+        <h3>All Levels Welcome</h3>
+        <p>Don't big-time people. The kid who just started playing deserves the same respect as the 30-year vet. We all started somewhere.</p>
+      </div>
+      <div class="rule-card rv rv-d1">
+        <div class="rc-hover-line"></div>
+        <div class="rule-num">05</div>
+        <h3>Keep Your Volume in Check</h3>
+        <p>Nobody wants to compete with a Marshall stack at a jazz jam. Read the room, match the energy, and let everyone be heard.</p>
+      </div>
+      <div class="rule-card rv rv-d2">
+        <div class="rc-hover-line"></div>
+        <div class="rule-num">06</div>
+        <h3>Bring Good Vibes</h3>
+        <p>No drama, no ego, no gatekeeping. If someone's struggling, encourage them. If someone's killing it, let them know. This is community.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     COMMUNITY
+     =================================================== -->
+<section id="community">
+  <div class="wrap">
+    <div class="s-label rv">Community</div>
+    <div class="s-title rv">#gloryjams</div>
+
+    <div class="community-layout">
+      <div class="community-text rv rv-d1">
+        <h3>The nightly jam campaign.</h3>
+        <p>Every night, somewhere in Oakland, someone is playing music with people they didn't know yesterday. Glory Jams is building the connective tissue between those sessions.</p>
+        <p>Follow <em>#gloryjams</em> on Instagram to see who's pulling up, what songs are getting called, and where the vibe is at tonight.</p>
+        <p>Post your own jam clips. Tag the session. Tag the players. Let people know what they're missing.</p>
+      </div>
+
+      <div>
+        <div class="ig-grid rv rv-d2">
+          <div class="ig-tile">
+            <div class="ig-tile-inner">
+              <span class="ig-tile-icon">&#127928;</span>
+              <span class="ig-tile-label">Bass Solo</span>
+            </div>
+          </div>
+          <div class="ig-tile">
+            <div class="ig-tile-inner">
+              <span class="ig-tile-icon">&#127911;</span>
+              <span class="ig-tile-label">Headphones</span>
+            </div>
+          </div>
+          <div class="ig-tile">
+            <div class="ig-tile-inner">
+              <span class="ig-tile-icon">&#127927;</span>
+              <span class="ig-tile-label">Trumpet</span>
+            </div>
+          </div>
+          <div class="ig-tile">
+            <div class="ig-tile-inner">
+              <span class="ig-tile-icon">&#127929;</span>
+              <span class="ig-tile-label">Keys</span>
+            </div>
+          </div>
+          <div class="ig-tile">
+            <div class="ig-tile-inner">
+              <span class="ig-tile-icon">&#129345;</span>
+              <span class="ig-tile-label">Drums</span>
+            </div>
+          </div>
+          <div class="ig-tile">
+            <div class="ig-tile-inner">
+              <span class="ig-tile-icon">&#127908;</span>
+              <span class="ig-tile-label">Vocals</span>
+            </div>
+          </div>
+        </div>
+        <div class="ig-follow rv rv-d3">
+          <a href="https://instagram.com/simonoto" target="_blank" rel="noopener">Follow @simonoto on Instagram</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     JOIN
+     =================================================== -->
+<section id="join">
+  <div class="wrap">
+    <div class="s-label rv" style="text-align:center; justify-content:center;">Get In</div>
+    <div class="s-title rv" style="text-align:center;">Don't miss the next one.</div>
+
+    <div class="join-grid">
+      <div class="join-card rv rv-d1">
+        <h3>Join the mailing list</h3>
+        <p>Get a heads up when new sessions drop, when special events happen, and when we expand to new neighborhoods.</p>
+
+        <form class="join-form" id="joinForm">
+          <input type="email" placeholder="your@email.com" required aria-label="Email address" id="joinEmail">
+          <button type="submit">I'm In</button>
+        </form>
+        <div class="join-note">No spam. Just jams. Unsubscribe anytime.</div>
+        <div class="join-success" id="joinSuccess">You're on the list. See you at the jam.</div>
+      </div>
+
+      <div class="join-card rv rv-d2">
+        <h3>Submit a session</h3>
+        <p>Running a jam? Tell us about it and we'll add it to the map. Free, always.</p>
+
+        <form class="submit-form" id="submitForm">
+          <input type="text" placeholder="Session name" required aria-label="Session name" id="submitName">
+          <input type="text" placeholder="Venue name & address" required aria-label="Venue" id="submitVenue">
+          <div class="form-row">
+            <select required aria-label="Day of week" id="submitDay">
+              <option value="">Day...</option>
+              <option value="monday">Monday</option>
+              <option value="tuesday">Tuesday</option>
+              <option value="wednesday">Wednesday</option>
+              <option value="thursday">Thursday</option>
+              <option value="friday">Friday</option>
+              <option value="saturday">Saturday</option>
+              <option value="sunday">Sunday</option>
+            </select>
+            <input type="text" placeholder="Time (e.g. 9pm-12am)" required aria-label="Time" id="submitTime">
+          </div>
+          <input type="text" placeholder="Genre / vibe (funk, jazz, open, etc.)" aria-label="Genre" id="submitGenre">
+          <input type="text" placeholder="Your name or Instagram" aria-label="Contact" id="submitContact">
+          <textarea placeholder="Anything else? (backline, cover, age restriction...)" aria-label="Notes" id="submitNotes"></textarea>
+          <button type="submit">Submit Session</button>
+        </form>
+        <div class="join-note">We'll review and add it within 48 hours.</div>
+        <div class="submit-success" id="submitSuccess">Submitted! We'll review and get back to you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================
+     FOOTER
+     =================================================== -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo">Glory Jams</a>
+      <p>Oakland's jam session community. Finding and connecting musicians since 2026.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigate</h4>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#jams">Sessions</a></li>
+        <li><a href="#venues">Venues</a></li>
+        <li><a href="#guidelines">Jam Etiquette</a></li>
+        <li><a href="#community">Community</a></li>
+        <li><a href="#join">Join</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <ul>
+        <li><a href="https://instagram.com/simonoto" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://simonoto.com" target="_blank" rel="noopener">Simonoto</a></li>
+        <li><a href="mailto:simonoto@gmail.com">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">&copy; 2026 Glory Jams. Built in Oakland, CA.</div>
+    <div class="footer-by"><a href="https://simonoto.com" target="_blank" rel="noopener">A Simonoto project</a></div>
+  </div>
+</footer>
+
+
+<!-- ===================================================
+     FIREBASE SDK
+     =================================================== -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+/* ===================================================
+   FIREBASE INIT
+   =================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDrxGlgSHvhMxqHsPJ4xBhfPJGgjkYiKWU",
+  authDomain: "glory-jams.firebaseapp.com",
+  databaseURL: "https://glory-jams-default-rtdb.firebaseio.com",
+  projectId: "glory-jams",
+  storageBucket: "glory-jams.firebasestorage.app",
+  messagingSenderId: "698412039187",
+  appId: "1:698412039187:web:placeholder"
+};
+
+let db = null;
+let firebaseReady = false;
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  firebase.auth().signInAnonymously().then(() => {
+    db = firebase.database();
+    firebaseReady = true;
+  }).catch(() => {
+    // Firebase auth failed — forms will still work with UI feedback
+  });
+} catch(e) {
+  // Firebase not available — degrade gracefully
+}
+
+
+/* ===================================================
+   NAV
+   =================================================== */
+const nav = document.querySelector('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+const menuBtn = document.getElementById('menuBtn');
+const navLinks = document.getElementById('navLinks');
+menuBtn.addEventListener('click', () => {
+  menuBtn.classList.toggle('active');
+  navLinks.classList.toggle('open');
+});
+navLinks.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    menuBtn.classList.remove('active');
+    navLinks.classList.remove('open');
+  });
+});
+
+
+/* ===================================================
+   SCROLL REVEAL
+   =================================================== */
+const revEls = document.querySelectorAll('.rv');
+const revObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('vis');
+      revObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+revEls.forEach(el => revObs.observe(el));
+
+
+/* ===================================================
+   CURSOR GLOW
+   =================================================== */
+const glow = document.getElementById('cursorGlow');
+const darkSections = document.querySelectorAll('.hero, #jams, #venues, footer');
+let glowActive = false;
+
+document.addEventListener('mousemove', e => {
+  if (glowActive) {
+    glow.style.left = e.clientX + 'px';
+    glow.style.top = e.clientY + 'px';
+  }
+}, { passive: true });
+
+const glowObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      glowActive = true;
+      glow.classList.add('active');
+    }
+  });
+}, { threshold: 0.1 });
+
+const glowOutObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) {
+      let anyVisible = false;
+      darkSections.forEach(s => {
+        const r = s.getBoundingClientRect();
+        if (r.top < window.innerHeight && r.bottom > 0) anyVisible = true;
+      });
+      if (!anyVisible) {
+        glowActive = false;
+        glow.classList.remove('active');
+      }
+    }
+  });
+}, { threshold: 0 });
+
+darkSections.forEach(s => {
+  glowObs.observe(s);
+  glowOutObs.observe(s);
+});
+
+
+/* ===================================================
+   EVENTS DATA — load from events.json
+   =================================================== */
+const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const today = new Date();
+const todayDay = DAYS[today.getDay()];
+
+let eventsData = null;
+
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m === 0 ? h12 + ampm : h12 + ':' + String(m).padStart(2,'0') + ampm;
+}
+
+function getEventDay(event) {
+  return event.recurrence && event.recurrence.dayOfWeek ? event.recurrence.dayOfWeek : null;
+}
+
+function buildDayFilter() {
+  const filter = document.getElementById('dayFilter');
+  // "All" button
+  const allBtn = document.createElement('button');
+  allBtn.className = 'day-btn active';
+  allBtn.textContent = 'All';
+  allBtn.dataset.day = 'all';
+  allBtn.addEventListener('click', () => setFilter('all'));
+  filter.appendChild(allBtn);
+
+  DAYS.forEach((day, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'day-btn';
+    btn.dataset.day = day;
+    btn.innerHTML = DAY_LABELS[i];
+    if (day === todayDay) {
+      btn.innerHTML += '<span class="today-dot"></span>';
+    }
+    btn.addEventListener('click', () => setFilter(day));
+    filter.appendChild(btn);
+  });
+}
+
+let activeFilter = 'all';
+
+function setFilter(day) {
+  activeFilter = day;
+  document.querySelectorAll('.day-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.day === day);
+  });
+  renderJams();
+}
+
+function renderJams() {
+  if (!eventsData) return;
+  const grid = document.getElementById('jamsGrid');
+  const events = eventsData.events.filter(e => e.status === 'active');
+  const venues = eventsData.venues;
+
+  const filtered = activeFilter === 'all'
+    ? events
+    : events.filter(e => getEventDay(e) === activeFilter);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="jams-empty">No sessions on ' +
+      (activeFilter === 'all' ? 'the schedule yet' : activeFilter + 's') +
+      '. <a href="#join" style="color:var(--coral);text-decoration:underline;">Submit one?</a></div>';
+    return;
+  }
+
+  // Sort: today's day first, then by start time
+  const dayOrder = [...DAYS.slice(DAYS.indexOf(todayDay)), ...DAYS.slice(0, DAYS.indexOf(todayDay))];
+  filtered.sort((a, b) => {
+    const aDay = dayOrder.indexOf(getEventDay(a));
+    const bDay = dayOrder.indexOf(getEventDay(b));
+    if (aDay !== bDay) return aDay - bDay;
+    return (a.startTime || '').localeCompare(b.startTime || '');
+  });
+
+  grid.innerHTML = filtered.map((event, i) => {
+    const venue = venues[event.venueId] || {};
+    const isToday = getEventDay(event) === todayDay;
+    const isMonthly = event.recurrence && event.recurrence.type === 'monthly';
+    const dayLabel = isMonthly
+      ? (event.recurrence.weekOfMonth === 1 ? 'First ' : event.recurrence.weekOfMonth === 2 ? 'Second ' : event.recurrence.weekOfMonth === 3 ? 'Third ' : 'Last ') +
+        event.recurrence.dayOfWeek.charAt(0).toUpperCase() + event.recurrence.dayOfWeek.slice(1)
+      : 'Every ' + (getEventDay(event) || '').charAt(0).toUpperCase() + (getEventDay(event) || '').slice(1);
+
+    const badgeClass = isToday ? 'tonight' : isMonthly ? 'monthly' : 'weekly';
+    const badgeText = isToday
+      ? '<span class="pulse-dot"></span> Tonight'
+      : dayLabel;
+
+    const timeStr = formatTime(event.startTime) + ' - ' + formatTime(event.endTime);
+    const coverStr = event.coverCharge || 'free';
+    const ageStr = event.ageRestriction || '';
+
+    const tags = (event.genreTags || []).map(t =>
+      '<span class="genre-tag ' + t.replace(/[&]/g, '') + '">' + t + '</span>'
+    ).join('');
+
+    const mapsLink = venue.googleMapsUrl
+      ? '<a href="' + venue.googleMapsUrl + '" target="_blank" rel="noopener">' + venue.name + '</a>'
+      : venue.name || 'TBA';
+
+    return '<div class="jam-card rv rv-d' + ((i % 4) + 1) + '">' +
+      '<div class="jc-hover-line"></div>' +
+      '<div class="jam-card-badge ' + badgeClass + '">' + badgeText + '</div>' +
+      '<h3>' + event.name + '</h3>' +
+      '<div class="venue">' + mapsLink + '</div>' +
+      (venue.neighborhood ? '<div class="neighborhood">' + venue.neighborhood + '</div>' : '') +
+      '<div class="details">' +
+        timeStr + ' / ' + coverStr + (ageStr ? ' / ' + ageStr : '') +
+        (event.signupProcess ? '<br>' + event.signupProcess : '') +
+      '</div>' +
+      '<div class="genre-tags">' + tags + '</div>' +
+      (event.description ? '<div class="jam-description">' + event.description + '</div>' +
+        '<button class="jam-expand" onclick="this.closest(\'.jam-card\').classList.toggle(\'expanded\');this.textContent=this.closest(\'.jam-card\').classList.contains(\'expanded\')?\'Show less\':\'More info\'">More info</button>' : '') +
+    '</div>';
+  }).join('');
+
+  // Re-observe new elements for reveal
+  grid.querySelectorAll('.rv').forEach(el => revObs.observe(el));
+}
+
+function renderVenues() {
+  if (!eventsData) return;
+  const grid = document.getElementById('venuesGrid');
+  const venues = eventsData.venues;
+  const events = eventsData.events.filter(e => e.status === 'active');
+
+  const venueIds = Object.keys(venues);
+  grid.innerHTML = venueIds.map((id, i) => {
+    const v = venues[id];
+    const jamCount = events.filter(e => e.venueId === id).length;
+    const links = [];
+    if (v.googleMapsUrl) links.push('<a href="' + v.googleMapsUrl + '" target="_blank" rel="noopener">Directions</a>');
+    if (v.website) links.push('<a href="' + v.website + '" target="_blank" rel="noopener">Website</a>');
+    if (v.instagram) links.push('<a href="https://instagram.com/' + v.instagram + '" target="_blank" rel="noopener">@' + v.instagram + '</a>');
+
+    return '<div class="venue-card rv rv-d' + ((i % 4) + 1) + '">' +
+      '<div class="ven-hover-line"></div>' +
+      '<h3>' + v.name + '</h3>' +
+      '<div class="ven-hood">' + v.neighborhood + '</div>' +
+      '<div class="ven-address">' + v.address + '</div>' +
+      (links.length ? '<div class="ven-links">' + links.join('') + '</div>' : '') +
+      '<div class="ven-jam-count">' + jamCount + ' active session' + (jamCount !== 1 ? 's' : '') + '</div>' +
+    '</div>';
+  }).join('');
+
+  grid.querySelectorAll('.rv').forEach(el => revObs.observe(el));
+}
+
+// Hero poster rotates through featured events
+function cycleHeroPoster() {
+  if (!eventsData) return;
+  const featured = eventsData.events.filter(e => e.featured && e.status === 'active');
+  if (featured.length === 0) return;
+
+  let idx = 0;
+  function show() {
+    const event = featured[idx];
+    const venue = eventsData.venues[event.venueId] || {};
+    const poster = document.getElementById('heroPoster');
+    if (!poster) return;
+
+    const dayLabel = event.recurrence.type === 'monthly'
+      ? (event.recurrence.weekOfMonth === 1 ? 'First ' : '') + event.recurrence.dayOfWeek.charAt(0).toUpperCase() + event.recurrence.dayOfWeek.slice(1)
+      : 'Every ' + event.recurrence.dayOfWeek.charAt(0).toUpperCase() + event.recurrence.dayOfWeek.slice(1);
+
+    poster.querySelector('.poster-date').textContent = dayLabel;
+    poster.querySelector('.poster-title').textContent = event.name;
+    poster.querySelector('.poster-venue').textContent = venue.name || '';
+    poster.querySelector('.poster-genre').textContent = (event.genreTags || []).join(' / ').toUpperCase();
+    poster.querySelector('.poster-details').innerHTML =
+      formatTime(event.startTime) + ' - ' + formatTime(event.endTime) + '<br>' +
+      'All instruments welcome<br>' +
+      (event.coverCharge === 'free' ? 'No cover' : event.coverCharge) + (event.ageRestriction ? ' / ' + event.ageRestriction : '');
+
+    idx = (idx + 1) % featured.length;
+  }
+
+  // Cycle every 6 seconds
+  show();
+  setInterval(show, 6000);
+}
+
+// Load events data
+fetch('events.json')
+  .then(r => r.json())
+  .then(data => {
+    eventsData = data;
+    buildDayFilter();
+    renderJams();
+    renderVenues();
+    cycleHeroPoster();
+  })
+  .catch(() => {
+    document.getElementById('jamsGrid').innerHTML =
+      '<div class="jams-empty">Could not load sessions. Please try refreshing.</div>';
+  });
+
+
+/* ===================================================
+   FORM HANDLERS — Firebase-backed
+   =================================================== */
+
+document.getElementById('joinForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const email = document.getElementById('joinEmail').value.trim();
+  if (!email) return;
+
+  const onSuccess = () => {
+    this.style.display = 'none';
+    this.closest('.join-card').querySelector('.join-note').style.display = 'none';
+    document.getElementById('joinSuccess').style.display = 'block';
+  };
+
+  if (firebaseReady && db) {
+    const key = email.replace(/[.#$\[\]]/g, '_');
+    db.ref('subscribers/' + key).set({
+      email: email,
+      phone: '',
+      created: new Date().toISOString(),
+      source: 'website'
+    }).then(onSuccess).catch(onSuccess); // Show success even if Firebase write fails
+  } else {
+    onSuccess();
+  }
+});
+
+document.getElementById('submitForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const data = {
+    name: document.getElementById('submitName').value.trim(),
+    venue: document.getElementById('submitVenue').value.trim(),
+    day: document.getElementById('submitDay').value,
+    time: document.getElementById('submitTime').value.trim(),
+    genre: document.getElementById('submitGenre').value.trim(),
+    contact: document.getElementById('submitContact').value.trim(),
+    notes: document.getElementById('submitNotes').value.trim(),
+    created: new Date().toISOString(),
+    status: 'pending'
+  };
+
+  const onSuccess = () => {
+    this.style.display = 'none';
+    this.closest('.join-card').querySelector('.join-note').style.display = 'none';
+    document.getElementById('submitSuccess').style.display = 'block';
+  };
+
+  if (firebaseReady && db) {
+    db.ref('submissions').push(data).then(onSuccess).catch(onSuccess);
+  } else {
+    onSuccess();
+  }
+});
+</script>
+
+</body>
+</html>
