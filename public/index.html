@@ -11,6 +11,7 @@
 <meta property="og:url" content="https://gloryjams.com">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://gloryjams.com/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127926;</text></svg>">
 
 <!-- Typography: Fraunces (headlines), Nunito (body), Azeret Mono (labels) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -290,13 +291,16 @@ nav.scrolled {
   background: var(--deep);
   color: var(--cream);
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  padding: 130px 44px 100px;
+  padding: 130px 44px 60px;
   position: relative;
   overflow: hidden;
+  text-align: center;
 }
 
-/* Decorative radial glow */
+/* Decorative radial glows */
 .hero::before {
   content: '';
   position: absolute;
@@ -308,55 +312,45 @@ nav.scrolled {
   pointer-events: none;
   z-index: 0;
 }
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: -30%;
-  left: -10%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(166,113,26,.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
 
 .hero-content {
-  max-width: 1100px;
+  max-width: 900px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap: 80px;
-  align-items: center;
   position: relative;
   z-index: 2;
   width: 100%;
 }
 
-.hero-text { position: relative; }
-
-.hero-tag {
+.hero-location {
+  display: inline-block;
   font-family: 'Azeret Mono', monospace;
-  font-size: .6rem;
-  letter-spacing: .35em;
+  font-size: .55rem;
+  font-weight: 600;
+  letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--coral);
-  margin-bottom: 24px;
+  color: var(--cream);
+  background: var(--red);
+  padding: 8px 18px;
+  transform: rotate(-2deg);
+  box-shadow: 4px 6px 16px rgba(237,32,36,.35);
+  margin-bottom: 32px;
   opacity: 0;
-  animation: slideUp .7s .3s forwards;
+  animation: stampIn .5s .3s forwards;
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes stampIn {
+  from { opacity: 0; transform: scale(.5) rotate(15deg); }
+  to { opacity: 1; }
 }
 
 .hero h1 {
   font-family: 'Fraunces', serif;
   font-weight: 900;
   font-variation-settings: 'WONK' 1, 'opsz' 144;
-  font-size: clamp(2.6rem, 6.5vw, 5.4rem);
-  line-height: 1.02;
+  font-size: clamp(3.5rem, 12vw, 8rem);
+  line-height: .92;
   margin-bottom: 24px;
+  letter-spacing: -.02em;
 }
 .hero h1 .word {
   display: inline-block;
@@ -371,18 +365,6 @@ nav.scrolled {
     0 8px 0 rgba(120,10,10,.15),
     0 12px 25px rgba(0,0,0,.5),
     0 0 60px rgba(255,144,144,.08);
-  transition: text-shadow .4s, transform .4s, color .4s;
-}
-.hero h1 .word:hover {
-  text-shadow:
-    0 2px 0 rgba(237,32,36,.8),
-    0 4px 0 rgba(200,20,20,.6),
-    0 6px 0 rgba(160,15,15,.4),
-    0 8px 0 rgba(120,10,10,.3),
-    0 14px 35px rgba(0,0,0,.6),
-    0 0 80px rgba(255,144,144,.15);
-  transform: translateY(-3px) scale(1.03);
-  cursor: default;
 }
 .hero h1 .word:nth-child(1) { animation-delay: .4s; }
 .hero h1 .word:nth-child(2) { animation-delay: .55s; color: var(--coral); }
@@ -396,141 +378,111 @@ nav.scrolled {
   font-family: 'Fraunces', serif;
   font-weight: 400;
   font-variation-settings: 'WONK' 0;
-  font-size: clamp(.92rem, 1.6vw, 1.12rem);
+  font-size: clamp(1rem, 2vw, 1.3rem);
   color: var(--lav);
-  max-width: 420px;
-  line-height: 1.8;
-  margin-bottom: 40px;
+  max-width: 500px;
+  line-height: 1.7;
+  margin: 0 auto 40px;
   opacity: 0;
   animation: slideUp .8s .9s forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .hero-btns {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
+  justify-content: center;
   opacity: 0;
   animation: slideUp .7s 1.1s forwards;
 }
 
-/* Hero visual — poster-style collage */
-.hero-visual {
-  position: relative;
-  height: 480px;
-  perspective: 800px;
-}
-
-.poster-main {
-  position: absolute;
-  width: 80%;
-  height: 85%;
-  top: 5%;
-  left: 10%;
-  background: var(--wine);
-  border: 3px solid rgba(255,144,144,.12);
+/* Tonight's jam card in hero */
+.tonight-card {
+  max-width: 500px;
+  margin: 48px auto 0;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid rgba(255,144,144,.15);
+  padding: 28px 32px;
   border-radius: 3px;
+  text-align: left;
+  transform: rotate(-.8deg);
+  transition: all .5s cubic-bezier(.16,1,.3,1);
+  position: relative;
   overflow: hidden;
-  box-shadow: 22px 28px 70px rgba(0,0,0,.5), 0 0 80px rgba(255,144,144,.06);
-  transform: rotate(-2deg);
-  transition: transform .6s cubic-bezier(.16,1,.3,1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 36px;
-  text-align: center;
-}
-.poster-main:hover {
-  transform: rotate(-4deg) scale(1.02);
-}
-
-.poster-date {
-  font-family: 'Azeret Mono', monospace;
-  font-size: .55rem;
-  letter-spacing: .3em;
-  text-transform: uppercase;
-  color: var(--coral);
-  margin-bottom: 16px;
-}
-.poster-title {
-  font-family: 'Fraunces', serif;
-  font-weight: 900;
-  font-variation-settings: 'WONK' 1;
-  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-  color: var(--cream);
-  line-height: 1.1;
-  margin-bottom: 12px;
-}
-.poster-venue {
-  font-family: 'Nunito', sans-serif;
-  font-size: .85rem;
-  color: var(--lav);
-  margin-bottom: 8px;
-}
-.poster-genre {
-  font-family: 'Azeret Mono', monospace;
-  font-size: .5rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--dust);
-  margin-bottom: 24px;
-}
-.poster-divider {
-  width: 60px;
-  height: 2px;
-  background: var(--coral);
-  margin-bottom: 24px;
-  opacity: .5;
-}
-.poster-details {
-  font-family: 'Nunito', sans-serif;
-  font-size: .8rem;
-  color: var(--lav-dark);
-  line-height: 1.8;
-}
-
-/* Floating stamps */
-.hero-stamp {
-  position: absolute;
-  z-index: 5;
-  font-family: 'Fraunces', serif;
-  font-weight: 900;
-  font-variation-settings: 'WONK' 1;
-  font-size: .68rem;
-  color: var(--cream);
-  background: var(--red);
-  padding: 11px 20px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  box-shadow: 5px 7px 20px rgba(237,32,36,.35);
   opacity: 0;
-  animation: stampIn .5s forwards;
+  animation: slideUp .8s 1.4s forwards;
 }
-.hero-stamp-1 {
-  bottom: 8%;
-  right: 2%;
-  transform: rotate(7deg);
-  animation-delay: 1.3s;
+.tonight-card:hover {
+  transform: rotate(0deg) translateY(-4px);
+  border-color: rgba(255,144,144,.35);
+  box-shadow: 0 16px 48px rgba(0,0,0,.3);
 }
-.hero-stamp-2 {
-  top: 2%;
-  left: 0%;
+.tonight-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--coral);
+}
+.tonight-badge {
   font-family: 'Azeret Mono', monospace;
   font-size: .52rem;
   font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
   color: var(--coral);
-  background: none;
-  border: 1.5px solid var(--coral);
-  padding: 6px 14px;
-  transform: rotate(-4deg);
-  letter-spacing: .15em;
-  box-shadow: none;
-  animation-delay: 1.5s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
-
-@keyframes stampIn {
-  from { opacity: 0; transform: scale(.5) rotate(15deg); }
-  to { opacity: 1; }
+.tonight-badge .pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--coral);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.tonight-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.25rem;
+  margin-bottom: 6px;
+}
+.tonight-card .tc-venue {
+  font-size: .88rem;
+  color: var(--lav);
+  margin-bottom: 4px;
+}
+.tonight-card .tc-venue a {
+  color: var(--lav);
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(205,177,204,.3);
+  transition: color .2s;
+}
+.tonight-card .tc-venue a:hover { color: var(--coral); border-bottom-color: var(--coral); }
+.tonight-card .tc-meta {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .58rem;
+  color: var(--lav-dark);
+  line-height: 1.9;
+}
+.tonight-card .tc-desc {
+  font-size: .82rem;
+  color: var(--lav);
+  line-height: 1.65;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.tonight-card .genre-tags {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;
 }
 
 .scroll-hint {
@@ -540,7 +492,7 @@ nav.scrolled {
   transform: translateX(-50%);
   z-index: 3;
   opacity: 0;
-  animation: slideUp 1s 1.6s forwards;
+  animation: slideUp 1s 1.8s forwards;
   text-align: center;
 }
 .scroll-hint span {
@@ -574,7 +526,7 @@ nav.scrolled {
 
 .marquee {
   overflow: hidden;
-  padding: 20px 0;
+  padding: 18px 0;
   background: var(--blk);
   border-top: 2px solid rgba(255,255,255,.03);
   border-bottom: 2px solid rgba(255,255,255,.03);
@@ -582,8 +534,8 @@ nav.scrolled {
 }
 .marquee-inner {
   display: flex;
-  gap: 50px;
-  animation: scrollX 25s linear infinite;
+  gap: 40px;
+  animation: scrollX 20s linear infinite;
   width: max-content;
   will-change: transform;
 }
@@ -591,13 +543,14 @@ nav.scrolled {
   font-family: 'Fraunces', serif;
   font-weight: 800;
   font-variation-settings: 'WONK' 1;
-  font-size: 1.05rem;
+  font-size: 1rem;
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: .12em;
 }
 .marquee .t1 { color: rgba(255,144,144,.16); }
 .marquee .t2 { color: rgba(205,177,204,.1); }
+.marquee .t3 { color: rgba(166,113,26,.14); }
 @keyframes scrollX {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -605,134 +558,269 @@ nav.scrolled {
 
 
 /* ===================================================
-   ABOUT SECTION
+   WEEKLY CALENDAR
    =================================================== */
 
-#about {
+#calendar {
   background: var(--cream);
   padding: clamp(80px,12vw,160px) 44px;
   position: relative;
 }
-#about .s-label { color: var(--caramel); }
-#about .s-label::before { background: var(--caramel); }
+#calendar .s-label { color: var(--caramel); }
+#calendar .s-label::before { background: var(--caramel); }
 
-.about-layout {
+.week-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 64px;
-  align-items: start;
-  margin-top: 48px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-top: 40px;
 }
-
-.about-copy {
-  font-family: 'Fraunces', serif;
-  font-weight: 400;
-  font-variation-settings: 'WONK' 0;
-  font-size: 1.02rem;
-  line-height: 1.85;
-  color: var(--brown);
-}
-.about-copy em {
-  color: var(--red);
-  font-style: normal;
-  font-weight: 600;
-}
-.about-copy p + p {
-  margin-top: 20px;
-}
-
-.about-manifesto {
-  background: var(--blk);
-  color: var(--cream);
-  padding: 44px;
-  border-radius: 2px;
-  transform: rotate(.4deg);
-  position: relative;
-  overflow: hidden;
-}
-.about-manifesto::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--coral);
-}
-.about-manifesto blockquote {
-  font-family: 'Fraunces', serif;
-  font-weight: 700;
-  font-variation-settings: 'WONK' 1;
-  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
-  line-height: 1.6;
-  font-style: italic;
-  margin-bottom: 16px;
-}
-.about-manifesto cite {
-  font-family: 'Azeret Mono', monospace;
-  font-size: .62rem;
-  color: var(--coral);
-  font-style: normal;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-
-/* Value cards */
-.value-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-top: 64px;
-}
-.value-card {
+.week-day {
   background: var(--paper);
-  padding: 28px 24px;
-  border: 1px dashed rgba(0,0,0,.1);
+  border: 1px solid rgba(0,0,0,.06);
   border-radius: 2px;
+  padding: 16px 12px;
+  min-height: 140px;
   transition: all .45s cubic-bezier(.16,1,.3,1);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
-.value-card:nth-child(1) { transform: rotate(-.4deg); }
-.value-card:nth-child(2) { transform: rotate(.3deg); }
-.value-card:nth-child(3) { transform: rotate(-.2deg); }
-.value-card:hover {
-  transform: rotate(-1deg) !important;
-  border-color: var(--red);
-  box-shadow: 0 12px 36px rgba(0,0,0,.06);
+.week-day:nth-child(1) { transform: rotate(-.3deg); }
+.week-day:nth-child(2) { transform: rotate(.2deg); }
+.week-day:nth-child(3) { transform: rotate(-.15deg); }
+.week-day:nth-child(4) { transform: rotate(.25deg); }
+.week-day:nth-child(5) { transform: rotate(-.2deg); }
+.week-day:nth-child(6) { transform: rotate(.3deg); }
+.week-day:nth-child(7) { transform: rotate(-.1deg); }
+.week-day:hover {
+  transform: translateY(-5px) rotate(0deg) !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,.08);
+  border-color: var(--coral);
 }
-.value-card .vc-hover-line {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 3px;
-  background: var(--red);
-  transition: width .4s;
+.week-day.is-today {
+  background: var(--blk);
+  color: var(--cream);
+  border-color: var(--coral);
+  box-shadow: 0 8px 28px rgba(237,32,36,.15);
 }
-.value-card:hover .vc-hover-line { width: 100%; }
-.value-card h3 {
+.week-day.is-today .wd-label { color: var(--coral); }
+.week-day.is-today .wd-jam-name { color: var(--cream); }
+.week-day.is-today .wd-venue { color: var(--lav-dark); }
+.week-day.is-today .wd-time { color: var(--lav-dark); }
+.week-day.no-jam { opacity: .5; cursor: default; }
+.week-day.no-jam:hover { transform: none !important; box-shadow: none; border-color: rgba(0,0,0,.06); }
+
+.wd-label {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .52rem;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--caramel);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wd-label .today-pip {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--coral);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.wd-jam-name {
   font-family: 'Fraunces', serif;
   font-weight: 700;
   font-variation-settings: 'WONK' 1;
-  font-size: 1.05rem;
-  margin-bottom: 10px;
+  font-size: .78rem;
+  line-height: 1.3;
   color: var(--blk);
+  margin-bottom: 6px;
 }
-.value-card p {
-  font-size: .88rem;
+.wd-venue {
+  font-size: .7rem;
   color: var(--faded);
+  margin-bottom: 4px;
+}
+.wd-time {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .48rem;
+  color: var(--dust);
+  letter-spacing: .05em;
+}
+.wd-multi {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .45rem;
+  color: var(--coral);
+  margin-top: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.wd-no-jam {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .48rem;
+  color: var(--dust);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-top: 16px;
+}
+
+/* Day detail popup */
+.day-detail-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(22,18,16,.85);
+  backdrop-filter: blur(12px);
+  z-index: 9998;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.day-detail-overlay.open { display: flex; }
+.day-detail {
+  background: var(--deep);
+  color: var(--cream);
+  border: 1px solid rgba(255,144,144,.12);
+  border-radius: 4px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 36px;
+  position: relative;
+  transform: rotate(-.5deg);
+}
+.day-detail-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: none; border: none;
+  color: var(--lav-dark);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color .2s;
+}
+.day-detail-close:hover { color: var(--coral); }
+.day-detail h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+.day-detail-event {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.day-detail-event:last-child { border-bottom: none; }
+.day-detail-event h4 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+.day-detail-event .dde-venue {
+  color: var(--lav);
+  font-size: .85rem;
+  margin-bottom: 4px;
+}
+.day-detail-event .dde-meta {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .56rem;
+  color: var(--lav-dark);
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+.day-detail-event .dde-desc {
+  font-size: .82rem;
+  color: var(--lav);
   line-height: 1.7;
 }
-.value-icon {
-  font-family: 'Azeret Mono', monospace;
-  font-size: .5rem;
-  font-weight: 600;
-  color: var(--red);
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  margin-bottom: 14px;
-  opacity: .7;
+
+
+/* ===================================================
+   HOW IT WORKS
+   =================================================== */
+
+#how-it-works {
+  background: var(--deep);
+  color: var(--cream);
+  padding: clamp(80px,12vw,140px) 44px;
+  position: relative;
+  overflow: hidden;
+}
+#how-it-works::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0px, transparent 3px, rgba(205,177,204,.012) 3px, rgba(205,177,204,.012) 4px);
+  pointer-events: none;
+}
+#how-it-works .s-label { color: var(--coral); }
+#how-it-works .s-label::before { background: var(--coral); }
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+  position: relative;
+  z-index: 2;
+}
+.step-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  padding: 36px 28px;
+  border-radius: 2px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all .45s cubic-bezier(.16,1,.3,1);
+}
+.step-card:nth-child(1) { transform: rotate(.4deg); }
+.step-card:nth-child(2) { transform: rotate(-.3deg); }
+.step-card:nth-child(3) { transform: rotate(.5deg); }
+.step-card:hover {
+  transform: translateY(-6px) rotate(-1deg) !important;
+  border-color: rgba(255,144,144,.2);
+  box-shadow: 0 16px 44px rgba(0,0,0,.2);
+}
+.step-card .sc-hover-line {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 3px;
+  background: var(--coral);
+  transition: width .4s;
+}
+.step-card:hover .sc-hover-line { width: 100%; }
+
+.step-num {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-variation-settings: 'WONK' 1;
+  font-size: 2.8rem;
+  color: var(--coral);
+  opacity: .2;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.step-icon {
+  font-size: 2.4rem;
+  margin-bottom: 16px;
+  display: block;
+}
+.step-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+.step-card p {
+  font-size: .85rem;
+  color: var(--lav);
+  line-height: 1.7;
 }
 
 
@@ -993,6 +1081,141 @@ nav.scrolled {
 
 
 /* ===================================================
+   VENUES
+   =================================================== */
+
+#venues {
+  background: var(--blk);
+  color: var(--cream);
+  padding: clamp(80px,12vw,160px) 44px;
+  position: relative;
+  overflow: hidden;
+}
+#venues::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0px, transparent 3px, rgba(205,177,204,.012) 3px, rgba(205,177,204,.012) 4px);
+  pointer-events: none;
+}
+#venues .s-label { color: var(--coral); }
+#venues .s-label::before { background: var(--coral); }
+
+.venues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  margin-top: 48px;
+  position: relative;
+  z-index: 2;
+}
+.venue-card {
+  background: var(--wine);
+  border: 1px solid rgba(255,255,255,.06);
+  padding: 28px;
+  border-radius: 2px;
+  transition: all .45s cubic-bezier(.16,1,.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.venue-card:nth-child(odd) { transform: rotate(-.2deg); }
+.venue-card:nth-child(even) { transform: rotate(.3deg); }
+.venue-card:hover {
+  transform: translateY(-5px) rotate(0deg) !important;
+  border-color: rgba(255,144,144,.2);
+  box-shadow: 0 14px 40px rgba(0,0,0,.25);
+}
+.venue-card .ven-hover-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--coral);
+  transition: width .4s;
+}
+.venue-card:hover .ven-hover-line { width: 100%; }
+.venue-card h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-variation-settings: 'WONK' 1;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+.venue-card .ven-hood {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin-bottom: 10px;
+}
+.venue-card .ven-type-badge {
+  display: inline-block;
+  font-family: 'Azeret Mono', monospace;
+  font-size: .45rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 2px;
+  background: rgba(255,144,144,.08);
+  border: 1px solid rgba(255,144,144,.15);
+  color: var(--coral);
+  margin-bottom: 12px;
+  transform: rotate(-1deg);
+  display: inline-block;
+}
+.venue-card .ven-address {
+  font-size: .8rem;
+  color: var(--lav-dark);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.venue-card .ven-jams-list {
+  margin-bottom: 12px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.venue-card .ven-jam-item {
+  font-size: .75rem;
+  color: var(--lav);
+  line-height: 1.7;
+}
+.venue-card .ven-jam-item .vji-day {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .48rem;
+  font-weight: 600;
+  color: var(--caramel);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-right: 6px;
+}
+.venue-card .ven-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.venue-card .ven-links a {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--lav);
+  text-decoration: none;
+  transition: all .2s;
+  padding: 4px 0;
+}
+.venue-card .ven-links a:hover {
+  color: var(--coral);
+  transform: translateX(3px);
+}
+
+
+/* ===================================================
    COMMUNITY GUIDELINES
    =================================================== */
 
@@ -1028,6 +1251,7 @@ nav.scrolled {
   transition: all .45s cubic-bezier(.16,1,.3,1);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 .rule-card:nth-child(1) { transform: rotate(-.3deg); }
 .rule-card:nth-child(2) { transform: rotate(.2deg); }
@@ -1072,6 +1296,14 @@ nav.scrolled {
   font-size: .85rem;
   color: var(--faded);
   line-height: 1.7;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .4s ease, margin .4s ease;
+  margin-top: 0;
+}
+.rule-card.expanded p {
+  max-height: 200px;
+  margin-top: 4px;
 }
 
 
@@ -1232,115 +1464,6 @@ nav.scrolled {
   letter-spacing: .2em;
   text-transform: uppercase;
   transform: rotate(-1deg);
-}
-
-
-/* ===================================================
-   VENUES MAP
-   =================================================== */
-
-#venues {
-  background: var(--blk);
-  color: var(--cream);
-  padding: clamp(80px,12vw,160px) 44px;
-  position: relative;
-  overflow: hidden;
-}
-#venues::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent 0px, transparent 3px, rgba(205,177,204,.012) 3px, rgba(205,177,204,.012) 4px);
-  pointer-events: none;
-}
-#venues .s-label { color: var(--coral); }
-#venues .s-label::before { background: var(--coral); }
-
-.venues-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 18px;
-  margin-top: 48px;
-  position: relative;
-  z-index: 2;
-}
-.venue-card {
-  background: var(--wine);
-  border: 1px solid rgba(255,255,255,.06);
-  padding: 24px;
-  border-radius: 2px;
-  transition: all .45s cubic-bezier(.16,1,.3,1);
-  position: relative;
-  overflow: hidden;
-}
-.venue-card:nth-child(odd) { transform: rotate(-.2deg); }
-.venue-card:nth-child(even) { transform: rotate(.3deg); }
-.venue-card:hover {
-  transform: translateY(-5px) rotate(0deg) !important;
-  border-color: rgba(255,144,144,.2);
-  box-shadow: 0 14px 40px rgba(0,0,0,.25);
-}
-.venue-card .ven-hover-line {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 3px;
-  background: var(--coral);
-  transition: width .4s;
-}
-.venue-card:hover .ven-hover-line { width: 100%; }
-.venue-card h3 {
-  font-family: 'Fraunces', serif;
-  font-weight: 700;
-  font-variation-settings: 'WONK' 1;
-  font-size: 1rem;
-  margin-bottom: 6px;
-}
-.venue-card .ven-hood {
-  font-family: 'Azeret Mono', monospace;
-  font-size: .5rem;
-  font-weight: 600;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--coral);
-  margin-bottom: 10px;
-}
-.venue-card .ven-address {
-  font-size: .8rem;
-  color: var(--lav-dark);
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-.venue-card .ven-links {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.venue-card .ven-links a {
-  font-family: 'Azeret Mono', monospace;
-  font-size: .5rem;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--lav);
-  text-decoration: none;
-  transition: all .2s;
-  padding: 4px 0;
-}
-.venue-card .ven-links a:hover {
-  color: var(--coral);
-  transform: translateX(3px);
-}
-.venue-card .ven-jam-count {
-  font-family: 'Azeret Mono', monospace;
-  font-size: .48rem;
-  color: var(--dust);
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,.06);
-  letter-spacing: .1em;
-  text-transform: uppercase;
 }
 
 
@@ -1571,6 +1694,18 @@ footer::before {
   color: rgba(255,255,255,.2);
   letter-spacing: .1em;
 }
+.footer-stamp {
+  font-family: 'Azeret Mono', monospace;
+  font-size: .5rem;
+  font-weight: 600;
+  color: var(--cream);
+  background: var(--red);
+  padding: 6px 14px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  transform: rotate(2deg);
+  display: inline-block;
+}
 .footer-by a {
   font-family: 'Azeret Mono', monospace;
   font-size: .52rem;
@@ -1588,9 +1723,9 @@ footer::before {
 
 @media (max-width: 1024px) {
   nav { padding: 16px 28px; }
-  .hero { padding: 120px 28px 80px; }
-  .hero-content { gap: 48px; }
+  .hero { padding: 120px 28px 60px; }
   section { padding-left: 28px !important; padding-right: 28px !important; }
+  .week-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -1618,21 +1753,25 @@ footer::before {
     opacity: 1;
   }
 
-  .hero { padding: 100px 20px 60px; min-height: auto; }
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-  .hero-visual {
-    height: 340px;
-    max-width: 360px;
-    margin: 0 auto;
-  }
+  .hero { padding: 100px 20px 50px; min-height: auto; }
   .hero h1 {
-    font-size: clamp(2.2rem, 10vw, 3.4rem);
+    font-size: clamp(2.8rem, 14vw, 4.5rem);
+  }
+  .tonight-card { margin-top: 32px; }
+
+  .week-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .week-day { min-height: 110px; padding: 12px 10px; }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  .about-layout,
   .community-layout {
     grid-template-columns: 1fr;
     gap: 36px;
@@ -1644,10 +1783,6 @@ footer::before {
   }
 
   .join-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .value-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1671,8 +1806,12 @@ footer::before {
 }
 
 @media (max-width: 480px) {
-  .hero-btns { flex-direction: column; }
-  .hero-btns .btn { text-align: center; justify-content: center; }
+  .hero-btns { flex-direction: column; align-items: center; }
+  .hero-btns .btn { text-align: center; justify-content: center; width: 100%; max-width: 280px; }
+
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
 
   .join-form {
     flex-direction: column;
@@ -1687,7 +1826,6 @@ footer::before {
   .ig-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .poster-main { width: 90%; left: 5%; padding: 24px; }
 
   .day-filter {
     gap: 6px;
@@ -1712,10 +1850,11 @@ footer::before {
   .btn, .day-btn { min-height: 44px; }
   .jam-card:hover { transform: none !important; }
   .venue-card:hover { transform: none !important; }
-  .value-card:hover { transform: none !important; }
+  .step-card:hover { transform: none !important; }
   .rule-card:hover { transform: none !important; }
+  .week-day:hover { transform: none !important; }
   * { -webkit-tap-highlight-color: transparent; }
-  button, .btn, .nav-links a, .jam-card, .venue-card {
+  button, .btn, .nav-links a, .jam-card, .venue-card, .week-day {
     -webkit-tap-highlight-color: rgba(255,144,144,.15);
   }
 }
@@ -1726,15 +1865,24 @@ footer::before {
 <!-- Cursor glow -->
 <div class="cursor-glow" id="cursorGlow"></div>
 
+<!-- Day detail overlay -->
+<div class="day-detail-overlay" id="dayDetailOverlay">
+  <div class="day-detail" id="dayDetail">
+    <button class="day-detail-close" id="dayDetailClose">&times;</button>
+    <h3 id="dayDetailTitle"></h3>
+    <div id="dayDetailContent"></div>
+  </div>
+</div>
+
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-logo">Glory Jams</a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="#about">About</a></li>
+    <li><a href="#calendar">This Week</a></li>
     <li><a href="#jams">Sessions</a></li>
     <li><a href="#venues">Venues</a></li>
-    <li><a href="#guidelines">Guidelines</a></li>
-    <li><a href="#community">Community</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#guidelines">Etiquette</a></li>
     <li><a href="#join">Get In</a></li>
   </ul>
   <button class="menu-btn" id="menuBtn" aria-label="Menu">
@@ -1748,34 +1896,28 @@ footer::before {
      =================================================== -->
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-text">
-      <div class="hero-tag">Oakland, California</div>
-      <h1>
-        <span class="word">Glory</span>
-        <span class="word">Jams</span>
-      </h1>
-      <p class="hero-sub">Musicians getting in rooms together. Every night, somewhere in Oakland, somebody's running a jam. We help you find it.</p>
-      <div class="hero-btns">
-        <a href="#jams" class="btn btn-red">Find a Session</a>
-        <a href="#join" class="btn btn-out">Get on the List</a>
-      </div>
+    <div class="hero-location">Oakland, CA</div>
+    <h1>
+      <span class="word">Glory</span><br>
+      <span class="word">Jams</span>
+    </h1>
+    <p class="hero-sub">Oakland's nightly jam sessions. Every night, somewhere in this city, somebody's running a jam. We help you find it.</p>
+    <div class="hero-btns">
+      <a href="#jams" class="btn btn-red">Find a Session</a>
+      <a href="#join" class="btn btn-out">Get on the List</a>
     </div>
 
-    <div class="hero-visual">
-      <div class="poster-main" id="heroPoster">
-        <div class="poster-date">Every Tuesday</div>
-        <div class="poster-title">The Funk & Soul Jam</div>
-        <div class="poster-venue">The Legionnaire Saloon</div>
-        <div class="poster-genre">Funk / Soul / R&B</div>
-        <div class="poster-divider"></div>
-        <div class="poster-details">
-          Doors 8pm / Music 9pm<br>
-          All instruments welcome<br>
-          No cover / 21+
-        </div>
+    <!-- Tonight's jam / next up card -->
+    <div class="tonight-card" id="tonightCard">
+      <div class="tonight-badge" id="tonightBadge">
+        <span class="pulse-dot"></span>
+        <span>Loading...</span>
       </div>
-      <div class="hero-stamp hero-stamp-1">Pull Up</div>
-      <div class="hero-stamp hero-stamp-2">#gloryjams</div>
+      <h3 id="tonightName">--</h3>
+      <div class="tc-venue" id="tonightVenue">--</div>
+      <div class="tc-meta" id="tonightMeta">--</div>
+      <div class="genre-tags" id="tonightTags"></div>
+      <div class="tc-desc" id="tonightDesc"></div>
     </div>
   </div>
 
@@ -1788,65 +1930,75 @@ footer::before {
 
 <!-- MARQUEE -->
 <div class="marquee" aria-hidden="true">
-  <div class="marquee-inner">
+  <div class="marquee-inner" id="marqueeInner">
+    <!-- Populated by JS with venue names -->
     <span class="t1">Funk</span>
     <span class="t2">Soul</span>
-    <span class="t1">Jazz</span>
-    <span class="t2">Blues</span>
-    <span class="t1">R&B</span>
-    <span class="t2">Latin</span>
+    <span class="t3">Jazz</span>
+    <span class="t1">Blues</span>
+    <span class="t2">R&amp;B</span>
+    <span class="t3">Oakland</span>
     <span class="t1">Open Jam</span>
-    <span class="t2">Oakland</span>
+    <span class="t2">No Gatekeepers</span>
+    <span class="t3">Pull Up</span>
     <span class="t1">Funk</span>
     <span class="t2">Soul</span>
-    <span class="t1">Jazz</span>
-    <span class="t2">Blues</span>
-    <span class="t1">R&B</span>
-    <span class="t2">Latin</span>
+    <span class="t3">Jazz</span>
+    <span class="t1">Blues</span>
+    <span class="t2">R&amp;B</span>
+    <span class="t3">Oakland</span>
     <span class="t1">Open Jam</span>
-    <span class="t2">Oakland</span>
+    <span class="t2">No Gatekeepers</span>
+    <span class="t3">Pull Up</span>
   </div>
 </div>
 
 
 <!-- ===================================================
-     ABOUT
+     WEEKLY CALENDAR
      =================================================== -->
-<section id="about">
+<section id="calendar">
   <div class="wrap">
-    <div class="s-label rv">The Mission</div>
-    <div class="s-title rv">Every night is a jam night<br>if you know where to look.</div>
+    <div class="s-label rv">This Week</div>
+    <div class="s-title rv">Seven nights.<br>Seven chances to play.</div>
+    <div class="s-sub rv rv-d1" style="color: var(--brown);">Tap any day to see what's happening.</div>
 
-    <div class="about-layout">
-      <div class="about-copy rv rv-d1">
-        <p>Glory Jams started as a simple idea: <em>musicians should play together more</em>. Not through streaming algorithms, not through social media content funnels, not through networking events where nobody actually plays.</p>
-        <p>Through <em>jam sessions</em>. The oldest, most honest way musicians have found each other for a hundred years. You show up, you sit in, you play. No audition. No cover charge. No followers required.</p>
-        <p>Oakland has one of the deepest music scenes on the West Coast, but finding out where the jams are happening means knowing someone who knows someone. We're building the map so you don't need to.</p>
-      </div>
-      <div class="about-manifesto rv rv-d2">
-        <blockquote>"The music industry is really good at turning music into content and really bad at getting musicians in a room together. We're fixing the second one."</blockquote>
-        <cite>-- Simonoto, founder</cite>
-      </div>
+    <div class="week-grid rv rv-d2" id="weekGrid">
+      <!-- Populated by JS -->
     </div>
+  </div>
+</section>
 
-    <div class="value-grid">
-      <div class="value-card rv rv-d1">
-        <div class="vc-hover-line"></div>
-        <div class="value-icon">01 / No Gatekeepers</div>
-        <h3>Open to Everyone</h3>
-        <p>If you play an instrument, you're welcome. No auditions, no prerequisites, no velvet ropes. Beginners sit in next to pros.</p>
+
+<!-- ===================================================
+     HOW IT WORKS
+     =================================================== -->
+<section id="how-it-works">
+  <div class="wrap">
+    <div class="s-label rv">How It Works</div>
+    <div class="s-title rv" style="color: var(--cream);">Three steps.<br>No audition required.</div>
+
+    <div class="steps-grid">
+      <div class="step-card rv rv-d1">
+        <div class="sc-hover-line"></div>
+        <div class="step-num">1</div>
+        <span class="step-icon">&#127928;</span>
+        <h3>Show up with your instrument</h3>
+        <p>Check the schedule, pick a jam that fits your vibe, and walk in the door. That's it. No RSVP, no ticket, no audition tape.</p>
       </div>
-      <div class="value-card rv rv-d2">
-        <div class="vc-hover-line"></div>
-        <div class="value-icon">02 / Free Forever</div>
-        <h3>Community-Powered</h3>
-        <p>Glory Jams is free to use, free to list sessions, free to find sessions. No subscriptions, no premium tiers, no ads.</p>
+      <div class="step-card rv rv-d2">
+        <div class="sc-hover-line"></div>
+        <div class="step-num">2</div>
+        <span class="step-icon">&#128221;</span>
+        <h3>Sign the list</h3>
+        <p>Most jams have a sign-up sheet or a host running the board. Put your name down, grab a drink, listen to who's playing, and get ready.</p>
       </div>
-      <div class="value-card rv rv-d3">
-        <div class="vc-hover-line"></div>
-        <div class="value-icon">03 / Local First</div>
-        <h3>Oakland Roots</h3>
-        <p>Born in Oakland, growing neighborhood by neighborhood. Every city has jams happening -- we're starting with ours.</p>
+      <div class="step-card rv rv-d3">
+        <div class="sc-hover-line"></div>
+        <div class="step-num">3</div>
+        <span class="step-icon">&#127911;</span>
+        <h3>Play your heart out</h3>
+        <p>When your name gets called, get up there and play. Lock in with the band, take your solo, have your moment. That's what we're all here for.</p>
       </div>
     </div>
   </div>
@@ -1859,7 +2011,7 @@ footer::before {
 <section id="jams">
   <div class="wrap">
     <div class="jams-header">
-      <div class="s-label rv">Sessions</div>
+      <div class="s-label rv">All Sessions</div>
       <div class="s-title rv" style="color: var(--cream);">This week in<br>Oakland.</div>
       <div class="s-sub rv rv-d1" style="color: var(--lav);">Jam sessions, open mics, and musician meetups happening near you. Show up, sit in, play.</div>
       <div class="day-filter rv rv-d2" id="dayFilter">
@@ -1912,40 +2064,40 @@ footer::before {
   <div class="wrap">
     <div class="s-label rv">Jam Etiquette</div>
     <div class="s-title rv">The unwritten rules,<br>written down.</div>
-    <p class="guidelines-intro rv rv-d1">Jam sessions work because musicians look out for each other. These aren't policies -- they're the common-sense code that keeps sessions fun, fair, and musical for everyone.</p>
+    <p class="guidelines-intro rv rv-d1">Jam sessions work because musicians look out for each other. Tap any rule to expand.</p>
 
     <div class="rules-grid">
-      <div class="rule-card rv rv-d1">
+      <div class="rule-card rv rv-d1" onclick="this.classList.toggle('expanded')">
         <div class="rc-hover-line"></div>
         <div class="rule-num">01</div>
         <h3>Listen More Than You Play</h3>
         <p>The best musicians at a jam are the best listeners. Leave space. Lock in with the groove. Your moment will come.</p>
       </div>
-      <div class="rule-card rv rv-d2">
+      <div class="rule-card rv rv-d2" onclick="this.classList.toggle('expanded')">
         <div class="rc-hover-line"></div>
         <div class="rule-num">02</div>
         <h3>Respect the Sign-Up</h3>
         <p>Wait your turn. Don't jump the list. If the host says three songs, play three songs. Everybody gets a shot.</p>
       </div>
-      <div class="rule-card rv rv-d1">
+      <div class="rule-card rv rv-d1" onclick="this.classList.toggle('expanded')">
         <div class="rc-hover-line"></div>
         <div class="rule-num">03</div>
         <h3>Support the Venue</h3>
         <p>Buy a drink. Tip the bartender. These spots give us a room for free -- the least we can do is be good customers.</p>
       </div>
-      <div class="rule-card rv rv-d2">
+      <div class="rule-card rv rv-d2" onclick="this.classList.toggle('expanded')">
         <div class="rc-hover-line"></div>
         <div class="rule-num">04</div>
         <h3>All Levels Welcome</h3>
         <p>Don't big-time people. The kid who just started playing deserves the same respect as the 30-year vet. We all started somewhere.</p>
       </div>
-      <div class="rule-card rv rv-d1">
+      <div class="rule-card rv rv-d1" onclick="this.classList.toggle('expanded')">
         <div class="rc-hover-line"></div>
         <div class="rule-num">05</div>
         <h3>Keep Your Volume in Check</h3>
         <p>Nobody wants to compete with a Marshall stack at a jazz jam. Read the room, match the energy, and let everyone be heard.</p>
       </div>
-      <div class="rule-card rv rv-d2">
+      <div class="rule-card rv rv-d2" onclick="this.classList.toggle('expanded')">
         <div class="rc-hover-line"></div>
         <div class="rule-num">06</div>
         <h3>Bring Good Vibes</h3>
@@ -1974,45 +2126,45 @@ footer::before {
 
       <div>
         <div class="ig-grid rv rv-d2">
-          <div class="ig-tile">
+          <a class="ig-tile" href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">
             <div class="ig-tile-inner">
               <span class="ig-tile-icon">&#127928;</span>
               <span class="ig-tile-label">Bass Solo</span>
             </div>
-          </div>
-          <div class="ig-tile">
+          </a>
+          <a class="ig-tile" href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">
             <div class="ig-tile-inner">
               <span class="ig-tile-icon">&#127911;</span>
               <span class="ig-tile-label">Headphones</span>
             </div>
-          </div>
-          <div class="ig-tile">
+          </a>
+          <a class="ig-tile" href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">
             <div class="ig-tile-inner">
               <span class="ig-tile-icon">&#127927;</span>
               <span class="ig-tile-label">Trumpet</span>
             </div>
-          </div>
-          <div class="ig-tile">
+          </a>
+          <a class="ig-tile" href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">
             <div class="ig-tile-inner">
               <span class="ig-tile-icon">&#127929;</span>
               <span class="ig-tile-label">Keys</span>
             </div>
-          </div>
-          <div class="ig-tile">
+          </a>
+          <a class="ig-tile" href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">
             <div class="ig-tile-inner">
               <span class="ig-tile-icon">&#129345;</span>
               <span class="ig-tile-label">Drums</span>
             </div>
-          </div>
-          <div class="ig-tile">
+          </a>
+          <a class="ig-tile" href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">
             <div class="ig-tile-inner">
               <span class="ig-tile-icon">&#127908;</span>
               <span class="ig-tile-label">Vocals</span>
             </div>
-          </div>
+          </a>
         </div>
         <div class="ig-follow rv rv-d3">
-          <a href="https://instagram.com/simonoto" target="_blank" rel="noopener">Follow @simonoto on Instagram</a>
+          <a href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">Follow #gloryjams on Instagram</a>
         </div>
       </div>
     </div>
@@ -2030,8 +2182,8 @@ footer::before {
 
     <div class="join-grid">
       <div class="join-card rv rv-d1">
-        <h3>Join the mailing list</h3>
-        <p>Get a heads up when new sessions drop, when special events happen, and when we expand to new neighborhoods.</p>
+        <h3>Get the weekly jam rundown</h3>
+        <p>New sessions, special events, and neighborhood updates. Straight to your inbox.</p>
 
         <form class="join-form" id="joinForm">
           <input type="email" placeholder="your@email.com" required aria-label="Email address" id="joinEmail">
@@ -2082,22 +2234,24 @@ footer::before {
     <div class="footer-brand">
       <a href="#" class="nav-logo">Glory Jams</a>
       <p>Oakland's jam session community. Finding and connecting musicians since 2026.</p>
+      <div class="footer-stamp" style="margin-top: 20px;">Made with love in Oakland</div>
     </div>
     <div class="footer-col">
       <h4>Navigate</h4>
       <ul>
-        <li><a href="#about">About</a></li>
-        <li><a href="#jams">Sessions</a></li>
+        <li><a href="#calendar">This Week</a></li>
+        <li><a href="#jams">All Sessions</a></li>
         <li><a href="#venues">Venues</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
         <li><a href="#guidelines">Jam Etiquette</a></li>
-        <li><a href="#community">Community</a></li>
         <li><a href="#join">Join</a></li>
       </ul>
     </div>
     <div class="footer-col">
       <h4>Connect</h4>
       <ul>
-        <li><a href="https://instagram.com/simonoto" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://instagram.com/explore/tags/gloryjams/" target="_blank" rel="noopener">Instagram #gloryjams</a></li>
+        <li><a href="https://instagram.com/simonoto" target="_blank" rel="noopener">@simonoto</a></li>
         <li><a href="https://simonoto.com" target="_blank" rel="noopener">Simonoto</a></li>
         <li><a href="mailto:simonoto@gmail.com">Contact</a></li>
       </ul>
@@ -2139,12 +2293,8 @@ try {
   firebase.auth().signInAnonymously().then(() => {
     db = firebase.database();
     firebaseReady = true;
-  }).catch(() => {
-    // Firebase auth failed — forms will still work with UI feedback
-  });
-} catch(e) {
-  // Firebase not available — degrade gracefully
-}
+  }).catch(() => {});
+} catch(e) {}
 
 
 /* ===================================================
@@ -2188,7 +2338,7 @@ revEls.forEach(el => revObs.observe(el));
    CURSOR GLOW
    =================================================== */
 const glow = document.getElementById('cursorGlow');
-const darkSections = document.querySelectorAll('.hero, #jams, #venues, footer');
+const darkSections = document.querySelectorAll('.hero, #how-it-works, #jams, #venues, footer');
 let glowActive = false;
 
 document.addEventListener('mousemove', e => {
@@ -2234,6 +2384,7 @@ darkSections.forEach(s => {
    =================================================== */
 const DAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DAY_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const today = new Date();
 const todayDay = DAYS[today.getDay()];
 
@@ -2251,9 +2402,230 @@ function getEventDay(event) {
   return event.recurrence && event.recurrence.dayOfWeek ? event.recurrence.dayOfWeek : null;
 }
 
+function capitalize(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+}
+
+
+/* ===================================================
+   TONIGHT'S JAM (hero card)
+   =================================================== */
+function renderTonightCard() {
+  if (!eventsData) return;
+  const events = eventsData.events.filter(e => e.status === 'active');
+  const venues = eventsData.venues;
+
+  // Find today's weekly jams
+  let todayEvents = events.filter(e =>
+    e.recurrence && e.recurrence.type === 'weekly' && getEventDay(e) === todayDay
+  );
+
+  // Also check monthly events (e.g. first friday)
+  const todayDayIdx = today.getDay();
+  const weekOfMonth = Math.ceil(today.getDate() / 7);
+  events.forEach(e => {
+    if (e.recurrence && e.recurrence.type === 'monthly' &&
+        getEventDay(e) === todayDay &&
+        e.recurrence.weekOfMonth === weekOfMonth) {
+      todayEvents.push(e);
+    }
+  });
+
+  let badgeText, event;
+
+  if (todayEvents.length > 0) {
+    event = todayEvents[0]; // Show first, could cycle
+    badgeText = 'Tonight';
+  } else {
+    // Find next day with a jam
+    for (let offset = 1; offset <= 7; offset++) {
+      const nextDayIdx = (today.getDay() + offset) % 7;
+      const nextDay = DAYS[nextDayIdx];
+      const nextEvents = events.filter(e =>
+        e.recurrence && e.recurrence.type === 'weekly' && getEventDay(e) === nextDay
+      );
+      if (nextEvents.length > 0) {
+        event = nextEvents[0];
+        badgeText = 'Next up: ' + capitalize(nextDay);
+        break;
+      }
+    }
+  }
+
+  if (!event) return;
+
+  const venue = venues[event.venueId] || {};
+  const badge = document.getElementById('tonightBadge');
+  badge.innerHTML = (badgeText === 'Tonight' ? '<span class="pulse-dot"></span>' : '') +
+    '<span>' + badgeText + '</span>';
+
+  document.getElementById('tonightName').textContent = event.name;
+
+  const venueLink = venue.googleMapsUrl
+    ? '<a href="' + venue.googleMapsUrl + '" target="_blank" rel="noopener">' + venue.name + '</a>'
+    : (venue.name || 'TBA');
+  document.getElementById('tonightVenue').innerHTML = venueLink +
+    (venue.neighborhood ? ' &middot; ' + venue.neighborhood : '');
+
+  const timeStr = formatTime(event.startTime) + ' - ' + formatTime(event.endTime);
+  const coverStr = event.coverCharge || 'free';
+  const ageStr = event.ageRestriction || '';
+  document.getElementById('tonightMeta').innerHTML =
+    timeStr + ' &middot; ' + coverStr + (ageStr ? ' &middot; ' + ageStr : '') +
+    (event.signupProcess ? '<br>' + event.signupProcess : '');
+
+  const tags = (event.genreTags || []).map(t =>
+    '<span class="genre-tag ' + t.replace(/[&]/g, '') + '">' + t + '</span>'
+  ).join('');
+  document.getElementById('tonightTags').innerHTML = tags;
+
+  if (event.description) {
+    document.getElementById('tonightDesc').textContent = event.description;
+    document.getElementById('tonightDesc').style.display = 'block';
+  }
+}
+
+
+/* ===================================================
+   WEEKLY CALENDAR
+   =================================================== */
+function renderWeekCalendar() {
+  if (!eventsData) return;
+  const grid = document.getElementById('weekGrid');
+  const events = eventsData.events.filter(e => e.status === 'active');
+  const venues = eventsData.venues;
+
+  // Start from Monday
+  const calDays = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+  const calLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  grid.innerHTML = calDays.map((day, i) => {
+    const dayEvents = events.filter(e =>
+      e.recurrence && getEventDay(e) === day
+    );
+    const isToday = day === todayDay;
+    const hasJam = dayEvents.length > 0;
+
+    let content = '<div class="wd-label">' + calLabels[i] +
+      (isToday ? '<span class="today-pip"></span>' : '') + '</div>';
+
+    if (hasJam) {
+      const first = dayEvents[0];
+      const venue = venues[first.venueId] || {};
+      content += '<div class="wd-jam-name">' + first.name + '</div>';
+      content += '<div class="wd-venue">' + (venue.name || '') + '</div>';
+      content += '<div class="wd-time">' + formatTime(first.startTime) + '</div>';
+      if (dayEvents.length > 1) {
+        content += '<div class="wd-multi">+' + (dayEvents.length - 1) + ' more</div>';
+      }
+    } else {
+      content += '<div class="wd-no-jam">No jam listed</div>';
+    }
+
+    const classes = ['week-day'];
+    if (isToday) classes.push('is-today');
+    if (!hasJam) classes.push('no-jam');
+
+    return '<div class="' + classes.join(' ') + '" data-day="' + day + '">' + content + '</div>';
+  }).join('');
+
+  // Click handler for day detail popup
+  grid.querySelectorAll('.week-day:not(.no-jam)').forEach(el => {
+    el.addEventListener('click', () => {
+      const day = el.dataset.day;
+      showDayDetail(day);
+    });
+  });
+}
+
+function showDayDetail(day) {
+  const overlay = document.getElementById('dayDetailOverlay');
+  const title = document.getElementById('dayDetailTitle');
+  const content = document.getElementById('dayDetailContent');
+  const events = eventsData.events.filter(e =>
+    e.status === 'active' && e.recurrence && getEventDay(e) === day
+  );
+  const venues = eventsData.venues;
+  const dayIdx = DAYS.indexOf(day);
+
+  title.textContent = DAY_FULL[dayIdx] + (day === todayDay ? ' (Today)' : '');
+
+  if (events.length === 0) {
+    content.innerHTML = '<p style="color:var(--lav-dark);font-size:.9rem;">No sessions listed for ' + capitalize(day) + 's yet.</p>';
+  } else {
+    content.innerHTML = events.map(event => {
+      const venue = venues[event.venueId] || {};
+      const timeStr = formatTime(event.startTime) + ' - ' + formatTime(event.endTime);
+      const tags = (event.genreTags || []).map(t =>
+        '<span class="genre-tag ' + t.replace(/[&]/g, '') + '">' + t + '</span>'
+      ).join('');
+
+      return '<div class="day-detail-event">' +
+        '<h4>' + event.name + '</h4>' +
+        '<div class="dde-venue">' + (venue.name || 'TBA') + ' &middot; ' + (venue.neighborhood || '') + '</div>' +
+        '<div class="dde-meta">' + timeStr + ' &middot; ' +
+          (event.coverCharge || 'free') +
+          (event.ageRestriction ? ' &middot; ' + event.ageRestriction : '') +
+          (event.signupProcess ? '<br>' + event.signupProcess : '') +
+        '</div>' +
+        '<div class="genre-tags" style="margin-bottom:8px;">' + tags + '</div>' +
+        (event.description ? '<div class="dde-desc">' + event.description + '</div>' : '') +
+        (venue.googleMapsUrl ? '<a href="' + venue.googleMapsUrl + '" target="_blank" rel="noopener" style="font-family:\'Azeret Mono\',monospace;font-size:.52rem;color:var(--coral);letter-spacing:.1em;text-transform:uppercase;text-decoration:none;display:inline-block;margin-top:8px;">Get Directions &rarr;</a>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  overlay.classList.add('open');
+}
+
+// Close day detail
+document.getElementById('dayDetailClose').addEventListener('click', () => {
+  document.getElementById('dayDetailOverlay').classList.remove('open');
+});
+document.getElementById('dayDetailOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove('open');
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.getElementById('dayDetailOverlay').classList.remove('open');
+  }
+});
+
+
+/* ===================================================
+   MARQUEE — populate with venue names
+   =================================================== */
+function populateMarquee() {
+  if (!eventsData) return;
+  const names = Object.values(eventsData.venues).map(v => v.name);
+  const genres = ['Funk', 'Soul', 'Jazz', 'Blues', 'R&B', 'Open Jam'];
+  const items = [];
+  // Interleave venue names and genres
+  names.forEach((name, i) => {
+    items.push({ text: name, cls: 't1' });
+    if (genres[i % genres.length]) items.push({ text: genres[i % genres.length], cls: i % 2 === 0 ? 't2' : 't3' });
+  });
+  // Add extra
+  items.push({ text: 'Oakland', cls: 't3' });
+  items.push({ text: 'No Gatekeepers', cls: 't2' });
+  items.push({ text: 'Pull Up', cls: 't1' });
+
+  // Duplicate for seamless scroll
+  const all = [...items, ...items];
+  const inner = document.getElementById('marqueeInner');
+  inner.innerHTML = all.map(it =>
+    '<span class="' + it.cls + '">' + it.text + '</span>'
+  ).join('');
+}
+
+
+/* ===================================================
+   JAM CARDS — day filter + render
+   =================================================== */
 function buildDayFilter() {
   const filter = document.getElementById('dayFilter');
-  // "All" button
   const allBtn = document.createElement('button');
   allBtn.className = 'day-btn active';
   allBtn.textContent = 'All';
@@ -2316,8 +2688,8 @@ function renderJams() {
     const isMonthly = event.recurrence && event.recurrence.type === 'monthly';
     const dayLabel = isMonthly
       ? (event.recurrence.weekOfMonth === 1 ? 'First ' : event.recurrence.weekOfMonth === 2 ? 'Second ' : event.recurrence.weekOfMonth === 3 ? 'Third ' : 'Last ') +
-        event.recurrence.dayOfWeek.charAt(0).toUpperCase() + event.recurrence.dayOfWeek.slice(1)
-      : 'Every ' + (getEventDay(event) || '').charAt(0).toUpperCase() + (getEventDay(event) || '').slice(1);
+        capitalize(event.recurrence.dayOfWeek)
+      : 'Every ' + capitalize(getEventDay(event) || '');
 
     const badgeClass = isToday ? 'tonight' : isMonthly ? 'monthly' : 'weekly';
     const badgeText = isToday
@@ -2356,77 +2728,76 @@ function renderJams() {
   grid.querySelectorAll('.rv').forEach(el => revObs.observe(el));
 }
 
+
+/* ===================================================
+   VENUE CARDS — enhanced with jam listings and type badges
+   =================================================== */
 function renderVenues() {
   if (!eventsData) return;
   const grid = document.getElementById('venuesGrid');
   const venues = eventsData.venues;
   const events = eventsData.events.filter(e => e.status === 'active');
 
+  const typeLabels = {
+    'bar': 'Bar',
+    'jazz-club': 'Jazz Club',
+    'conservatory': 'Conservatory',
+    'cafe': 'Cafe',
+    'restaurant': 'Restaurant',
+    'lounge': 'Lounge'
+  };
+
   const venueIds = Object.keys(venues);
   grid.innerHTML = venueIds.map((id, i) => {
     const v = venues[id];
-    const jamCount = events.filter(e => e.venueId === id).length;
+    const venueEvents = events.filter(e => e.venueId === id);
     const links = [];
     if (v.googleMapsUrl) links.push('<a href="' + v.googleMapsUrl + '" target="_blank" rel="noopener">Directions</a>');
     if (v.website) links.push('<a href="' + v.website + '" target="_blank" rel="noopener">Website</a>');
     if (v.instagram) links.push('<a href="https://instagram.com/' + v.instagram + '" target="_blank" rel="noopener">@' + v.instagram + '</a>');
 
+    // Jam listings for this venue
+    const jamsHtml = venueEvents.map(e => {
+      const isMonthly = e.recurrence && e.recurrence.type === 'monthly';
+      const dayLabel = isMonthly
+        ? (e.recurrence.weekOfMonth === 1 ? '1st ' : '') + capitalize(getEventDay(e) || '')
+        : capitalize(getEventDay(e) || '');
+      return '<div class="ven-jam-item"><span class="vji-day">' + dayLabel + '</span>' +
+        e.name + ' &middot; ' + formatTime(e.startTime) + '</div>';
+    }).join('');
+
+    const typeBadge = v.venueType && typeLabels[v.venueType]
+      ? '<div class="ven-type-badge">' + typeLabels[v.venueType] + '</div>'
+      : '';
+
     return '<div class="venue-card rv rv-d' + ((i % 4) + 1) + '">' +
       '<div class="ven-hover-line"></div>' +
       '<h3>' + v.name + '</h3>' +
       '<div class="ven-hood">' + v.neighborhood + '</div>' +
+      typeBadge +
       '<div class="ven-address">' + v.address + '</div>' +
+      (jamsHtml ? '<div class="ven-jams-list">' + jamsHtml + '</div>' : '') +
       (links.length ? '<div class="ven-links">' + links.join('') + '</div>' : '') +
-      '<div class="ven-jam-count">' + jamCount + ' active session' + (jamCount !== 1 ? 's' : '') + '</div>' +
     '</div>';
   }).join('');
 
   grid.querySelectorAll('.rv').forEach(el => revObs.observe(el));
 }
 
-// Hero poster rotates through featured events
-function cycleHeroPoster() {
-  if (!eventsData) return;
-  const featured = eventsData.events.filter(e => e.featured && e.status === 'active');
-  if (featured.length === 0) return;
 
-  let idx = 0;
-  function show() {
-    const event = featured[idx];
-    const venue = eventsData.venues[event.venueId] || {};
-    const poster = document.getElementById('heroPoster');
-    if (!poster) return;
-
-    const dayLabel = event.recurrence.type === 'monthly'
-      ? (event.recurrence.weekOfMonth === 1 ? 'First ' : '') + event.recurrence.dayOfWeek.charAt(0).toUpperCase() + event.recurrence.dayOfWeek.slice(1)
-      : 'Every ' + event.recurrence.dayOfWeek.charAt(0).toUpperCase() + event.recurrence.dayOfWeek.slice(1);
-
-    poster.querySelector('.poster-date').textContent = dayLabel;
-    poster.querySelector('.poster-title').textContent = event.name;
-    poster.querySelector('.poster-venue').textContent = venue.name || '';
-    poster.querySelector('.poster-genre').textContent = (event.genreTags || []).join(' / ').toUpperCase();
-    poster.querySelector('.poster-details').innerHTML =
-      formatTime(event.startTime) + ' - ' + formatTime(event.endTime) + '<br>' +
-      'All instruments welcome<br>' +
-      (event.coverCharge === 'free' ? 'No cover' : event.coverCharge) + (event.ageRestriction ? ' / ' + event.ageRestriction : '');
-
-    idx = (idx + 1) % featured.length;
-  }
-
-  // Cycle every 6 seconds
-  show();
-  setInterval(show, 6000);
-}
-
-// Load events data
+/* ===================================================
+   LOAD DATA & INITIALIZE
+   =================================================== */
 fetch('events.json')
   .then(r => r.json())
   .then(data => {
     eventsData = data;
+    renderTonightCard();
+    populateMarquee();
+    renderWeekCalendar();
     buildDayFilter();
     renderJams();
     renderVenues();
-    cycleHeroPoster();
   })
   .catch(() => {
     document.getElementById('jamsGrid').innerHTML =
@@ -2456,7 +2827,7 @@ document.getElementById('joinForm').addEventListener('submit', function(e) {
       phone: '',
       created: new Date().toISOString(),
       source: 'website'
-    }).then(onSuccess).catch(onSuccess); // Show success even if Firebase write fails
+    }).then(onSuccess).catch(onSuccess);
   } else {
     onSuccess();
   }
